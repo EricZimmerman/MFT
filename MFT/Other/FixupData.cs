@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace MFT.Other
 {
@@ -30,5 +31,20 @@ namespace MFT.Other
         ///     The actual bytes to be overlayed before processing a record, in order
         /// </summary>
         public List<byte[]> FixupActual { get; }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            foreach (var bytese in FixupActual)
+            {
+                var bb = BitConverter.ToString(bytese);
+                sb.Append($"{bb}|");
+            }
+
+            var fua = sb.ToString().TrimEnd('|');
+
+            return $"Expected: {BitConverter.ToString(BitConverter.GetBytes(FixupExpected))} FixupActual: {fua}";
+        }
     }
 }

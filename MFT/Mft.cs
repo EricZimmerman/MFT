@@ -32,7 +32,6 @@ namespace MFT
 
                 var f = new FileRecord(fileBytes, index);
 
-                
 
                 var key = $"{f.EntryNumber}-{f.SequenceNumber}";
 
@@ -69,7 +68,6 @@ namespace MFT
 
                 index += blockSize;
             }
-
         }
 
         public Dictionary<string, FileRecord> FileRecords { get; }

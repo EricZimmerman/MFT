@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Text;
 
 namespace MFT.Attributes
@@ -28,7 +27,7 @@ namespace MFT.Attributes
 
             ParentMftRecord = new MftEntryInfo(entryBytes);
 
-                        var createdRaw = BitConverter.ToInt64(rawBytes, 0x8);
+            var createdRaw = BitConverter.ToInt64(rawBytes, 0x8);
             if (createdRaw > 0)
             {
                 CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
@@ -64,7 +63,6 @@ namespace MFT.Attributes
             NameType = (NameTypes) rawBytes[0x41];
 
             FileName = Encoding.Unicode.GetString(rawBytes, 0x42, NameLength * 2);
-
         }
 
         public int ReparseValue { get; }

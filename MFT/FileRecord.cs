@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using MFT.Attributes;
 using MFT.Other;
@@ -62,7 +61,12 @@ namespace MFT
             var fixupBuffer = new byte[fixupTotalLength];
             Buffer.BlockCopy(rawBytes, FixupOffset, fixupBuffer, 0, fixupTotalLength);
 
+            //pull this early so we can check if its free in our fix up value messages
+            EntryFlags = (EntryFlag) BitConverter.ToInt16(rawBytes, 0x16);
+
             FixupData = new FixupData(fixupBuffer);
+
+            FixupOK = true;
 
             //fixup verification
             var counter = 0;
@@ -78,10 +82,11 @@ namespace MFT
                 }
 
                 var expected = BitConverter.ToInt16(rawBytes, fixupOffset);
-                if (expected != FixupData.FixupExpected)
+                if (expected != FixupData.FixupExpected && EntryFlags != 0x0)
                 {
+                    FixupOK = false;
                     logger.Warn(
-                        $"Fixup values do not match at 0x{fixupOffset:X}. Expected: 0x{FixupData.FixupExpected:X2}, actual: 0x{expected:X2}");
+                        $"Offset: 0x{Offset:X} Entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X} Fixup values do not match at 0x{fixupOffset:X}. Expected: 0x{FixupData.FixupExpected:X2}, actual: 0x{expected:X2}");
                 }
 
                 //replace fixup expectedw ith actual bytes. bytese has actual replacement values in it.
@@ -98,7 +103,6 @@ namespace MFT
 
             FirstAttributeOffset = BitConverter.ToInt16(rawBytes, 0x14);
 
-            EntryFlags = (EntryFlag) BitConverter.ToInt16(rawBytes, 0x16);
 
             ActualRecordSize = BitConverter.ToInt32(rawBytes, 0x18);
 
@@ -129,7 +133,7 @@ namespace MFT
                 if (attrSize == 0 || attrType == AttributeType.EndOfAttributes)
                 {
                     index += 8; //skip -1 type and 0 size
-                    
+
                     if (index != ActualRecordSize)
                     {
                         logger.Warn($"Slack space found in entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X}");
@@ -145,11 +149,6 @@ namespace MFT
                 var rawAttr = new byte[attrSize];
                 Buffer.BlockCopy(rawBytes, index, rawAttr, 0, attrSize);
 
-                if (EntryNumber == 0x2B)
-                {
-                    Debug.WriteLine(1);
-                }
-
                 switch (attrType)
                 {
                     case AttributeType.StandardInformation:
@@ -159,8 +158,6 @@ namespace MFT
                     case AttributeType.FileName:
                         var fi = new FileName(rawAttr);
                         Attributes.Add(fi);
-
-           
 
                         break;
                     case AttributeType.Data:
@@ -172,11 +169,6 @@ namespace MFT
                         Attributes.Add(ia);
                         break;
                     case AttributeType.IndexRoot:
-                        if (offset == 0x2C00)
-                        {
-                            logger.Info($"Index: 0x{index:X} offset: 0x{offset:X}");
-                        }
-                        
                         var ir = new IndexRoot(rawAttr);
                         Attributes.Add(ir);
                         break;
@@ -215,7 +207,6 @@ namespace MFT
                         break;
 
                     case AttributeType.AttributeList:
-                        //          System.IO.File.WriteAllBytes($@"C:\temp\attrList{Offset}.bb", rawAttr);
                         var al = new AttributeList(rawAttr);
                         Attributes.Add(al);
                         break;
@@ -264,6 +255,8 @@ namespace MFT
         public short FixupEntryCount { get; }
         public short FixupOffset { get; }
 
+        public bool FixupOK { get; }
+
         public List<FileRecord> RelatedFileRecords { get; }
 
         public override string ToString()
@@ -271,7 +264,7 @@ namespace MFT
             var sb = new StringBuilder();
 
             sb.AppendLine(
-                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LSN: 0x{LogSequenceNumber:X} MftRecordToBaseRecord: {MftRecordToBaseRecord}");
+                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LSN: 0x{LogSequenceNumber:X} MftRecordToBaseRecord: {MftRecordToBaseRecord} FixupData: {FixupData} (Fixup OK: {FixupOK})");
 
             foreach (var attribute in Attributes)
             {

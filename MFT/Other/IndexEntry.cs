@@ -1,18 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using MFT.Attributes;
 
 namespace MFT.Other
 {
-  public  class IndexEntry
+    public class IndexEntry
     {
-       
-
-      
-
         public IndexEntry(byte[] rawBytes)
         {
             var index = 0;
@@ -23,7 +16,7 @@ namespace MFT.Other
             index += 2;
 
             var indexFlags = (IndexRoot.IndexFlag) BitConverter.ToInt32(rawBytes, index);
-            index +=4;
+            index += 4;
 
             if ((indexFlags & IndexRoot.IndexFlag.IsLast) == IndexRoot.IndexFlag.IsLast)
             {
@@ -49,11 +42,11 @@ namespace MFT.Other
 
             if (indexKeyDataSize > 0)
             {
-                 var mftInfoBytes = new byte[8];
-                Buffer.BlockCopy(rawBytes,index,mftInfoBytes,0,8);
+                var mftInfoBytes = new byte[8];
+                Buffer.BlockCopy(rawBytes, index, mftInfoBytes, 0, 8);
                 index += 8;
 
-                 ParentMftRecord = new MftEntryInfo(mftInfoBytes);
+                ParentMftRecord = new MftEntryInfo(mftInfoBytes);
 
                 var createdRaw = BitConverter.ToInt64(rawBytes, index);
                 if (createdRaw > 0)
@@ -96,7 +89,6 @@ namespace MFT.Other
                 Flags = (StandardInfo.Flag) BitConverter.ToInt32(rawBytes, index);
                 index += 4;
 
-         
 
                 ReparseValue = BitConverter.ToInt32(rawBytes, index);
                 index += 4;
@@ -108,13 +100,23 @@ namespace MFT.Other
 
                 FileName = Encoding.Unicode.GetString(rawBytes, index, NameLength * 2);
             }
-            
+
             //index += 2; //padding
-
-           
-
-
         }
+
+        public int ReparseValue { get; }
+        public byte NameLength { get; }
+        public NameTypes NameType { get; }
+        public string FileName { get; }
+        public ulong PhysicalSize { get; }
+        public ulong LogicalSize { get; }
+        public DateTimeOffset? CreatedOn { get; }
+        public DateTimeOffset? ContentModifiedOn { get; }
+        public DateTimeOffset? RecordModifiedOn { get; }
+        public DateTimeOffset? LastAccessedOn { get; }
+        public StandardInfo.Flag Flags { get; }
+
+        public MftEntryInfo ParentMftRecord { get; }
 
         public override string ToString()
         {
@@ -132,19 +134,5 @@ namespace MFT.Other
 
             return sb.ToString();
         }
-
-        public int ReparseValue { get; }
-        public byte NameLength { get; }
-        public NameTypes NameType { get; }
-        public string FileName { get; }
-        public ulong PhysicalSize { get; }
-        public ulong LogicalSize { get; }
-        public DateTimeOffset? CreatedOn { get; }
-        public DateTimeOffset? ContentModifiedOn { get; }
-        public DateTimeOffset? RecordModifiedOn { get; }
-        public DateTimeOffset? LastAccessedOn { get; }
-        public StandardInfo.Flag Flags { get; }
-
-        public MftEntryInfo ParentMftRecord { get; }
     }
 }

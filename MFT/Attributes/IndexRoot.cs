@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using MFT.Other;
@@ -27,11 +26,6 @@ namespace MFT.Attributes
             IsLast = 0x002
         }
 
-        public IndexFlag Flags { get; }
-        public int TotalSizeOfIndexEntries{ get; }
-        public int AllocatedSizeOfEntries{ get; }
-        public int OffsetToFirstIndexEntry{ get; }
-
         public IndexRoot(byte[] rawBytes) : base(rawBytes)
         {
             var index = (int) ContentOffset;
@@ -55,16 +49,15 @@ namespace MFT.Attributes
             AllocatedSizeOfEntries = BitConverter.ToInt32(rawBytes, index);
             index += 4;
 
-            Flags = (IndexFlag)rawBytes[index];
+            Flags = (IndexFlag) rawBytes[index];
             index += 1;
 
-          
 
-            index += 3;//padding
+            index += 3; //padding
 
-        //TODO verify this
+            //TODO verify this
             var mftInfoBytes = new byte[8];
-            Buffer.BlockCopy(rawBytes,index,mftInfoBytes,0,8);
+            Buffer.BlockCopy(rawBytes, index, mftInfoBytes, 0, 8);
             index += 8;
 
             MftRecord = new MftEntryInfo(mftInfoBytes);
@@ -88,9 +81,7 @@ namespace MFT.Attributes
                 }
 
                 var buff = new byte[indexValSize];
-                Buffer.BlockCopy(rawBytes,index,buff,0,indexValSize);
-
-                File.WriteAllBytes(@"C:\temp\indexroot.bb",rawBytes);
+                Buffer.BlockCopy(rawBytes, index, buff, 0, indexValSize);
 
                 var ie = new IndexEntry(buff);
 
@@ -98,8 +89,12 @@ namespace MFT.Attributes
 
                 index += indexValSize;
             }
-          
         }
+
+        public IndexFlag Flags { get; }
+        public int TotalSizeOfIndexEntries { get; }
+        public int AllocatedSizeOfEntries { get; }
+        public int OffsetToFirstIndexEntry { get; }
         public List<IndexEntry> IndexEntries { get; }
         public MftEntryInfo MftRecord { get; }
         public AttributeType IndexedAttributeType { get; }
