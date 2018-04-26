@@ -66,7 +66,7 @@ namespace MFT.Attributes
         public override string ToString()
         {
             return
-                $"Type: {AttributeType}, Attr #: {AttributeNumber} Size: {AttributeSize}, Content size: {AttributeContentLength}, Name size: {NameSize}, Content offset: {ContentOffset}, Resident: {IsResident}";
+                $"Type: {AttributeType}, Attr #: 0x{AttributeNumber:X} Size: 0x{AttributeSize:X}, Content size: 0x{AttributeContentLength:X}, Name size: 0x{NameSize:X}, Name: {Name}, Content offset: 0x{ContentOffset:X}, Resident: {IsResident}";
         }
     }
 }

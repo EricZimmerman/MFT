@@ -10,9 +10,9 @@ namespace MFT.Attributes
 
             VolName = string.Empty;
 
-            if (NameSize > 0 && residentData.Data.Length > 0)
+            if (residentData.Data.Length > 0)
             {
-                VolName = Encoding.Unicode.GetString(residentData.Data);
+                VolName = Encoding.Unicode.GetString(residentData.Data,ContentOffset,residentData.Data.Length - ContentOffset).TrimEnd('\0');
             }
         }
 
@@ -28,7 +28,7 @@ namespace MFT.Attributes
 
             sb.AppendLine();
 
-            sb.AppendLine($"VolName: {VolName}");
+            sb.AppendLine($"Volume Name: {VolName}");
 
             return sb.ToString();
         }

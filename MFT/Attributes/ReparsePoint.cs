@@ -7,17 +7,17 @@ namespace MFT.Attributes
     {
         public enum ReparsePointTag
         {
-            ReservedZero_0x00000000,
-            ReservedOne_0x00000001,
-            DriverExtender_0x80000005,
-            HierarchicalStorageManager2_0x80000006,
-            SISFilterDriver_0x80000007,
-            DistributedFileSystem_0x8000000a,
-            FilterManagerTestHarness_0x8000000b,
-            DistributedFileSystemR_0x80000012,
-            MountPoint_0xa0000003,
-            SymbolicLink_0xa000000c,
-            HierarchicalStorageManager_0xc0000004
+            ReservedZero,
+            ReservedOne,
+            DriverExtender,
+            HierarchicalStorageManager2,
+            SISFilterDriver,
+            DistributedFileSystem,
+            FilterManagerTestHarness,
+            DistributedFileSystemR,
+            MountPoint,
+            SymbolicLink,
+            HierarchicalStorageManager
         }
 
         public ReparsePoint(byte[] rawBytes) : base(rawBytes)
@@ -31,37 +31,37 @@ namespace MFT.Attributes
             switch (tag)
             {
                 case 0x00000000:
-                    Tag = ReparsePointTag.ReservedZero_0x00000000;
+                    Tag = ReparsePointTag.ReservedZero;
                     break;
                 case 0x00000001:
-                    Tag = ReparsePointTag.ReservedOne_0x00000001;
+                    Tag = ReparsePointTag.ReservedOne;
                     break;
                 case 0x80000005:
-                    Tag = ReparsePointTag.DriverExtender_0x80000005;
+                    Tag = ReparsePointTag.DriverExtender;
                     break;
                 case 0x80000006:
-                    Tag = ReparsePointTag.HierarchicalStorageManager2_0x80000006;
+                    Tag = ReparsePointTag.HierarchicalStorageManager2;
                     break;
                 case 0x80000007:
-                    Tag = ReparsePointTag.SISFilterDriver_0x80000007;
+                    Tag = ReparsePointTag.SISFilterDriver;
                     break;
                 case 0x8000000a:
-                    Tag = ReparsePointTag.DistributedFileSystem_0x8000000a;
+                    Tag = ReparsePointTag.DistributedFileSystem;
                     break;
                 case 0x8000000b:
-                    Tag = ReparsePointTag.FilterManagerTestHarness_0x8000000b;
+                    Tag = ReparsePointTag.FilterManagerTestHarness;
                     break;
                 case 0x80000012:
-                    Tag = ReparsePointTag.DistributedFileSystemR_0x80000012;
+                    Tag = ReparsePointTag.DistributedFileSystemR;
                     break;
                 case 0xa0000003:
-                    Tag = ReparsePointTag.MountPoint_0xa0000003;
+                    Tag = ReparsePointTag.MountPoint;
                     break;
                 case 0xa000000c:
-                    Tag = ReparsePointTag.SymbolicLink_0xa000000c;
+                    Tag = ReparsePointTag.SymbolicLink;
                     break;
                 case 0xc0000004:
-                    Tag = ReparsePointTag.HierarchicalStorageManager_0xc0000004;
+                    Tag = ReparsePointTag.HierarchicalStorageManager;
                     break;
             }
 
@@ -75,12 +75,12 @@ namespace MFT.Attributes
 
             var baseOffset = 0x10;
 
-            if (Tag != ReparsePointTag.SymbolicLink_0xa000000c && Tag != ReparsePointTag.MountPoint_0xa0000003)
+            if (Tag != ReparsePointTag.SymbolicLink && Tag != ReparsePointTag.MountPoint)
             {
                 return;
             }
 
-            if (Tag == ReparsePointTag.SymbolicLink_0xa000000c)
+            if (Tag == ReparsePointTag.SymbolicLink)
             {
                 baseOffset += 2;
             }

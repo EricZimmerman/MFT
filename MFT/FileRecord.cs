@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using MFT.Attributes;
 using MFT.Other;
@@ -149,25 +150,30 @@ namespace MFT
                 var rawAttr = new byte[attrSize];
                 Buffer.BlockCopy(rawBytes, index, rawAttr, 0, attrSize);
 
+                //File.WriteAllBytes($@"C:\temp\{attrType}.bb",rawAttr);
+
                 switch (attrType)
                 {
                     case AttributeType.StandardInformation:
                         var si = new StandardInfo(rawAttr);
                         Attributes.Add(si);
                         break;
+
                     case AttributeType.FileName:
                         var fi = new FileName(rawAttr);
                         Attributes.Add(fi);
-
                         break;
+
                     case AttributeType.Data:
                         var d = new Data(rawAttr);
                         Attributes.Add(d);
                         break;
+
                     case AttributeType.IndexAllocation:
                         var ia = new IndexAllocation(rawAttr);
                         Attributes.Add(ia);
                         break;
+
                     case AttributeType.IndexRoot:
                         var ir = new IndexRoot(rawAttr);
                         Attributes.Add(ir);
@@ -187,10 +193,12 @@ namespace MFT
                         var sd = new SecurityDescriptor(rawAttr);
                         Attributes.Add(sd);
                         break;
+
                     case AttributeType.VolumeName:
                         var vn = new VolumeName(rawAttr);
                         Attributes.Add(vn);
                         break;
+
                     case AttributeType.VolumeInformation:
                         var vi = new VolumeInformation(rawAttr);
                         Attributes.Add(vi);
@@ -212,7 +220,6 @@ namespace MFT
                         break;
 
                     case AttributeType.Ea:
-                        //TODO Finish this
                         var ea = new ExtendedAttribute(rawAttr);
                         Attributes.Add(ea);
                         break;

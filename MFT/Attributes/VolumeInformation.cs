@@ -12,8 +12,8 @@ namespace MFT.Attributes
             IsDirty = 0x0001,
             ResizeJournalLogFile = 0x0002,
             UpgradeOnNextMount = 0x0004,
-            MountedOnNT4 = 0x0008,
-            DeleteUSNUnderway = 0x0010,
+            MountedOnNt4 = 0x0008,
+            DeleteUsnUnderway = 0x0010,
             RepairObjectIDs = 0x0020,
             ModifiedByChkDsk = 0x8000
         }
@@ -24,12 +24,12 @@ namespace MFT.Attributes
 
             //our data is in residentData.Data
             UnknownBytes = new byte[8];
-            Buffer.BlockCopy(residentData.Data, 0, UnknownBytes, 0, 8);
+            Buffer.BlockCopy(residentData.Data, ContentOffset, UnknownBytes, 0, 8);
 
-            MajorVersion = residentData.Data[0x8];
-            MinorVersion = residentData.Data[0x9];
+            MajorVersion = residentData.Data[ContentOffset + 0x8];
+            MinorVersion = residentData.Data[ContentOffset + 0x9];
 
-            VolumeFlags = (VolumeFlag) BitConverter.ToInt16(residentData.Data, 0xA);
+            VolumeFlags = (VolumeFlag) BitConverter.ToInt16(residentData.Data, ContentOffset+ 0xA);
         }
 
         public byte[] UnknownBytes { get; }

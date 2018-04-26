@@ -11,6 +11,7 @@ namespace MFT.Attributes
 
             Buffer.BlockCopy(rawBytes, ContentOffset, content, 0, AttributeContentLength);
 
+            //TODO decode content based on Name? $EFS, etc.
             ResidentData = new ResidentData(content);
         }
 

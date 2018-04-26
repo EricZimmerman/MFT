@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using MFT.Other;
 
 namespace MFT.Attributes
@@ -42,7 +43,6 @@ namespace MFT.Attributes
                 var index = OffsetToDataRun;
 
                 var hasAnother = rawBytes[index] > 0;
-
 
                 //when data is split across several entries, must find them all and process in order of 
                 //StartingVCN: 0x0 EndingVCN: 0x57C
@@ -96,8 +96,17 @@ namespace MFT.Attributes
 
         public override string ToString()
         {
-            return
-                $"{base.ToString()} DataRuns: {string.Join("|", DataRuns)} AttributeInfos: {string.Join("|", AttributeInformations)} Name: {Name} ";
+            var sb = new StringBuilder();
+
+            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+
+            sb.AppendLine(base.ToString());
+
+            sb.AppendLine();
+
+            sb.AppendLine($"DataRuns: {string.Join("|", DataRuns)} AttributeInfos: {string.Join("|", AttributeInformations)}");
+
+            return sb.ToString();
         }
     }
 }
