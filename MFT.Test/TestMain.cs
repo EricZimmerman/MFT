@@ -20,7 +20,7 @@ namespace MFT.Test
         {
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(Mft4);
+            var m2 = MftFile.Load(tdungan);
             // var m3 = MftFile.Load(Mft3);
 
             var logger = LogManager.GetCurrentClassLogger();
@@ -28,10 +28,10 @@ namespace MFT.Test
             logger.Info(
                 $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FreeFileRecords.Count:N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
 
-            foreach (var f in m2.FileRecords)
-            {
-                logger.Info(f.Value);
-            }
+//            foreach (var f in m2.FileRecords)
+//            {
+//                logger.Info(f.Value);
+//            }
 
             var end = DateTimeOffset.Now;
 

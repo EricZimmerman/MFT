@@ -36,8 +36,6 @@ namespace MFT.Other
                 return;
             }
 
-            Debug.WriteLine($"{indexKeyDataSize:X}");
-
             if (indexKeyDataSize > 0)
             {
                 var mftInfoBytes = new byte[8];

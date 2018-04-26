@@ -104,7 +104,6 @@ namespace MFT
 
             FirstAttributeOffset = BitConverter.ToInt16(rawBytes, 0x14);
 
-
             ActualRecordSize = BitConverter.ToInt32(rawBytes, 0x18);
 
             AllocatedRecordSize = BitConverter.ToInt32(rawBytes, 0x1c);
