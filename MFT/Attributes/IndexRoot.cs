@@ -20,13 +20,17 @@ namespace MFT.Attributes
             NtOfsUlongs = 0x000013
         }
 
+        [Flags]
         public enum IndexFlag
         {
             HasSubNode = 0x001,
             IsLast = 0x002
         }
 
-        public IndexFlag Flags;
+        public IndexFlag Flags { get; }
+        public int TotalSizeOfIndexEntries{ get; }
+        public int AllocatedSizeOfEntries{ get; }
+        public int OffsetToFirstIndexEntry{ get; }
 
         public IndexRoot(byte[] rawBytes) : base(rawBytes)
         {
@@ -44,30 +48,27 @@ namespace MFT.Attributes
             NumberClusterBlocks = BitConverter.ToInt32(rawBytes, index);
             index += 4;
 
-            var offsetToFirstIndexEntry = BitConverter.ToInt32(rawBytes, index);
+            OffsetToFirstIndexEntry = BitConverter.ToInt32(rawBytes, index);
             index += 4;
-            var totalSizeOfIndexEntries = BitConverter.ToInt32(rawBytes, index);
+            TotalSizeOfIndexEntries = BitConverter.ToInt32(rawBytes, index);
             index += 4;
-            var allocatedSizeOfEntries = BitConverter.ToInt32(rawBytes, index);
+            AllocatedSizeOfEntries = BitConverter.ToInt32(rawBytes, index);
             index += 4;
 
-            var flags = rawBytes[index];
+            Flags = (IndexFlag)rawBytes[index];
             index += 1;
 
-            if (flags == 1)
-            {
-                Debug.WriteLine(1);
-            }
-
-            //flags is like other index flags. if its 1, vcn follows, NOT mft?
+          
 
             index += 3;//padding
 
+        //TODO verify this
             var mftInfoBytes = new byte[8];
             Buffer.BlockCopy(rawBytes,index,mftInfoBytes,0,8);
             index += 8;
 
             MftRecord = new MftEntryInfo(mftInfoBytes);
+            //end verify
 
             IndexEntries = new List<IndexEntry>();
 

@@ -129,11 +129,14 @@ namespace MFT
                 if (attrSize == 0 || attrType == AttributeType.EndOfAttributes)
                 {
                     index += 8; //skip -1 type and 0 size
+                    
+                    if (index != ActualRecordSize)
+                    {
+                        logger.Warn($"Slack space found in entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X}");
+                    }
 
-                    Trace.Assert(index == ActualRecordSize,
-                        "Left over data! Index should equal ActualRecordSize, but it does not!");
-
-                    continue;
+                    //TODO process slack here?
+                    break;
                 }
 
                 logger.Debug(
@@ -141,6 +144,11 @@ namespace MFT
 
                 var rawAttr = new byte[attrSize];
                 Buffer.BlockCopy(rawBytes, index, rawAttr, 0, attrSize);
+
+                if (EntryNumber == 0x2B)
+                {
+                    Debug.WriteLine(1);
+                }
 
                 switch (attrType)
                 {
@@ -151,6 +159,9 @@ namespace MFT
                     case AttributeType.FileName:
                         var fi = new FileName(rawAttr);
                         Attributes.Add(fi);
+
+           
+
                         break;
                     case AttributeType.Data:
                         var d = new Data(rawAttr);
@@ -260,7 +271,7 @@ namespace MFT
             var sb = new StringBuilder();
 
             sb.AppendLine(
-                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LSN: 0x{LogSequenceNumber} MftRecordToBaseRecord: {MftRecordToBaseRecord}");
+                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LSN: 0x{LogSequenceNumber:X} MftRecordToBaseRecord: {MftRecordToBaseRecord}");
 
             foreach (var attribute in Attributes)
             {

@@ -11,13 +11,7 @@ namespace MFT.Other
     {
        
 
-        [Flags]
-        public enum IndexEntryFlag
-        {
-            IndexEntryNode = 0x1,
-            IndexEntryEnd = 0x2,
-     
-        }
+      
 
         public IndexEntry(byte[] rawBytes)
         {
@@ -28,18 +22,18 @@ namespace MFT.Other
             var indexKeyDataSize = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
-            var indexFlags = (IndexEntryFlag) BitConverter.ToInt32(rawBytes, index);
+            var indexFlags = (IndexRoot.IndexFlag) BitConverter.ToInt32(rawBytes, index);
             index +=4;
 
-            if ((indexFlags & IndexEntryFlag.IndexEntryEnd) == IndexEntryFlag.IndexEntryEnd)
+            if ((indexFlags & IndexRoot.IndexFlag.IsLast) == IndexRoot.IndexFlag.IsLast)
             {
                 return;
             }
 
-            if ((indexFlags & IndexEntryFlag.IndexEntryNode) == IndexEntryFlag.IndexEntryNode)
-            {
-                return;
-            }
+//            if ((indexFlags & IndexRoot.IndexFlag.HasSubNode) == IndexRoot.IndexFlag.HasSubNode)
+//            {
+//                return;
+//            }
 
             if (indexKeyDataSize == 0x10)
             {
@@ -47,7 +41,7 @@ namespace MFT.Other
                 return;
             }
 
-            if (indexKeyDataSize == 0x04)
+            if (indexKeyDataSize == 0x04 || indexKeyDataSize == 0xc)
             {
                 //too small to do anything with
                 return;
@@ -130,7 +124,7 @@ namespace MFT.Other
 
             sb.AppendLine($"File name: {FileName} (Len:{NameLength}) Flags: {Flags}, NameType: {NameType} " +
                           $"ReparseValue: {ReparseValue} PhysicalSize: {PhysicalSize}, LogicalSize: {LogicalSize}" +
-                          $"\r\nMFTRecordToBaseRecord: {ParentMftRecord} " +
+                          $"\r\nParentMftRecord: {ParentMftRecord} " +
                           $"\r\nCreatedOn: {CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
                           $"\r\nContentModifiedOn: {ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
                           $"\r\nRecordModifiedOn: {RecordModifiedOn?.ToString(MftFile.DateTimeFormat)}" +

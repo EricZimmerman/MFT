@@ -43,6 +43,7 @@ namespace MFT.Attributes
             AttributeContentLength = BitConverter.ToInt32(rawBytes, 0x10);
             ContentOffset = BitConverter.ToInt16(rawBytes, 0x14);
 
+            Name = string.Empty;
             if (NameSize > 0)
             {
                 Name = Encoding.Unicode.GetString(rawBytes, NameOffset, NameSize * 2);
@@ -65,7 +66,7 @@ namespace MFT.Attributes
         public override string ToString()
         {
             return
-                $"Type: {AttributeType}, Size: {AttributeSize}, Content size: {AttributeContentLength}, Name size: {NameSize}, Content offset: {ContentOffset}, Resident: {IsResident}";
+                $"Type: {AttributeType}, Attr #: {AttributeNumber} Size: {AttributeSize}, Content size: {AttributeContentLength}, Name size: {NameSize}, Content offset: {ContentOffset}, Resident: {IsResident}";
         }
     }
 }

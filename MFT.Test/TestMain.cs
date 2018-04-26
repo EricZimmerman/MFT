@@ -11,11 +11,10 @@ namespace MFT.Test
     public class TestMain
     {
         public static string Mft1 = @"..\..\TestFiles\$MFT";
-        public static string Mft2 = @"D:\Code\MFT\MFT.Test\TestFiles\xw\$MFT";
+        public static string xwf = @"D:\Code\MFT\MFT.Test\TestFiles\xw\$MFT";
         public static string Mft4 = @"D:\Code\MFT\MFT.Test\TestFiles\NIST\DFR-16\$MFT";
-        public static string Mft5 = @"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT";
+        public static string tdungan = @"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT";
 
-        public static string Mft3 = @"D:\Temp\$MFT";
 
         [OneTimeSetUp]
         public void SetupNLog()
@@ -44,7 +43,7 @@ namespace MFT.Test
         {
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(Mft5);
+            var m2 = MftFile.Load(xwf);
             // var m3 = MftFile.Load(Mft3);
 
             var logger = LogManager.GetCurrentClassLogger();

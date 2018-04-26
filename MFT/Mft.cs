@@ -32,6 +32,8 @@ namespace MFT
 
                 var f = new FileRecord(fileBytes, index);
 
+                
+
                 var key = $"{f.EntryNumber}-{f.SequenceNumber}";
 
                 logger.Debug($"offset: 0x{f.Offset:X} flags: {f.EntryFlags} key: {key}");
@@ -68,30 +70,6 @@ namespace MFT
                 index += blockSize;
             }
 
-//            foreach (var relatedRecordKey in relatedRecordKeys)
-//            {
-//                //get record, add it to its related record
-//                switch (relatedRecordKey.Value)
-//                {
-//                    case "FileRecords":
-//                        var relatedRecord = FileRecords[relatedRecordKey.Key];
-//                        var key2 = $"{relatedRecord.MftRecordToBaseRecord.MftEntryNumber}-{relatedRecord.MftRecordToBaseRecord.MftSequenceNumber}";
-//                        var baseRecord = FileRecords[key2];
-//                        baseRecord.Attributes.AddRange(relatedRecord.Attributes);
-//                        
-//
-//                        break;
-//                    case "BadRecords":
-//
-//                        break;
-//                    case "UninitializedRecords":
-//
-//                        break;
-//                    case "FreeFileRecords":
-//
-//                        break;
-//                }
-//            }
         }
 
         public Dictionary<string, FileRecord> FileRecords { get; }

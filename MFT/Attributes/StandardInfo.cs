@@ -62,6 +62,7 @@ namespace MFT.Attributes
             MaxVersion = BitConverter.ToInt32(rawBytes, 0x3C);
             VersionNumber = BitConverter.ToInt32(rawBytes, 0x40);
             ClassId = BitConverter.ToInt32(rawBytes, 0x44);
+
             if (rawBytes.Length <= 0x48)
             {
                 return;

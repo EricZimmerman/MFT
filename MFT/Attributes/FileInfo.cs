@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace MFT.Attributes
@@ -45,7 +46,7 @@ namespace MFT.Attributes
                 RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
             }
 
-            var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x30);
+            var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x20);
             if (lastAccessRaw > 0)
             {
                 LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
@@ -63,7 +64,6 @@ namespace MFT.Attributes
             NameType = (NameTypes) rawBytes[0x41];
 
             FileName = Encoding.Unicode.GetString(rawBytes, 0x42, NameLength * 2);
-
 
         }
 
@@ -87,9 +87,9 @@ namespace MFT.Attributes
 
             sb.AppendLine();
 
-            sb.AppendLine($"File name: {FileName} (Len:{NameLength}) Flags: {Flags}, NameType: {NameType} " +
-                          $"ReparseValue: {ReparseValue} PhysicalSize: {PhysicalSize}, LogicalSize: {LogicalSize}" +
-                          $"\r\nMFTRecordToBaseRecord: {ParentMftRecord} " +
+            sb.AppendLine($"File name: {FileName} (Len:0x{NameLength:X}) Flags: {Flags}, NameType: {NameType} " +
+                          $"ReparseValue: {ReparseValue} PhysicalSize: 0x{PhysicalSize:X}, LogicalSize: 0x{LogicalSize:X}" +
+                          $"\r\nParentMftRecord: {ParentMftRecord} " +
                           $"\r\nCreatedOn: {CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
                           $"\r\nContentModifiedOn: {ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
                           $"\r\nRecordModifiedOn: {RecordModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
