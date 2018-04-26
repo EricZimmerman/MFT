@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using MFT.Attributes;
 
@@ -23,22 +24,19 @@ namespace MFT.Other
                 return;
             }
 
-//            if ((indexFlags & IndexRoot.IndexFlag.HasSubNode) == IndexRoot.IndexFlag.HasSubNode)
-//            {
-//                return;
-//            }
-
             if (indexKeyDataSize == 0x10)
             {
                 //indicates no more index entries
                 return;
             }
 
-            if (indexKeyDataSize == 0x04 || indexKeyDataSize == 0xc)
+            if (indexKeyDataSize <= 0x40)
             {
                 //too small to do anything with
                 return;
             }
+
+            Debug.WriteLine($"{indexKeyDataSize:X}");
 
             if (indexKeyDataSize > 0)
             {
