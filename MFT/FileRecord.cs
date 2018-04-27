@@ -96,7 +96,7 @@ namespace MFT
                 counter += 1;
             }
 
-            LogSequenceNumber = BitConverter.ToInt32(rawBytes, 0x8);
+            LogSequenceNumber = BitConverter.ToInt64(rawBytes, 0x8);
 
             SequenceNumber = BitConverter.ToInt16(rawBytes, 0x10);
 
@@ -257,7 +257,7 @@ namespace MFT
         public short ReferenceCount { get; }
         public short SequenceNumber { get; }
         public EntryFlag EntryFlags { get; }
-        public int LogSequenceNumber { get; }
+        public long LogSequenceNumber { get; }
         public short FixupEntryCount { get; }
         public short FixupOffset { get; }
 

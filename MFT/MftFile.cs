@@ -4,7 +4,7 @@ namespace MFT
 {
     public static class MftFile
     {
-        public static string DateTimeFormat = "yyyy-MM-dd HH:mm:ss.ffff";
+        public static string DateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
 
         public static Mft Load(string mftPath)
         {

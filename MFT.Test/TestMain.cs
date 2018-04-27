@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -14,13 +15,15 @@ namespace MFT.Test
         public static string xwf = @"D:\Code\MFT\MFT.Test\TestFiles\xw\$MFT";
         public static string Mft4 = @"D:\Code\MFT\MFT.Test\TestFiles\NIST\DFR-16\$MFT";
         public static string tdungan = @"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT";
+        public static string nromanoff = @"D:\SynologyDrive\MFTs\nromanoff\$MFT";
+        public static string nfury = @"D:\SynologyDrive\MFTs\nfury\$MFT";
 
         [Test]
         public void Something()
         {
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(tdungan);
+            var m2 = MftFile.Load(nromanoff);
             // var m3 = MftFile.Load(Mft3);
 
             var logger = LogManager.GetCurrentClassLogger();
@@ -28,10 +31,19 @@ namespace MFT.Test
             logger.Info(
                 $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FreeFileRecords.Count:N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
 
-            foreach (var f in m2.FileRecords)
+            using (var s = new StreamWriter(@"C:\temp\mft.txt"))
             {
-                logger.Info(f.Value);
+            
+                foreach (var f in m2.FileRecords)
+                {
+                    s.WriteLine(f.Value);
+                    //logger.Info(f.Value);
+                }    
+
+                s.Flush();
             }
+
+
 
             var end = DateTimeOffset.Now;
 
