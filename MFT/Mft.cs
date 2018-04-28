@@ -116,13 +116,13 @@ namespace MFT
 
                     if (fna.FileInfo.FileName.Contains("pagefile.sys"))
                     {
-                        dump = true;
+                        dump = false;
                         logger.Info($"***************pagefile.sys***************************");
                         
                     }
                     else
                     {
-                        dump = true;
+                        dump = false;
                     }
 
                     var startDirectory = RootDirectory;
@@ -137,7 +137,7 @@ namespace MFT
                     {
                         var dirKey = stack.Pop();
 
-                      //  logger.Info($"Dirkey: {dirKey}");
+                       logger.Info($"Dirkey: {dirKey}");
 
                         if (startDirectory.SubItems.ContainsKey(dirKey))
                         {
@@ -157,20 +157,20 @@ namespace MFT
                             var newDirName = GetFileNameFromFileRecord(entry);
                             var newDirKey = $"{entry.EntryNumber:X8}-{entry.SequenceNumber:X8}";
 
-                            var newDir = new Directory(newDirName,newDirKey,$"{startDirectory.ParentPath}\\{newDirName}");
+                            var newDir = new Directory(newDirName,newDirKey,$"{startDirectory.ParentPath}");
 
-                            if (dump)
+                            if (true)
                             {
-                                logger.Info($"2.1 {startDirectory.Name}  {startDirectory.ParentPath}");
+                                logger.Info($"2 {startDirectory.Name}  {startDirectory.ParentPath}");
                             }
 
                             startDirectory.SubItems.Add(newDirKey,newDir);
 
                             startDirectory = startDirectory.SubItems[newDirKey];
 
-                            if (dump)
+                            if (true)
                             {
-                                logger.Info($"2. {startDirectory.Name}  {startDirectory.ParentPath}");
+                                logger.Info($"2.1 {startDirectory.Name}  {startDirectory.ParentPath}");
                             }
 
                             
@@ -202,14 +202,14 @@ namespace MFT
 
                  //   logger.Info($"itemKey: {itemKey} isDirectory: {isDirectory} fna.FileInfo.FileName: {fna.FileInfo.FileName}");
 
-                    if (dump)
+                    if (true)
                     {
                         logger.Info($"3. {startDirectory.Name}  {startDirectory.ParentPath}");
                     }
 
-                    var itemDir = new Directory(fna.FileInfo.FileName,itemKey,$"{startDirectory.ParentPath}\\{fna.FileInfo.FileName}");
+                    var itemDir = new Directory(fna.FileInfo.FileName,itemKey,$"{startDirectory.ParentPath}");
 
-                    if (dump)
+                    if (true)
                     {
                         logger.Info($"4. {itemDir.Name}  {itemDir.ParentPath}");
                         logger.Info($"5. {startDirectory.Name} {startDirectory.ParentPath} ");
