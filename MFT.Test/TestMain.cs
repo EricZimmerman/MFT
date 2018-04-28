@@ -6,7 +6,7 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NUnit.Framework;
-using Directory = MFT.Other.Directory;
+using Directory = MFT.Other.DirectoryItem;
 
 namespace MFT.Test
 {
@@ -20,60 +20,30 @@ namespace MFT.Test
         public static string nromanoff = @"D:\SynologyDrive\MFTs\nromanoff\$MFT";
         public static string nfury = @"D:\SynologyDrive\MFTs\nfury\$MFT";
 
-        [Test]
-        public void Something()
-        {
-            var start = DateTimeOffset.Now;
-
-            var m2 = MftFile.Load(xwf);
-
-            m2.BuildFileSystem();
-
-            var logger = LogManager.GetCurrentClassLogger();
-
-            logger.Info(
-                $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FreeFileRecords.Count:N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
-
-            using (var s = new StreamWriter($@"C:\temp\mft.txt"))
-            {
-            
-                foreach (var f in m2.FileRecords)
-                {
-                    s.WriteLine(f.Value);
-                    //logger.Info(f.Value);
-                }    
-
-                s.Flush();
-            }
-
-            DumpFiles(m2.RootDirectory);
-
-            
-
-            var end = DateTimeOffset.Now;
-
-            var dif = end.Subtract(start).TotalSeconds;
-
-            Debug.WriteLine(dif);
-        }
-
         private void DumpFiles(Directory dir)
         {
             var logger = LogManager.GetCurrentClassLogger();
 
-           
-            logger.Info($"Path: {dir.ParentPath} name: {dir.Name} Item count: ({dir.SubItems.Count:N0})");    
-          
-            foreach (var subitem in dir.SubItems.Values.OrderByDescending(t=>t.SubItems.Count).ThenBy(t=>t.Name))
+
+            logger.Info($"Path: {dir.ParentPath}\\{dir.Name} Item count: ({dir.SubItems.Count:N0})");
+
+            foreach (var subitem in dir.SubItems.Values.OrderByDescending(t => t.SubItems.Count > 0)
+                .ThenBy(t => t.Name))
             {
-                logger.Info($"\t{subitem.Name}");    
+                if (subitem.SubItems.Count > 0)
+                {
+                    logger.Info($"\t{subitem.Name} (directory)");
+                }
+                else
+                {
+                    logger.Info($"\t{subitem.Name}");
+                }
             }
 
-            foreach (var directory in dir.SubItems.Values.Where(t=>t.SubItems.Count>0))
+            foreach (var directory in dir.SubItems.Values.Where(t => t.SubItems.Count > 0))
             {
                 DumpFiles(directory);
             }
-
         }
 
 
@@ -97,6 +67,41 @@ namespace MFT.Test
             config.LoggingRules.Add(rule1);
 
             LogManager.Configuration = config;
+        }
+
+        [Test]
+        public void Something()
+        {
+            var start = DateTimeOffset.Now;
+
+            var m2 = MftFile.Load(xwf);
+
+            m2.BuildFileSystem();
+
+            var logger = LogManager.GetCurrentClassLogger();
+
+            logger.Info(
+                $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FreeFileRecords.Count:N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
+
+            using (var s = new StreamWriter($@"C:\temp\mft.txt"))
+            {
+                foreach (var f in m2.FileRecords)
+                {
+                    s.WriteLine(f.Value);
+                    //logger.Info(f.Value);
+                }
+
+                s.Flush();
+            }
+
+            DumpFiles(m2.RootDirectory);
+
+
+            var end = DateTimeOffset.Now;
+
+            var dif = end.Subtract(start).TotalSeconds;
+
+            Debug.WriteLine(dif);
         }
     }
 }

@@ -12,7 +12,9 @@ namespace MFT.Attributes
 
             if (residentData.Data.Length > 0)
             {
-                VolName = Encoding.Unicode.GetString(residentData.Data,ContentOffset,residentData.Data.Length - ContentOffset).TrimEnd('\0');
+                VolName = Encoding.Unicode
+                    .GetString(residentData.Data, ContentOffset, residentData.Data.Length - ContentOffset)
+                    .TrimEnd('\0');
             }
         }
 

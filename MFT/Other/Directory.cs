@@ -1,35 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MFT.Other
 {
-public    class Directory
+    public class DirectoryItem
     {
-        public string Name { get; }
-        public string ParentPath { get; }
-
-        /// <summary>
-        /// The key into FileRecords collection
-        /// <remarks>Format is '$"{f.EntryNumber}-{f.SequenceNumber}"'</remarks>
-        /// </summary>
-        public string Key { get; }
-
-        /// <summary>
-        /// Contains references to FileRecords that live in this Directory
-        /// <remarks>Subitems need to be checked to determine whether they are directories or files via $STANDARD_INFO.Flags</remarks>
-        /// </summary>
-        public Dictionary<string,Directory> SubItems { get; }
-
-        public Directory(string name, string key, string parentPath)
+        public DirectoryItem(string name, string key, string parentPath)
         {
             Name = name;
             Key = key;
             ParentPath = parentPath;
-            SubItems = new Dictionary<string, Directory>();
+            SubItems = new Dictionary<string, DirectoryItem>();
         }
+
+        public string Name { get; }
+        public string ParentPath { get; }
+
+        /// <summary>
+        ///     The key into FileRecords collection
+        ///     <remarks>Format is '$"{f.EntryNumber}-{f.SequenceNumber}"'</remarks>
+        /// </summary>
+        public string Key { get; }
+
+        /// <summary>
+        ///     Contains references to FileRecords that live in this Directory
+        ///     <remarks>Subitems need to be checked to determine whether they are directories or files via $STANDARD_INFO.Flags</remarks>
+        /// </summary>
+        public Dictionary<string, DirectoryItem> SubItems { get; }
 
         public override string ToString()
         {
@@ -43,7 +40,5 @@ public    class Directory
 
             return sb.ToString();
         }
-
-   
     }
 }

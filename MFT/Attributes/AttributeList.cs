@@ -104,7 +104,8 @@ namespace MFT.Attributes
 
             sb.AppendLine();
 
-            sb.AppendLine($"DataRuns: {string.Join("|", DataRuns)} AttributeInfos: {string.Join("|", AttributeInformations)}");
+            sb.AppendLine(
+                $"DataRuns: {string.Join("|", DataRuns)} AttributeInfos: {string.Join("|", AttributeInformations)}");
 
             return sb.ToString();
         }

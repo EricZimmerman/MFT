@@ -31,8 +31,6 @@ namespace MFT.Attributes
                 $"Fileinfo: {FileInfo}");
 
             return sb.ToString();
-
-
         }
     }
 }
