@@ -62,7 +62,7 @@ namespace MFT.Test
             var logger = LogManager.GetCurrentClassLogger();
 
            
-                logger.Info($"Parent Path: {dir.ParentPath}\\{dir.Name} Item count: ({dir.SubItems.Count:N0})");    
+                logger.Info($"Parent Path: {dir.ParentPath} name: {dir.Name} Item count: ({dir.SubItems.Count:N0})");    
           
             
 
