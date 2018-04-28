@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using MFT.Attributes;
-using MFT.Other;
 using NLog;
+using Directory = MFT.Other.Directory;
 
 namespace MFT
 {
@@ -57,8 +59,10 @@ namespace MFT
 
             var rootFolder = FileRecords.Single(t => t.Value.EntryNumber == 5).Value;
             var rootKey = $"{rootFolder.EntryNumber:X8}-{rootFolder.SequenceNumber:X8}";
-            RootDirectory = new Directory(".", rootKey);
+            RootDirectory = new Directory("", rootKey,".");
         }
+
+        private bool dump = false;
 
         public void BuildFileSystem()
         {
@@ -82,40 +86,167 @@ namespace MFT
                     continue;
                 }
 
-                var sia = fileRecord.Value.Attributes.Single(t =>
-                    t.AttributeType == AttributeType.StandardInformation);
-                var si = (StandardInfo) sia;
+                var key = $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}";
 
-                var isDirectory = ((si.Flags & StandardInfo.Flag.IsDirectory) == StandardInfo.Flag.IsDirectory);
+                if (RootDirectory.Key == key)
+                {
+                    continue;
+                }
+
+              
+
+              
                 
                 foreach (var fileNameAttribute in fileRecord.Value.Attributes.Where(t=>t.AttributeType == AttributeType.FileName))
                 {
+
                     var fna = (FileName) fileNameAttribute;
+
+                    if (fna.FileInfo.NameType == NameTypes.Dos)
+                    {
+                        continue;
+                    }
 
                     var stack = GetDirectoryChain(fna);
 
-                    logger.Info($"fna: {fna.FileInfo.FileName} ==> {string.Join("|",stack.ToList())}");
+              
 
                     //the stack will always end with the RootDirectory's key, so take it away
-
                     stack.Pop();
 
+                    if (fna.FileInfo.FileName.Contains("pagefile.sys"))
+                    {
+                        dump = false;
+                        logger.Info($"***************pagefile.sys***************************");
+                        
+                    }
+                    else
+                    {
+                        dump = false;
+                    }
+
                     var startDirectory = RootDirectory;
+
+                    if (dump)
+                    {
+                        logger.Info(startDirectory.Name);
+                    }
+                    
 
                     while (stack.Count>0)
                     {
                         var dirKey = stack.Pop();
 
+                      //  logger.Info($"Dirkey: {dirKey}");
+
+                        if (startDirectory.SubItems.ContainsKey(dirKey))
+                        {
+                            startDirectory = startDirectory.SubItems[dirKey];
+
+                            if (dump)
+                            {
+                                logger.Info($"${startDirectory.Name}");
+                            }
+
+                            
+                        }
+                        else
+                        {
+                            var entry = FileRecords[dirKey];
+
+                            var newDirName = GetFileNameFromFileRecord(entry);
+                            var newDirKey = $"{entry.EntryNumber:X8}-{entry.SequenceNumber:X8}";
+
+                            var newDir = new Directory(newDirName,newDirKey,$"{startDirectory.ParentPath}");
+
+                            startDirectory.SubItems.Add(newDirKey,newDir);
+
+                            startDirectory = startDirectory.SubItems[newDirKey];
+
+                            if (dump)
+                            {
+                                logger.Info($"$${startDirectory.Name}");
+                            }
+
+                            
+                        }
+
                         //get fileRecord
                         //check if startDirectory.Subitems contains that key
                         //if yes, update startDir and move on
                         //if no, get dir name and add it to startDirectory, then update startDir and continue
-                        
+
 
                     }
+
+                    string itemKey;
+                    
+
+                            var isDirectory = ((fna.FileInfo.Flags & StandardInfo.Flag.IsDirectory) == StandardInfo.Flag.IsDirectory);
+
+                          
+
+                    if (isDirectory)
+                    {
+                        itemKey = $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}";
+                    }
+                    else
+                    {
+                        itemKey = $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}-{fna.AttributeNumber:X8}";    
+                    }
+
+                 //   logger.Info($"itemKey: {itemKey} isDirectory: {isDirectory} fna.FileInfo.FileName: {fna.FileInfo.FileName}");
+
+                    if (dump)
+                    {
+                        logger.Info($"$${startDirectory.Name}");
+                    }
+
+                    var itemDir = new Directory(fna.FileInfo.FileName,itemKey,startDirectory.ParentPath);
+
+                    if (dump)
+                    {
+                        logger.Info($"!!!!!!{itemDir.Name}");
+                        logger.Info($"33333333{startDirectory.Name}");
+                    }
+                    
+
+                    if (startDirectory.SubItems.ContainsKey(itemKey) == false)
+                    {
+                        startDirectory.SubItems.Add(itemKey,itemDir);
+                    }
+
+                    if (dump)
+                    {
+                        
+                        logger.Info($"5555555{startDirectory}");
+                    }
+
+                    
                 }
             }
+        }
 
+        private string GetFileNameFromFileRecord(FileRecord fr)
+        {
+            var logger = LogManager.GetCurrentClassLogger();
+
+            var fi = fr.Attributes.SingleOrDefault(t => t.AttributeType == AttributeType.FileName && ((FileName)t).FileInfo.NameType == NameTypes.DosWindows);
+            if (fi == null)
+            {
+                fi = fr.Attributes.SingleOrDefault(t => t.AttributeType == AttributeType.FileName && ((FileName)t).FileInfo.NameType == NameTypes.Windows);
+            }
+            if (fi == null)
+            {
+                fi = fr.Attributes.Single(t => t.AttributeType == AttributeType.FileName && ((FileName)t).FileInfo.NameType == NameTypes.Posix);
+            }
+
+            var fin = (FileName) fi;
+
+//            var isDirectory = ((fin.FileInfo.Flags & StandardInfo.Flag.IsDirectory) == StandardInfo.Flag.IsDirectory);
+//            logger.Info($"isdir: {isDirectory}");
+                            
+           return fin.FileInfo.FileName;
         }
 
         private Stack<string> GetDirectoryChain(FileName fileName)
@@ -133,8 +264,6 @@ namespace MFT
                 var fileNameAttribute = (FileName) parentRecord.Attributes.First(t => t.AttributeType == AttributeType.FileName);
 
                 parentKey = $"{fileNameAttribute.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fileNameAttribute.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
-
-                
             }
 
             //add the root in case things change later and we need it

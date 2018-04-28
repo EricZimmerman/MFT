@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NUnit.Framework;
+using Directory = MFT.Other.Directory;
 
 namespace MFT.Test
 {
@@ -44,13 +46,36 @@ namespace MFT.Test
                 s.Flush();
             }
 
+            DumpFiles(m2.RootDirectory);
 
+            
 
             var end = DateTimeOffset.Now;
 
             var dif = end.Subtract(start).TotalSeconds;
 
             Debug.WriteLine(dif);
+        }
+
+        private void DumpFiles(Directory dir)
+        {
+            var logger = LogManager.GetCurrentClassLogger();
+
+           
+                logger.Info($"Parent Path: {dir.ParentPath}\\{dir.Name} Item count: ({dir.SubItems.Count:N0})");    
+          
+            
+
+            foreach (var subitem in dir.SubItems.Values)
+            {
+                logger.Info($"\tSubitem: {subitem.Name}");    
+            }
+
+            foreach (var directory in dir.SubItems.Values.Where(t=>t.SubItems.Count>0))
+            {
+                DumpFiles(directory);
+            }
+
         }
 
 

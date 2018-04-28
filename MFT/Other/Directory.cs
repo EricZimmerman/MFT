@@ -9,6 +9,7 @@ namespace MFT.Other
 public    class Directory
     {
         public string Name { get; }
+        public string ParentPath { get; }
 
         /// <summary>
         /// The key into FileRecords collection
@@ -22,12 +23,27 @@ public    class Directory
         /// </summary>
         public Dictionary<string,Directory> SubItems { get; }
 
-        public Directory(string name, string key)
+        public Directory(string name, string key, string parentPath)
         {
             Name = name;
             Key = key;
+            ParentPath = parentPath;
             SubItems = new Dictionary<string, Directory>();
         }
 
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine($"Name: {Name}");
+            foreach (var directory in SubItems)
+            {
+                sb.AppendLine(directory.Value.Name);
+            }
+
+            return sb.ToString();
+        }
+
+   
     }
 }
