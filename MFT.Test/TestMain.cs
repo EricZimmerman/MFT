@@ -62,13 +62,11 @@ namespace MFT.Test
             var logger = LogManager.GetCurrentClassLogger();
 
            
-                logger.Info($"Parent Path: {dir.ParentPath} Item count: ({dir.SubItems.Count:N0})");    
+            logger.Info($"Path: {dir.ParentPath} name: {dir.Name} Item count: ({dir.SubItems.Count:N0})");    
           
-            
-
-            foreach (var subitem in dir.SubItems.Values.OrderBy(t=>t.Name))
+            foreach (var subitem in dir.SubItems.Values.OrderByDescending(t=>t.SubItems.Count).ThenBy(t=>t.Name))
             {
-                logger.Info($"\tSubitem: {subitem.Name}");    
+                logger.Info($"\t{subitem.Name}");    
             }
 
             foreach (var directory in dir.SubItems.Values.Where(t=>t.SubItems.Count>0))

@@ -131,13 +131,14 @@ namespace MFT
                     {
                         logger.Info(startDirectory.Name);
                     }
-                    
+
+                    var parentDir = ".";
 
                     while (stack.Count>0)
                     {
                         var dirKey = stack.Pop();
 
-                       logger.Info($"Dirkey: {dirKey}");
+                    //   logger.Info($"Dirkey: {dirKey}");
 
                         if (startDirectory.SubItems.ContainsKey(dirKey))
                         {
@@ -148,7 +149,8 @@ namespace MFT
                                 logger.Info($"1. {startDirectory.Name} {startDirectory.ParentPath}");
                             }
 
-                            
+                            parentDir = $"{parentDir}\\{startDirectory.Name}";
+
                         }
                         else
                         {
@@ -157,21 +159,27 @@ namespace MFT
                             var newDirName = GetFileNameFromFileRecord(entry);
                             var newDirKey = $"{entry.EntryNumber:X8}-{entry.SequenceNumber:X8}";
 
-                            var newDir = new Directory(newDirName,newDirKey,$"{startDirectory.ParentPath}");
+                            parentDir = $"{parentDir}\\{newDirName}";
 
-                            if (true)
+                            var newDir = new Directory(newDirName,newDirKey,parentDir);
+
+                            if (false)
                             {
                                 logger.Info($"2 {startDirectory.Name}  {startDirectory.ParentPath}");
                             }
+
+                          
 
                             startDirectory.SubItems.Add(newDirKey,newDir);
 
                             startDirectory = startDirectory.SubItems[newDirKey];
 
-                            if (true)
+                            if (false)
                             {
                                 logger.Info($"2.1 {startDirectory.Name}  {startDirectory.ParentPath}");
                             }
+
+
 
                             
                         }
@@ -194,6 +202,8 @@ namespace MFT
                     if (isDirectory)
                     {
                         itemKey = $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}";
+
+                        parentDir = $"{parentDir}\\{fna.FileInfo.FileName}";
                     }
                     else
                     {
@@ -202,14 +212,14 @@ namespace MFT
 
                  //   logger.Info($"itemKey: {itemKey} isDirectory: {isDirectory} fna.FileInfo.FileName: {fna.FileInfo.FileName}");
 
-                    if (true)
+                    if (false)
                     {
                         logger.Info($"3. {startDirectory.Name}  {startDirectory.ParentPath}");
                     }
 
-                    var itemDir = new Directory(fna.FileInfo.FileName,itemKey,$"{startDirectory.ParentPath}");
+                    var itemDir = new Directory(fna.FileInfo.FileName,itemKey,parentDir);
 
-                    if (true)
+                    if (false)
                     {
                         logger.Info($"4. {itemDir.Name}  {itemDir.ParentPath}");
                         logger.Info($"5. {startDirectory.Name} {startDirectory.ParentPath} ");
