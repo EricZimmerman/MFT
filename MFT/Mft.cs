@@ -59,7 +59,7 @@ namespace MFT
 
             var rootFolder = FileRecords.Single(t => t.Value.EntryNumber == 5).Value;
             var rootKey = $"{rootFolder.EntryNumber:X8}-{rootFolder.SequenceNumber:X8}";
-            RootDirectory = new DirectoryItem("", rootKey, ".",false,null);
+            RootDirectory = new DirectoryItem("", rootKey, ".",false,null,rootFolder.GetFileSize(null));
         }
 
         public DirectoryItem RootDirectory { get; }
@@ -98,8 +98,6 @@ namespace MFT
                 {
                     continue;
                 }
-
-                
 
                 //look for attribute list, pull out non-self referencing attributes
                 var attrList =
@@ -193,7 +191,7 @@ namespace MFT
                           
                           
 
-                            var newDir = new DirectoryItem(newDirName, newDirKey, parentDir,false,reparsePoint);
+                            var newDir = new DirectoryItem(newDirName, newDirKey, parentDir,false,reparsePoint,0);
 
                             startDirectory.SubItems.Add(newDirKey, newDir);
 
@@ -206,6 +204,12 @@ namespace MFT
                     var isDirectory = (fna.FileInfo.Flags & StandardInfo.Flag.IsDirectory) ==
                                       StandardInfo.Flag.IsDirectory;
 
+                    if (fna.FileInfo.FileName.Contains("Tripods.rar"))
+                    {
+                        Debug.WriteLine("Tripods.rar");
+                    }
+
+                    ulong fileSize = 0;
                     if (isDirectory)
                     {
                         itemKey = $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}";
@@ -214,10 +218,11 @@ namespace MFT
                     {
                         itemKey =
                             $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}-{fna.AttributeNumber:X8}";
+                        fileSize = fileRecord.Value.GetFileSize(null);
                     }
 
 
-                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,hasAds,reparsePoint);
+                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,hasAds,reparsePoint,fileSize);
 
                     if (startDirectory.SubItems.ContainsKey(itemKey) == false)
                     {

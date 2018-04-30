@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using MFT.Attributes;
 using MFT.Other;
@@ -68,7 +69,7 @@ namespace MFT
 
             FixupData = new FixupData(fixupBuffer);
 
-            FixupOK = true;
+            FixupOk = true;
 
             //fixup verification
             var counter = 0;
@@ -86,7 +87,7 @@ namespace MFT
                 var expected = BitConverter.ToInt16(rawBytes, fixupOffset);
                 if (expected != FixupData.FixupExpected && EntryFlags != 0x0)
                 {
-                    FixupOK = false;
+                    FixupOk = false;
                     logger.Warn(
                         $"Offset: 0x{Offset:X} Entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X} Fixup values do not match at 0x{fixupOffset:X}. Expected: 0x{FixupData.FixupExpected:X2}, actual: 0x{expected:X2}");
                 }
@@ -100,7 +101,6 @@ namespace MFT
             LogSequenceNumber = BitConverter.ToInt64(rawBytes, 0x8);
 
             SequenceNumber = BitConverter.ToUInt16(rawBytes, 0x10);
-
           
             ReferenceCount = BitConverter.ToInt16(rawBytes, 0x12);
 
@@ -124,7 +124,6 @@ namespace MFT
 
             var index = (int) FirstAttributeOffset;
 
-            RelatedFileRecords = new List<FileRecord>();
 
             while (index < ActualRecordSize)
             {
@@ -231,7 +230,7 @@ namespace MFT
                         break;
 
                     default:
-                        throw new Exception($"Add me: {attrType}");
+                        throw new Exception($"Add me: {attrType} (0x{attrType:X})");
                 }
 
 
@@ -263,16 +262,62 @@ namespace MFT
         public short FixupEntryCount { get; }
         public short FixupOffset { get; }
 
-        public bool FixupOK { get; }
+        public bool FixupOk { get; }
 
-        public List<FileRecord> RelatedFileRecords { get; }
+        public ulong GetFileSize(string adsName)
+        {
+            var fn = Attributes.FirstOrDefault(t => t.AttributeType == AttributeType.FileName);
+            if (fn != null)
+            {
+                var fna = (FileName) fn;
+                var isDirectory = (fna.FileInfo.Flags & StandardInfo.Flag.IsDirectory) ==
+                                  StandardInfo.Flag.IsDirectory;
+
+                if (isDirectory)
+                {
+                    return 0;
+                }
+            }
+
+            var datas = Attributes.Where(t => t.AttributeType == AttributeType.Data).ToList();
+
+            if (adsName?.Length > 0)
+            {
+                datas = Attributes.Where(t => t.AttributeType == AttributeType.Data && t.Name.ToLowerInvariant() == adsName.ToLowerInvariant()).ToList();
+            }
+
+            if (datas.Count >= 1)
+            {
+                var data = (Data) datas.First();
+
+                if (data.IsResident)
+                {
+                    return (ulong) data.ResidentData.Data.LongLength;
+                }
+                else
+                {
+                    return data.NonResidentData.ActualSize;
+                }
+            }
+            else if (datas.Count == 0)
+            {
+                var fna = (FileName) fn;
+                if (fn != null)
+                {
+                    return fna.FileInfo.LogicalSize;
+                }
+            }
+           
+            return 0;
+        }
+
 
         public override string ToString()
         {
             var sb = new StringBuilder();
 
             sb.AppendLine(
-                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LogSequenceNumber: 0x{LogSequenceNumber:X} MftRecordToBaseRecord: {MftRecordToBaseRecord} FixupData: {FixupData} (Fixup OK: {FixupOK})");
+                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LogSequenceNumber: 0x{LogSequenceNumber:X} MftRecordToBaseRecord: {MftRecordToBaseRecord} FixupData: {FixupData} (Fixup OK: {FixupOk})");
 
             foreach (var attribute in Attributes)
             {

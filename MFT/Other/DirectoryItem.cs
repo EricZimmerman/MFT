@@ -6,7 +6,7 @@ namespace MFT.Other
 {
     public class DirectoryItem
     {
-        public DirectoryItem(string name, string key, string parentPath,  bool hasAds, ReparsePoint reparsePoint)
+        public DirectoryItem(string name, string key, string parentPath,  bool hasAds, ReparsePoint reparsePoint, ulong fileSize)
         {
             Name = name;
             Key = key;
@@ -14,6 +14,7 @@ namespace MFT.Other
         
             HasAds = hasAds;
             ReparsePoint = reparsePoint;
+            FileSize = fileSize;
             SubItems = new Dictionary<string, DirectoryItem>();
         }
 
@@ -34,6 +35,8 @@ namespace MFT.Other
 
         public bool HasAds { get; }
         public ReparsePoint ReparsePoint { get; }
+
+        public ulong FileSize { get; }
 
         public override string ToString()
         {

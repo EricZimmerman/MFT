@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -51,7 +52,7 @@ namespace MFT.Test
                 }
                 else
                 {
-                    logger.Info($"\t{subitem.Name} (Has Ads: {subitem.HasAds}) {reparse}");
+                    logger.Info($"\t{subitem.Name} (Ads: {subitem.HasAds}) {reparse} file size: 0x{subitem.FileSize:X}");
                 }
             }
 
@@ -98,7 +99,7 @@ namespace MFT.Test
             logger.Info(
                 $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FreeFileRecords.Count:N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
 
-            using (var s = new StreamWriter($@"C:\temp\mft.txt"))
+            using (var s = new StreamWriter($@"C:\temp\mft.txt",false,Encoding.Unicode))
             {
                 foreach (var f in m2.FileRecords)
                 {
