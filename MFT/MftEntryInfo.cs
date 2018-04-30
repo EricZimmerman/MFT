@@ -11,12 +11,12 @@ namespace MFT
                 throw new ArgumentException("rawEntryBytes must be 8 bytes long!");
             }
 
-            var sequenceNumber = BitConverter.ToUInt16(rawEntryBytes, 6);
+            var sequenceNumber = BitConverter.ToInt16(rawEntryBytes, 6);
 
-            ulong entryIndex;
+            uint entryIndex;
 
-            ulong entryIndex1 = BitConverter.ToUInt32(rawEntryBytes, 0);
-            ulong entryIndex2 = BitConverter.ToUInt16(rawEntryBytes, 4);
+            uint entryIndex1 = BitConverter.ToUInt32(rawEntryBytes, 0);
+            uint entryIndex2 = BitConverter.ToUInt16(rawEntryBytes, 4);
 
             if (entryIndex2 == 0)
             {
@@ -37,9 +37,9 @@ namespace MFT
             }
         }
 
-        public ulong? MftEntryNumber { get; set; }
+        public uint MftEntryNumber { get; set; }
 
-        public int? MftSequenceNumber { get; set; }
+        public short? MftSequenceNumber { get; set; }
 
         public override string ToString()
         {

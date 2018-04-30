@@ -19,6 +19,7 @@ namespace MFT.Test
         public static string tdungan = @"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT";
         public static string nromanoff = @"D:\SynologyDrive\MFTs\nromanoff\$MFT";
         public static string nfury = @"D:\SynologyDrive\MFTs\nfury\$MFT";
+        public static string CAPUANO = @"D:\SynologyDrive\MFTs\$MFT_FROM_CAPUANO";
 
         private void DumpFiles(Directory dir)
         {
@@ -30,13 +31,27 @@ namespace MFT.Test
             foreach (var subitem in dir.SubItems.Values.OrderByDescending(t => t.SubItems.Count > 0)
                 .ThenBy(t => t.Name))
             {
+                var reparse = string.Empty;
+
+                if (subitem.ReparsePoint!=null)
+                {
+                    if (subitem.ReparsePoint.PrintName.Length > 0)
+                    {
+                        reparse = $"Reparse: {subitem.ReparsePoint.PrintName} --> {subitem.ReparsePoint.SubstituteName.Replace(@"\??\","")}";
+                    }
+                    else
+                    {
+                        reparse = $"Reparse: {subitem.ReparsePoint.SubstituteName.Replace(@"\??\","")}";
+                    }
+                }
+
                 if (subitem.SubItems.Count > 0)
                 {
-                    logger.Info($"\t{subitem.Name} (directory)");
+                    logger.Info($"\t{subitem.Name} (directory) {reparse}");
                 }
                 else
                 {
-                    logger.Info($"\t{subitem.Name}");
+                    logger.Info($"\t{subitem.Name} (Has Ads: {subitem.HasAds}) {reparse}");
                 }
             }
 

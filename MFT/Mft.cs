@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using MFT.Attributes;
 using MFT.Other;
@@ -9,9 +10,10 @@ namespace MFT
 {
     public class Mft
     {
+        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         public Mft(byte[] rawbytes)
         {
-            var logger = LogManager.GetCurrentClassLogger();
 
             FileRecords = new Dictionary<string, FileRecord>();
             FreeFileRecords = new Dictionary<string, FileRecord>();
@@ -32,7 +34,7 @@ namespace MFT
 
                 var key = $"{f.EntryNumber:X8}-{f.SequenceNumber:X8}";
 
-                logger.Debug($"offset: 0x{f.Offset:X} flags: {f.EntryFlags} key: {key}");
+                _logger.Debug($"offset: 0x{f.Offset:X} flags: {f.EntryFlags} key: {key}");
 
                 if ((f.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) ==
                     FileRecord.EntryFlag.FileRecordSegmentInUse)
@@ -57,7 +59,7 @@ namespace MFT
 
             var rootFolder = FileRecords.Single(t => t.Value.EntryNumber == 5).Value;
             var rootKey = $"{rootFolder.EntryNumber:X8}-{rootFolder.SequenceNumber:X8}";
-            RootDirectory = new DirectoryItem("", rootKey, ".");
+            RootDirectory = new DirectoryItem("", rootKey, ".",false,null);
         }
 
         public DirectoryItem RootDirectory { get; }
@@ -82,6 +84,7 @@ namespace MFT
             {
                 //   logger.Info(fileRecord.Value);
 
+
                 if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
                     fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
                 {
@@ -94,6 +97,61 @@ namespace MFT
                 if (RootDirectory.Key == key)
                 {
                     continue;
+                }
+
+                
+
+                //look for attribute list, pull out non-self referencing attributes
+                var attrList =
+                    (AttributeList) fileRecord.Value.Attributes.SingleOrDefault(t =>
+                        t.AttributeType == AttributeType.AttributeList);
+
+                if (attrList != null)
+                {
+                    foreach (var attrListAttributeInformation in attrList.AttributeInformations)
+                    {
+                        if (attrListAttributeInformation.EntryInfo.MftEntryNumber != fileRecord.Value.EntryNumber && attrListAttributeInformation.EntryInfo.MftSequenceNumber != fileRecord.Value.SequenceNumber)
+                        {
+                            _logger.Trace($"found attrlist item: {attrListAttributeInformation}");
+
+                            var attrEntryKey = $"{attrListAttributeInformation.EntryInfo.MftEntryNumber:X8}-{attrListAttributeInformation.EntryInfo.MftSequenceNumber:X8}";
+
+                            if (FileRecords.ContainsKey(attrEntryKey) == false)
+                            {
+                                _logger.Warn($"Cannot find record with entry/seq #: 0x{attrEntryKey}");
+                            }
+                            else
+                            {
+                                var attrEntry = FileRecords[attrEntryKey];
+
+                                //pull in all related attributes from this record for processing later
+                                fileRecord.Value.Attributes.AddRange(attrEntry.Attributes);    
+                            }
+                        }
+                    }
+                }
+
+                //data block count for ads
+                var dataAttrs =
+                    fileRecord.Value.Attributes.Where(t =>
+                        t.AttributeType == AttributeType.Data && t.NameSize>0).ToList();
+
+                var hasAds = dataAttrs.Count > 0;
+
+                if (dataAttrs.Count > 0)
+                {
+                   _logger.Trace($"Found {dataAttrs.Count:N0} ADSs");
+                }
+
+                var reparseAttr =
+                    fileRecord.Value.Attributes.Where(t =>
+                        t.AttributeType == AttributeType.ReparsePoint).ToList();
+
+                var reparsePoint = (ReparsePoint) reparseAttr.FirstOrDefault();
+
+                if (reparsePoint != null)
+                {
+                    _logger.Trace($"Found reparse point: {reparsePoint.PrintName} --> {reparsePoint.SubstituteName}");
                 }
 
                 foreach (var fileNameAttribute in fileRecord.Value.Attributes.Where(t =>
@@ -132,7 +190,10 @@ namespace MFT
                             var newDirName = GetFileNameFromFileRecord(entry);
                             var newDirKey = $"{entry.EntryNumber:X8}-{entry.SequenceNumber:X8}";
 
-                            var newDir = new DirectoryItem(newDirName, newDirKey, parentDir);
+                          
+                          
+
+                            var newDir = new DirectoryItem(newDirName, newDirKey, parentDir,false,reparsePoint);
 
                             startDirectory.SubItems.Add(newDirKey, newDir);
 
@@ -155,7 +216,8 @@ namespace MFT
                             $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}-{fna.AttributeNumber:X8}";
                     }
 
-                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir);
+
+                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,hasAds,reparsePoint);
 
                     if (startDirectory.SubItems.ContainsKey(itemKey) == false)
                     {
@@ -177,8 +239,14 @@ namespace MFT
 
             if (fi == null)
             {
-                fi = fr.Attributes.Single(t =>
+                fi = fr.Attributes.SingleOrDefault(t =>
                     t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Posix);
+            }
+
+            if (fi == null)
+            {
+                fi = fr.Attributes.Single(t =>
+                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Dos);
             }
 
             var fin = (FileName) fi;

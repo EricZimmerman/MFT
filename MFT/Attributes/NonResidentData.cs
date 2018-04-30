@@ -67,7 +67,7 @@ namespace MFT.Attributes
 
             sb.AppendLine();
             sb.AppendLine(
-                $"StartingVirtualClusterNumber: {StartingVirtualClusterNumber} EndingVirtualClusterNumber: {EndingVirtualClusterNumber} AllocatedSize: {AllocatedSize} ActualSize: {ActualSize} InitializedSize: {InitializedSize} ");
+                $"StartingVirtualClusterNumber: 0x{StartingVirtualClusterNumber:X} EndingVirtualClusterNumber: 0x{EndingVirtualClusterNumber:X} AllocatedSize: 0x{AllocatedSize:X} ActualSize: 0x{ActualSize:X} InitializedSize: 0x{InitializedSize:X} ");
 
             sb.AppendLine();
             sb.AppendLine("DataRuns Entries");

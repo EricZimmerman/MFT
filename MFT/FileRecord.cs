@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using MFT.Attributes;
 using MFT.Other;
@@ -28,6 +29,7 @@ namespace MFT
             var logger = LogManager.GetCurrentClassLogger();
 
             Offset = offset;
+
             var sig = BitConverter.ToInt32(rawBytes, 0);
 
             if (sig != _fileSig && sig != _baadSig && sig != 0x0)
@@ -97,8 +99,9 @@ namespace MFT
 
             LogSequenceNumber = BitConverter.ToInt64(rawBytes, 0x8);
 
-            SequenceNumber = BitConverter.ToInt16(rawBytes, 0x10);
+            SequenceNumber = BitConverter.ToUInt16(rawBytes, 0x10);
 
+          
             ReferenceCount = BitConverter.ToInt16(rawBytes, 0x12);
 
             FirstAttributeOffset = BitConverter.ToInt16(rawBytes, 0x14);
@@ -115,7 +118,7 @@ namespace MFT
 
             FirstAvailablAttribueId = BitConverter.ToInt16(rawBytes, 0x28);
 
-            EntryNumber = BitConverter.ToInt32(rawBytes, 0x2c);
+            EntryNumber = BitConverter.ToUInt32(rawBytes, 0x2c);
 
             //start attribute processing at FirstAttributeOffset
 
@@ -247,14 +250,14 @@ namespace MFT
         public bool IsUninitialized { get; }
 
         public int Offset { get; }
-        public int EntryNumber { get; }
+        public uint EntryNumber { get; }
         public short FirstAttributeOffset { get; }
         public int ActualRecordSize { get; }
         public int AllocatedRecordSize { get; }
         public MftEntryInfo MftRecordToBaseRecord { get; }
         public short FirstAvailablAttribueId { get; }
         public short ReferenceCount { get; }
-        public short SequenceNumber { get; }
+        public ushort SequenceNumber { get; }
         public EntryFlag EntryFlags { get; }
         public long LogSequenceNumber { get; }
         public short FixupEntryCount { get; }

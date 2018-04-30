@@ -79,7 +79,7 @@
     <Compile Include="MftFile.cs" />
     <Compile Include="Other\DataRun.cs" />
     <Compile Include="Other\AttributeInfo.cs" />
-    <Compile Include="Other\Directory.cs" />
+    <Compile Include="Other\DirectoryItem.cs" />
     <Compile Include="Other\ExtensionRecordInfo.cs" />
     <Compile Include="Other\FixupData.cs" />
     <Compile Include="Other\IndexEntry.cs" />
