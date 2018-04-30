@@ -293,7 +293,7 @@ namespace MFT
             return l;
         }
 
-        public ulong GetFileSize(string adsName)
+        public ulong GetFileSize()
         {
             var fn = Attributes.FirstOrDefault(t => t.AttributeType == AttributeType.FileName);
             if (fn != null)
@@ -310,10 +310,6 @@ namespace MFT
 
             var datas = Attributes.Where(t => t.AttributeType == AttributeType.Data).ToList();
 
-            if (adsName?.Length > 0)
-            {
-                datas = Attributes.Where(t => t.AttributeType == AttributeType.Data && t.Name.ToLowerInvariant() == adsName.ToLowerInvariant()).ToList();
-            }
 
             if (datas.Count >= 1)
             {
@@ -345,7 +341,7 @@ namespace MFT
             var sb = new StringBuilder();
 
             sb.AppendLine(
-                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LogSequenceNumber: 0x{LogSequenceNumber:X} MftRecordToBaseRecord: {MftRecordToBaseRecord} FixupData: {FixupData} (Fixup OK: {FixupOk})");
+                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LogSequenceNumber: 0x{LogSequenceNumber:X} MftRecordToBaseRecord: {MftRecordToBaseRecord} ReferenceCount: 0x{ReferenceCount:X} FixupData: {FixupData} (Fixup OK: {FixupOk})");
 
             foreach (var attribute in Attributes)
             {

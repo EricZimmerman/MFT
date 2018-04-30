@@ -59,7 +59,7 @@ namespace MFT
 
             var rootFolder = FileRecords.Single(t => t.Value.EntryNumber == 5).Value;
             var rootKey = $"{rootFolder.EntryNumber:X8}-{rootFolder.SequenceNumber:X8}";
-            RootDirectory = new DirectoryItem("", rootKey, ".",false,null,rootFolder.GetFileSize(null));
+            RootDirectory = new DirectoryItem("", rootKey, ".",false,null,rootFolder.GetFileSize(),false);
         }
 
         public DirectoryItem RootDirectory { get; }
@@ -152,6 +152,8 @@ namespace MFT
                     _logger.Trace($"Found reparse point: {reparsePoint.PrintName} --> {reparsePoint.SubstituteName}");
                 }
 
+                var baseEntryNumber = -1;
+
                 foreach (var fileNameAttribute in fileRecord.Value.Attributes.Where(t =>
                     t.AttributeType == AttributeType.FileName))
                 {
@@ -161,6 +163,15 @@ namespace MFT
                     {
                         continue;
                     }
+
+                    if (baseEntryNumber == -1)
+                    {
+                        baseEntryNumber = (int) fna.FileInfo.ParentMftRecord.MftEntryNumber;
+                      
+                    }
+
+                    var isHardLink = false;
+                    isHardLink = (fna.FileInfo.ParentMftRecord.MftEntryNumber != baseEntryNumber );
 
                     var stack = GetDirectoryChain(fna);
 
@@ -188,10 +199,7 @@ namespace MFT
                             var newDirName = GetFileNameFromFileRecord(entry);
                             var newDirKey = $"{entry.EntryNumber:X8}-{entry.SequenceNumber:X8}";
 
-                          
-                          
-
-                            var newDir = new DirectoryItem(newDirName, newDirKey, parentDir,false,reparsePoint,0);
+                            var newDir = new DirectoryItem(newDirName, newDirKey, parentDir,false,reparsePoint,0,false);
 
                             startDirectory.SubItems.Add(newDirKey, newDir);
 
@@ -204,8 +212,6 @@ namespace MFT
                     var isDirectory = (fna.FileInfo.Flags & StandardInfo.Flag.IsDirectory) ==
                                       StandardInfo.Flag.IsDirectory;
 
-                  
-
                     ulong fileSize = 0;
                     if (isDirectory)
                     {
@@ -215,11 +221,10 @@ namespace MFT
                     {
                         itemKey =
                             $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}-{fna.AttributeNumber:X8}";
-                        fileSize = fileRecord.Value.GetFileSize(null);
+                        fileSize = fileRecord.Value.GetFileSize();
                     }
 
-
-                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,hasAds.Count>0,reparsePoint,fileSize);
+                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,hasAds.Count>0,reparsePoint,fileSize,isHardLink);
 
                     if (startDirectory.SubItems.ContainsKey(itemKey) == false)
                     {
