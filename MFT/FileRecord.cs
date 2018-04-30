@@ -16,7 +16,7 @@ namespace MFT
         public enum EntryFlag
         {
             FileRecordSegmentInUse = 0x1,
-            FileNameIndexPresent = 0x2,
+            IsDirectory = 0x2,
             Unknown0 = 0x4,
             Unknown1 = 0x8
         }
@@ -298,9 +298,8 @@ namespace MFT
             var fn = Attributes.FirstOrDefault(t => t.AttributeType == AttributeType.FileName);
             if (fn != null)
             {
-                var fna = (FileName) fn;
-                var isDirectory = (fna.FileInfo.Flags & StandardInfo.Flag.IsDirectory) ==
-                                  StandardInfo.Flag.IsDirectory;
+                var isDirectory = (EntryFlags & EntryFlag.IsDirectory) ==
+                                  EntryFlag.IsDirectory;
 
                 if (isDirectory)
                 {

@@ -209,8 +209,8 @@ namespace MFT
 
                     string itemKey;
 
-                    var isDirectory = (fna.FileInfo.Flags & StandardInfo.Flag.IsDirectory) ==
-                                      StandardInfo.Flag.IsDirectory;
+                    var isDirectory = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
+                                      FileRecord.EntryFlag.IsDirectory;
 
                     ulong fileSize = 0;
                     if (isDirectory)
