@@ -105,6 +105,13 @@ namespace MFT.Test
                 {
                     s.WriteLine(f.Value);
                     //logger.Info(f.Value);
+
+//                    var ads = f.Value.GetAlternateDataStreams();
+//
+//                    foreach (var adsInfo in ads)
+//                    {
+//                        logger.Info(adsInfo);
+//                    }
                 }
 
                 s.Flush();

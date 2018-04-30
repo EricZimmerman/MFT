@@ -134,9 +134,9 @@ namespace MFT
                     fileRecord.Value.Attributes.Where(t =>
                         t.AttributeType == AttributeType.Data && t.NameSize>0).ToList();
 
-                var hasAds = dataAttrs.Count > 0;
+                var hasAds = fileRecord.Value.GetAlternateDataStreams();// dataAttrs.Count > 0;
 
-                if (dataAttrs.Count > 0)
+                if (hasAds.Count > 0)
                 {
                    _logger.Trace($"Found {dataAttrs.Count:N0} ADSs");
                 }
@@ -204,10 +204,7 @@ namespace MFT
                     var isDirectory = (fna.FileInfo.Flags & StandardInfo.Flag.IsDirectory) ==
                                       StandardInfo.Flag.IsDirectory;
 
-                    if (fna.FileInfo.FileName.Contains("Tripods.rar"))
-                    {
-                        Debug.WriteLine("Tripods.rar");
-                    }
+                  
 
                     ulong fileSize = 0;
                     if (isDirectory)
@@ -222,7 +219,7 @@ namespace MFT
                     }
 
 
-                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,hasAds,reparsePoint,fileSize);
+                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,hasAds.Count>0,reparsePoint,fileSize);
 
                     if (startDirectory.SubItems.ContainsKey(itemKey) == false)
                     {

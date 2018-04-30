@@ -264,6 +264,35 @@ namespace MFT
 
         public bool FixupOk { get; }
 
+        public List<AdsInfo> GetAlternateDataStreams()
+        {
+            var l = new List<AdsInfo>();
+
+            var dataAttrs =
+                Attributes.Where(t =>
+                    t.AttributeType == AttributeType.Data && t.NameSize>0).ToList();
+
+            foreach (var attribute in dataAttrs)
+            {
+                var da = (Data) attribute;
+
+                ulong size;
+                if (da.IsResident)
+                {
+                    size = (ulong) da.AttributeContentLength;
+                }
+                else
+                {
+                    size = da.NonResidentData.ActualSize;
+                }
+
+                var adsi = new AdsInfo(da.Name,size,da.ResidentData,da.NonResidentData);
+
+                l.Add(adsi);
+            }
+            return l;
+        }
+
         public ulong GetFileSize(string adsName)
         {
             var fn = Attributes.FirstOrDefault(t => t.AttributeType == AttributeType.FileName);
@@ -294,12 +323,11 @@ namespace MFT
                 {
                     return (ulong) data.ResidentData.Data.LongLength;
                 }
-                else
-                {
-                    return data.NonResidentData.ActualSize;
-                }
+
+                return data.NonResidentData.ActualSize;
             }
-            else if (datas.Count == 0)
+
+            if (datas.Count == 0)
             {
                 var fna = (FileName) fn;
                 if (fn != null)
@@ -307,7 +335,7 @@ namespace MFT
                     return fna.FileInfo.LogicalSize;
                 }
             }
-           
+
             return 0;
         }
 

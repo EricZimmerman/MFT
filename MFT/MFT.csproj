@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdsInfo.cs" />
     <Compile Include="Attributes\ACERecord.cs" />
     <Compile Include="Attributes\Attribute.cs" />
     <Compile Include="Attributes\AttributeList.cs" />
