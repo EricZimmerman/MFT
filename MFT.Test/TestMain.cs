@@ -51,7 +51,7 @@ namespace MFT.Test
                 }
                 else
                 {
-                    logger.Info($"\t{subitem.Name} (Ads: {subitem.HasAds} Hardlink: {subitem.IsHardLink}) {reparse}file size: 0x{subitem.FileSize:X} Is Deleted: {subitem.IsDeleted}");
+                    logger.Info($"\t{subitem.Name} (Ads: {subitem.HasAds}) Hardlink: {subitem.IsHardLink}) {reparse}file size: 0x{subitem.FileSize:X} Is Deleted: {subitem.IsDeleted}");
                 }
             }
 

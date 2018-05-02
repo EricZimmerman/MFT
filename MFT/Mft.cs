@@ -279,7 +279,6 @@ namespace MFT
                     }
                 }
 
-
                 var reparseAttr =
                     freeDirectory.Value.Attributes.Where(t =>
                         t.AttributeType == AttributeType.ReparsePoint).ToList();
@@ -291,7 +290,6 @@ namespace MFT
                     _logger.Trace($"Found reparse point: {reparsePoint.PrintName} --> {reparsePoint.SubstituteName}");
                 }
 
-
                 foreach (var fileNameAttribute in freeDirectory.Value.Attributes.Where(t =>
                     t.AttributeType == AttributeType.FileName))
                 {
@@ -302,14 +300,10 @@ namespace MFT
                         continue;
                     }
 
-
-                    _logger.Info($"Del dir: {fna.FileInfo.FileName}");
-
                     var stack = GetDirectoryChain(fna);
 
                     if (stack.Count == 0)
                     {
-                        Debug.WriteLine(1);
                         if (RootDirectory.SubItems.ContainsKey("PathUnknown") == false)
                         {
                             var punk = new DirectoryItem("Path unknown","PathUnknown",".",false,null,0,false,true);
@@ -362,9 +356,6 @@ namespace MFT
                             startDirectory = startDirectory.SubItems[newDirKey];
                         }
                     }
-
-
-
                  
                     var    itemKey = $"{freeDirectory.Value.EntryNumber:X8}-{freeDirectory.Value.SequenceNumber:X8}";
 
@@ -374,9 +365,7 @@ namespace MFT
                     {
                         startDirectory.SubItems.Add(itemKey, itemDir);
                     }
-
                 }
-
             }
 
 
