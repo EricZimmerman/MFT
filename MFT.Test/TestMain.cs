@@ -26,7 +26,6 @@ namespace MFT.Test
         {
             var logger = LogManager.GetCurrentClassLogger();
 
-
             logger.Info($"Path: {dir.ParentPath}\\{dir.Name} Item count: ({dir.SubItems.Count:N0})");
 
             foreach (var subitem in dir.SubItems.Values.OrderByDescending(t => t.SubItems.Count > 0)
@@ -38,21 +37,21 @@ namespace MFT.Test
                 {
                     if (subitem.ReparsePoint.PrintName.Length > 0)
                     {
-                        reparse = $"Reparse: {subitem.ReparsePoint.PrintName} --> {subitem.ReparsePoint.SubstituteName.Replace(@"\??\","")}";
+                        reparse = $"Reparse: {subitem.ReparsePoint.PrintName} --> {subitem.ReparsePoint.SubstituteName.Replace(@"\??\","")} ";
                     }
                     else
                     {
-                        reparse = $"Reparse: {subitem.ReparsePoint.SubstituteName.Replace(@"\??\","")}";
+                        reparse = $"Reparse: {subitem.ReparsePoint.SubstituteName.Replace(@"\??\","")} ";
                     }
                 }
 
                 if (subitem.SubItems.Count > 0)
                 {
-                    logger.Info($"\t{subitem.Name} (directory) {reparse}");
+                    logger.Info($"\t{subitem.Name} (directory) {reparse}Is Deleted: {subitem.IsDeleted}");
                 }
                 else
                 {
-                    logger.Info($"\t{subitem.Name} (Ads: {subitem.HasAds} Hardlink: {subitem.IsHardLink}) {reparse} file size: 0x{subitem.FileSize:X}");
+                    logger.Info($"\t{subitem.Name} (Ads: {subitem.HasAds} Hardlink: {subitem.IsHardLink}) {reparse}file size: 0x{subitem.FileSize:X} Is Deleted: {subitem.IsDeleted}");
                 }
             }
 

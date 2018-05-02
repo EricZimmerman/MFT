@@ -6,7 +6,7 @@ namespace MFT.Other
 {
     public class DirectoryItem
     {
-        public DirectoryItem(string name, string key, string parentPath,  bool hasAds, ReparsePoint reparsePoint, ulong fileSize, bool isHardLink)
+        public DirectoryItem(string name, string key, string parentPath,  bool hasAds, ReparsePoint reparsePoint, ulong fileSize, bool isHardLink, bool isDeleted)
         {
             Name = name;
             Key = key;
@@ -16,6 +16,7 @@ namespace MFT.Other
             ReparsePoint = reparsePoint;
             FileSize = fileSize;
             IsHardLink = isHardLink;
+            IsDeleted = isDeleted;
             SubItems = new Dictionary<string, DirectoryItem>();
         }
 
@@ -36,6 +37,7 @@ namespace MFT.Other
 
         public bool HasAds { get; }
         public bool IsHardLink { get; }
+        public bool IsDeleted { get; }
         public ReparsePoint ReparsePoint { get; }
 
         public ulong FileSize { get; }
@@ -44,7 +46,7 @@ namespace MFT.Other
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine($"Name: {Name} ReparsePoint: {ReparsePoint} Has ADS: {HasAds} IsHardLink: {IsHardLink}");
+            sb.AppendLine($"Name: {Name} ReparsePoint: {ReparsePoint} Has ADS: {HasAds} IsHardLink: {IsHardLink} IsDeleted: {IsDeleted}");
             foreach (var directory in SubItems)
             {
                 sb.AppendLine(directory.Value.Name);
