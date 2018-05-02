@@ -84,7 +84,6 @@ namespace MFT
             {
                 //   logger.Info(fileRecord.Value);
 
-
                 if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
                     fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
                 {

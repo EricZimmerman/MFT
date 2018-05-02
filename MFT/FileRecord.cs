@@ -21,9 +21,9 @@ namespace MFT
             Unknown1 = 0x8
         }
 
-        private readonly int _baadSig = 0x44414142;
-        private readonly int _fileSig = 0x454c4946;
-        private readonly int _noSig = 0x0;
+        private const int BaadSig = 0x44414142;
+        private const int FileSig = 0x454c4946;
+        private const int NoSig = 0x0;
 
         public FileRecord(byte[] rawBytes, int offset)
         {
@@ -33,24 +33,22 @@ namespace MFT
 
             var sig = BitConverter.ToInt32(rawBytes, 0);
 
-            if (sig != _fileSig && sig != _baadSig && sig != 0x0)
+            if (sig != FileSig && sig != BaadSig && sig != 0x0)
             {
                 throw new Exception("Invalid signature!");
             }
 
-            if (sig == _noSig)
+            switch (sig)
             {
-                //not initialized
-                logger.Debug($"Uninitialized entry (no signature) at offset 0x{offset:X}");
-                IsUninitialized = true;
-                return;
-            }
-
-            if (sig == _baadSig)
-            {
-                logger.Debug($"Bad signature at offset 0x{offset:X}");
-                IsBad = true;
-                return;
+                case NoSig:
+                    //not initialized
+                    logger.Debug($"Uninitialized entry (no signature) at offset 0x{offset:X}");
+                    IsUninitialized = true;
+                    return;
+                case BaadSig:
+                    logger.Debug($"Bad signature at offset 0x{offset:X}");
+                    IsBad = true;
+                    return;
             }
 
             Attributes = new List<Attribute>();
