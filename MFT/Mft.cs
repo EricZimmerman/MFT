@@ -19,7 +19,6 @@ namespace MFT
             FreeFileRecords = new Dictionary<string, FileRecord>();
             BadRecords = new List<FileRecord>();
             UninitializedRecords = new List<FileRecord>();
-            PathUnknownPaths = new Dictionary<string, string>();
 
             const int blockSize = 1024;
 
@@ -37,12 +36,7 @@ namespace MFT
 
                 _logger.Debug($"offset: 0x{f.Offset:X} flags: {f.EntryFlags} key: {key}");
 
-                if ((f.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) ==
-                    FileRecord.EntryFlag.FileRecordSegmentInUse)
-                {
-                    FileRecords.Add(key, f);
-                }
-                else if (f.IsBad)
+               if (f.IsBad)
                 {
                     BadRecords.Add(f);
                 }
@@ -50,21 +44,31 @@ namespace MFT
                 {
                     UninitializedRecords.Add(f);
                 }
-                else
+                else if ((f.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) != FileRecord.EntryFlag.FileRecordSegmentInUse)
                 {
                     FreeFileRecords.Add(key, f);
                 }
+               else
+               {
+                   FileRecords.Add(key, f);
+               }
 
                 index += blockSize;
             }
 
+            //this will keep track of the path where each entry can be found
+            //key == entry #-seq #
+            //value is path to a given key == .\entry-seq\entry-seq and so on from root
+            DirectoryPathMap = new Dictionary<string, string>();
+
             var rootFolder = FileRecords.Single(t => t.Value.EntryNumber == 5).Value;
-            var rootKey = $"{rootFolder.EntryNumber:X8}-{rootFolder.SequenceNumber:X8}";
-            RootDirectory = new DirectoryItem("", rootKey, ".",false,null,rootFolder.GetFileSize(),false,false);
+            
+            RootDirectory = new DirectoryItem("", rootFolder.Key(), ".",false,null,rootFolder.GetFileSize(),false,false);
+
+            DirectoryPathMap.Add(rootFolder.Key(),".");
         }
 
         public DirectoryItem RootDirectory { get; }
-
 
         public Dictionary<string, FileRecord> FileRecords { get; }
         public Dictionary<string, FileRecord> FreeFileRecords { get; }
@@ -81,10 +85,20 @@ namespace MFT
             //if it does exist, use that and keep checking down the rest of the entries
             //this will build out all the directories
 
-            foreach (var fileRecord in FileRecords)
-            {
-                //   logger.Info(fileRecord.Value);
+            //For all directories, build out a map where key == parent directrory id and value is how to get there
+            BuildDirectoryPathMap(FileRecords.Where(t=>((t.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) == FileRecord.EntryFlag.IsDirectory)));
+           BuildDirectoryPathMap(FreeFileRecords.Where(t=>((t.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) == FileRecord.EntryFlag.IsDirectory)));
 
+
+
+        }
+
+
+        private void BuildDirectoryPathMap(IEnumerable<KeyValuePair<string, FileRecord>> fileRecords)
+        {
+
+            foreach (var fileRecord in fileRecords)
+            {
                 if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
                     fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
                 {
@@ -92,10 +106,9 @@ namespace MFT
                     continue;
                 }
 
-                var key = $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}";
-
-                if (RootDirectory.Key == key)
+                if (RootDirectory.Key == fileRecord.Key)
                 {
+                    //skip entry 5
                     continue;
                 }
 
@@ -129,18 +142,6 @@ namespace MFT
                     }
                 }
 
-                //data block count for ads
-                var dataAttrs =
-                    fileRecord.Value.Attributes.Where(t =>
-                        t.AttributeType == AttributeType.Data && t.NameSize>0).ToList();
-
-                var hasAds = fileRecord.Value.GetAlternateDataStreams();// dataAttrs.Count > 0;
-
-                if (hasAds.Count > 0)
-                {
-                   _logger.Trace($"Found {dataAttrs.Count:N0} ADSs");
-                }
-
                 var reparseAttr =
                     fileRecord.Value.Attributes.Where(t =>
                         t.AttributeType == AttributeType.ReparsePoint).ToList();
@@ -152,551 +153,125 @@ namespace MFT
                     _logger.Trace($"Found reparse point: {reparsePoint.PrintName} --> {reparsePoint.SubstituteName}");
                 }
 
-                var baseEntryNumber = -1;
+                var fileNameRecords = fileRecord.Value.Attributes.Where(t => t.AttributeType == AttributeType.FileName)
+                    .ToList();
 
-                foreach (var fileNameAttribute in fileRecord.Value.Attributes.Where(t =>
-                    t.AttributeType == AttributeType.FileName))
+                FileName fna;
+
+                if (fileNameRecords.Count == 1)
                 {
-                    var fna = (FileName) fileNameAttribute;
-
-                    if (fna.FileInfo.NameType == NameTypes.Dos)
-                    {
-                        continue;
-                    }
-
-                    if (baseEntryNumber == -1)
-                    {
-                        baseEntryNumber = (int) fna.FileInfo.ParentMftRecord.MftEntryNumber;
-                      
-                    }
-
-                    var isHardLink = false;
-                    isHardLink = (fna.FileInfo.ParentMftRecord.MftEntryNumber != baseEntryNumber );
-
-                    var stack = GetDirectoryChain(fna);
-
-                    //the stack will always end with the RootDirectory's key, so take it away
-                    stack.Pop();
-
-                    var startDirectory = RootDirectory;
-
-                    var parentDir = ".";
-
-                    while (stack.Count > 0)
-                    {
-                        var dirKey = stack.Pop();
-
-                        if (startDirectory.SubItems.ContainsKey(dirKey))
-                        {
-                            startDirectory = startDirectory.SubItems[dirKey];
-
-                            parentDir = $"{parentDir}\\{startDirectory.Name}";
-                        }
-                        else
-                        {
-                            var entry = FileRecords[dirKey];
-
-                            var newDirName = GetFileNameFromFileRecord(entry);
-                            var newDirKey = $"{entry.EntryNumber:X8}-{entry.SequenceNumber:X8}";
-
-                            var newDir = new DirectoryItem(newDirName, newDirKey, parentDir,false,reparsePoint,0,false,false);
-
-                            startDirectory.SubItems.Add(newDirKey, newDir);
-
-                            startDirectory = startDirectory.SubItems[newDirKey];
-                        }
-                    }
-
-                    string itemKey;
-
-                    var isDirectory = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
-                                      FileRecord.EntryFlag.IsDirectory;
-
-                    ulong fileSize = 0;
-                    if (isDirectory)
-                    {
-                        itemKey = $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}";
-                    }
-                    else
-                    {
-                        itemKey =
-                            $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}-{fna.AttributeNumber:X8}";
-                        fileSize = fileRecord.Value.GetFileSize();
-                    }
-
-                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,hasAds.Count>0,reparsePoint,fileSize,isHardLink,false);
-
-                    if (startDirectory.SubItems.ContainsKey(itemKey) == false)
-                    {
-                        startDirectory.SubItems.Add(itemKey, itemDir);
-                    }
+                    fna = (FileName) fileNameRecords.First();
                 }
-            }
-
-            ProcessFreeDirectoryRecords();
-            ProcessFreeFileRecords();
-        }
-
-        private void ProcessFreeFileRecords()
-        {  
-            
-            var freeFiles = FreeFileRecords.Where(t =>
-                (t.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) != FileRecord.EntryFlag.IsDirectory).ToList();
-
-              foreach (var fileRecord in freeFiles)
-            {
-                //   logger.Info(fileRecord.Value);
-
-                if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
-                    fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
+                else
                 {
-                    //will get this record via attributeList
-                    continue;
+                    fna = GetFileNameAttributeFromFileRecord(fileRecord.Value);
                 }
+                var path = GetParentPathFromInUse(fna);
 
-                var key = $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}";
+                var inUse = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) ==
+                            FileRecord.EntryFlag.FileRecordSegmentInUse;
 
-                if (RootDirectory.Key == key)
-                {
-                    continue;
-                }
+                DirectoryPathMap.Add(fileRecord.Value.Key(),path);
 
-                //look for attribute list, pull out non-self referencing attributes
-                var attrList =
-                    (AttributeList) fileRecord.Value.Attributes.SingleOrDefault(t =>
-                        t.AttributeType == AttributeType.AttributeList);
+               var isDir = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
+                           FileRecord.EntryFlag.IsDirectory;
 
-                if (attrList != null)
-                {
-                    foreach (var attrListAttributeInformation in attrList.AttributeInformations)
-                    {
-                        if (attrListAttributeInformation.EntryInfo.MftEntryNumber != fileRecord.Value.EntryNumber && attrListAttributeInformation.EntryInfo.MftSequenceNumber != fileRecord.Value.SequenceNumber)
-                        {
-                            _logger.Trace($"found attrlist item: {attrListAttributeInformation}");
+                _logger.Info($"{fna.FileInfo.FileName} (is dir: {isDir}) (in use: {inUse})> {fileRecord.Value.Key()} ==> {path}");
 
-                            var attrEntryKey = $"{attrListAttributeInformation.EntryInfo.MftEntryNumber:X8}-{attrListAttributeInformation.EntryInfo.MftSequenceNumber:X8}";
-
-                            if (FileRecords.ContainsKey(attrEntryKey) == false)
-                            {
-                                _logger.Warn($"Cannot find record with entry/seq #: 0x{attrEntryKey}");
-                            }
-                            else
-                            {
-                                var attrEntry = FileRecords[attrEntryKey];
-
-                                //pull in all related attributes from this record for processing later
-                                fileRecord.Value.Attributes.AddRange(attrEntry.Attributes);    
-                            }
-                        }
-                    }
-                }
-
-                //data block count for ads
-                var dataAttrs =
-                    fileRecord.Value.Attributes.Where(t =>
-                        t.AttributeType == AttributeType.Data && t.NameSize>0).ToList();
-
-                var hasAds = fileRecord.Value.GetAlternateDataStreams();// dataAttrs.Count > 0;
-
-                if (hasAds.Count > 0)
-                {
-                   _logger.Trace($"Found {dataAttrs.Count:N0} ADSs");
-                }
-
-                var reparseAttr =
-                    fileRecord.Value.Attributes.Where(t =>
-                        t.AttributeType == AttributeType.ReparsePoint).ToList();
-
-                var reparsePoint = (ReparsePoint) reparseAttr.FirstOrDefault();
-
-                if (reparsePoint != null)
-                {
-                    _logger.Trace($"Found reparse point: {reparsePoint.PrintName} --> {reparsePoint.SubstituteName}");
-                }
-
-                var baseEntryNumber = -1;
-
-                foreach (var fileNameAttribute in fileRecord.Value.Attributes.Where(t =>
-                    t.AttributeType == AttributeType.FileName))
-                {
-                    var fna = (FileName) fileNameAttribute;
-
-                    if (fna.FileInfo.NameType == NameTypes.Dos)
-                    {
-                        continue;
-                    }
-
-                    if (baseEntryNumber == -1)
-                    {
-                        baseEntryNumber = (int) fna.FileInfo.ParentMftRecord.MftEntryNumber;
-                      
-                    }
-
-                    var isHardLink = false;
-                    isHardLink = (fna.FileInfo.ParentMftRecord.MftEntryNumber != baseEntryNumber );
-
-                    var noParentDir = false;
-                    var stack = GetDirectoryChainDeleted(fna, out noParentDir);
-
-                    if (stack.Count == 0)
-                    {
-                        if (RootDirectory.SubItems.ContainsKey("PathUnknown") == false)
-                        {
-                            var punk = new DirectoryItem("Path unknown","PathUnknown",".",false,null,0,false,true);
-                            RootDirectory.SubItems.Add("PathUnknown",punk);
-                        }
-
-                        var pu = RootDirectory.SubItems["PathUnknown"];
-
-                        var someDirEntryKey1 = $"{fna.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fna.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
-
-                        var someDir = new DirectoryItem($"Directory with entry 0x{fna.FileInfo.ParentMftRecord.MftEntryNumber:x}",someDirEntryKey1,".\\Path unknown",false,reparsePoint,0,false,true);
-
-                      
-
-                        if (pu.SubItems.ContainsKey(someDirEntryKey1) == false)
-                        {
-                            pu.SubItems.Add(someDirEntryKey1,someDir);
-                            
-                        }
-
-                        stack.Push(someDirEntryKey1);
-                        stack.Push("PathUnknown");
-                        stack.Push("FakeRoot"); //doesnt matter, but put something here to be popped off in the next step
-                    }
-
-                    //the stack will always end with the RootDirectory's key, so take it away
-                    stack.Pop();
-
-                    var startDirectory = RootDirectory;
-
-                    var parentDir = ".";
-
-                    while (stack.Count > 0)
-                    {
-                        var dirKey = stack.Pop();
-                        
-                        if (startDirectory.SubItems.ContainsKey(dirKey))
-                        {
-                            startDirectory = startDirectory.SubItems[dirKey];
-
-                            parentDir = $"{parentDir}\\{startDirectory.Name}";
-                        }
-                        else
-                        {
-                            FileRecord entry;
-
-                            if (FileRecords.ContainsKey(dirKey))
-                            {
-                                entry = FileRecords[dirKey];
-                            }
-                            else
-                            {
-                                entry = FreeFileRecords[dirKey];
-                            }
-                                
-                            var newDirName = GetFileNameFromFileRecord(entry);
-                            var newDirKey = $"{entry.EntryNumber:X8}-{entry.SequenceNumber:X8}";
-
-                            var newDir = new DirectoryItem(newDirName, newDirKey, parentDir,false,reparsePoint,0,false,false);
-
-                            if (startDirectory.SubItems.ContainsKey(newDirKey) == false)
-                            {
-                                startDirectory.SubItems.Add(newDirKey, newDir);
-                            }
-                            
-
-                            startDirectory = startDirectory.SubItems[newDirKey];
-                        }
-                    }
-
-                    string itemKey;
-
-                    var isDirectory = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
-                                      FileRecord.EntryFlag.IsDirectory;
-
-                    ulong fileSize = 0;
-                    if (isDirectory)
-                    {
-                        itemKey = $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}";
-                    }
-                    else
-                    {
-                        itemKey =
-                            $"{fileRecord.Value.EntryNumber:X8}-{fileRecord.Value.SequenceNumber:X8}-{fna.AttributeNumber:X8}";
-                        fileSize = fileRecord.Value.GetFileSize();
-                    }
-
-                   
-
-                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,hasAds.Count>0,reparsePoint,fileSize,isHardLink,true);
-
-                    if (startDirectory.SubItems.ContainsKey(itemKey) == false)
-                    { 
-                        startDirectory.SubItems.Add(itemKey, itemDir);
-                    }
-                }
             }
         }
 
-        private Dictionary<string, string> PathUnknownPaths;
-
-        private void ProcessFreeDirectoryRecords()
+        private string GetParentPathFromInUse(FileName fileName)
         {
+            var path = RootDirectory.ParentPath;
 
-            var freeDirectories = FreeFileRecords.Where(t =>
-                (t.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) == FileRecord.EntryFlag.IsDirectory).ToList();
-            
-            //put free directories where they belong
-
-            //var notFoundRecords = new List<FileRecord>(); //contains FileRecords that could not be attached to an existing directory. These will end up under ".\Path unknown"
-
-            foreach (var freeDirectory in freeDirectories)
-            {
-                var key = $"{freeDirectory.Value.EntryNumber:X8}-{freeDirectory.Value.SequenceNumber:X8}";
-
-                //look for attribute list, pull out non-self referencing attributes
-                var attrList =
-                    (AttributeList) freeDirectory.Value.Attributes.SingleOrDefault(t =>
-                        t.AttributeType == AttributeType.AttributeList);
-
-                if (attrList != null)
-                {
-                    foreach (var attrListAttributeInformation in attrList.AttributeInformations)
-                    {
-                        if (attrListAttributeInformation.EntryInfo.MftEntryNumber != freeDirectory.Value.EntryNumber && attrListAttributeInformation.EntryInfo.MftSequenceNumber != freeDirectory.Value.SequenceNumber)
-                        {
-                            _logger.Trace($"found attrlist item: {attrListAttributeInformation}");
-
-                            var attrEntryKey = $"{attrListAttributeInformation.EntryInfo.MftEntryNumber:X8}-{attrListAttributeInformation.EntryInfo.MftSequenceNumber:X8}";
-
-                            if (FileRecords.ContainsKey(attrEntryKey) == false)
-                            {
-                                _logger.Warn($"Cannot find record with entry/seq #: 0x{attrEntryKey}");
-                            }
-                            else
-                            {
-                                var attrEntry = FileRecords[attrEntryKey];
-
-                                //pull in all related attributes from this record for processing later
-                                freeDirectory.Value.Attributes.AddRange(attrEntry.Attributes);    
-                            }
-                        }
-                    }
-                }
-
-                var reparseAttr =
-                    freeDirectory.Value.Attributes.Where(t =>
-                        t.AttributeType == AttributeType.ReparsePoint).ToList();
-
-                var reparsePoint = (ReparsePoint) reparseAttr.FirstOrDefault();
-
-                if (reparsePoint != null)
-                {
-                    _logger.Trace($"Found reparse point: {reparsePoint.PrintName} --> {reparsePoint.SubstituteName}");
-                }
-
-                foreach (var fileNameAttribute in freeDirectory.Value.Attributes.Where(t =>
-                    t.AttributeType == AttributeType.FileName))
-                {
-                    var fna = (FileName) fileNameAttribute;
-
-                    if (fna.FileInfo.NameType == NameTypes.Dos)
-                    {
-                        continue;
-                    }
-
-                    _logger.Trace($"Free file: {fna.FileInfo.FileName}");
-
-
-
-                    var stack = GetDirectoryChain(fna);
-
-                    if (stack.Count == 0)
-                    {
-                        if (RootDirectory.SubItems.ContainsKey("PathUnknown") == false)
-                        {
-                            var punk = new DirectoryItem("Path unknown","PathUnknown",".",false,null,0,false,true);
-                            RootDirectory.SubItems.Add("PathUnknown",punk);
-                        }
-
-                        var pu = RootDirectory.SubItems["PathUnknown"];
-
-                        var someDirEntryKey1 = $"{fna.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fna.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
-
-                        var someDir = new DirectoryItem($"Directory with entry 0x{fna.FileInfo.ParentMftRecord.MftEntryNumber:x}",someDirEntryKey1,".\\Path unknown",false,reparsePoint,0,false,true);
-                        if (pu.SubItems.ContainsKey(someDirEntryKey1) == false)
-                        {
-                            pu.SubItems.Add(someDirEntryKey1,someDir);
-                            
-                        }
-                        
-                        stack.Push(someDirEntryKey1);
-                        stack.Push("PathUnknown");
-                        stack.Push("FakeRoot"); //doesnt matter, but put something here to be popped off in the next step
-                    }
-
-                    if (fna.FileInfo.FileName.Contains("isp"))
-                    {
-                        Debug.WriteLine(1);
-                    }
-                    //the stack will always end with the RootDirectory's key, so take it away
-                    stack.Pop();
-
-                    var startDirectory = RootDirectory;
-
-                    var parentDir = ".";
-                    var parentKey = "";
-
-                    while (stack.Count > 0)
-                    {
-                        var dirKey = stack.Pop();
-
-                        if (startDirectory.SubItems.ContainsKey(dirKey))
-                        {
-                            startDirectory = startDirectory.SubItems[dirKey];
-
-                            parentDir = $"{parentDir}\\{startDirectory.Name}";
-                            parentKey = $"{parentKey}\\{startDirectory.Key}";
-                        }
-                        else
-                        {
-                            var entry = FileRecords[dirKey];
-
-                            var newDirName = GetFileNameFromFileRecord(entry);
-                            var newDirKey = $"{entry.EntryNumber:X8}-{entry.SequenceNumber:X8}";
-
-                            var newDir = new DirectoryItem(newDirName, newDirKey, parentDir,false,reparsePoint,0,false,false);
-
-                            startDirectory.SubItems.Add(newDirKey, newDir);
-
-                            startDirectory = startDirectory.SubItems[newDirKey];
-                        }
-                    }
-                 
-                    //take away one from seq so this equals what is in ParentMFT reference
-                    var itemKey = $"{freeDirectory.Value.EntryNumber:X8}-{freeDirectory.Value.SequenceNumber-1:X8}";
-
-          
-
-                    var itemDir = new DirectoryItem(fna.FileInfo.FileName, itemKey, parentDir,false,reparsePoint,0,false,true);
-
-                    if (startDirectory.SubItems.ContainsKey(itemKey) == false)
-                    {
-                        startDirectory.SubItems.Add(itemKey, itemDir);
-                    }
-                    PathUnknownPaths.Add(itemKey,parentKey);
-                }
-            }
-
-        
-
-        }
-
-        private string GetFileNameFromFileRecord(FileRecord fr)
-        {
-            var fi = fr.Attributes.SingleOrDefault(t =>
-                t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.DosWindows);
-            if (fi == null)
-            {
-                fi = fr.Attributes.SingleOrDefault(t =>
-                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Windows);
-            }
-
-            if (fi == null)
-            {
-                fi = fr.Attributes.SingleOrDefault(t =>
-                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Posix);
-            }
-
-            if (fi == null)
-            {
-                fi = fr.Attributes.Single(t =>
-                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Dos);
-            }
-
-            var fin = (FileName) fi;
-
-            return fin.FileInfo.FileName;
-        }
-
-        private Stack<string> GetDirectoryChainDeleted(FileName fileName,out bool noParentDirectory)
-        {
-            var stack = new Stack<string>();
-
-      
-
-            //see if its in the active chain
-            var foo = GetDirectoryChain(fileName);
-
-            if (foo.Count > 0)
-            {
-                noParentDirectory = false;
-                return foo;
-            }
-
-            //if we get here, it is either a mix of previously existing and existing, or directories that no longer exist
-
-            var parentKey1 =
-                $"{fileName.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fileName.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
-
-            if (PathUnknownPaths.ContainsKey(parentKey1))
-            {
-
-                var path = PathUnknownPaths[parentKey1];
-
-                    path = $"{path}\\{parentKey1}";
-
-                var segs = path.Split(new[] { '\\' },StringSplitOptions.RemoveEmptyEntries);
-
-
-                foreach (var seg in segs.Reverse())
-                {
-                    stack.Push(seg);
-                }
-
-                stack.Push("FakeRoot");
-                noParentDirectory = true;
-                return stack;
-            }
-
-            //this ends up living in PathUnknown
-            stack.Push("PathUnknown");
-            stack.Push("FakeRoot");
-            noParentDirectory = true;
-            return stack;
-
-        }
-
-        private Stack<string> GetDirectoryChain(FileName fileName)
-        {
-            var stack = new Stack<string>();
-
-            var parentKey =
-                $"{fileName.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fileName.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
+            var parentKey =   $"{fileName.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fileName.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
 
             while (parentKey != RootDirectory.Key)
             {
-                if (FileRecords.ContainsKey(parentKey) == false)
+                //traverse up the chain
+
+                path = $"{path}\\{parentKey}";
+
+                FileRecord parentRecord = null;
+
+                if ((FileRecords.ContainsKey(parentKey)) || FreeFileRecords.ContainsKey(parentKey))
                 {
-                    return stack;
+                    //it exists somewhere
+                    if (FileRecords.ContainsKey(parentKey))
+                    {
+                        parentRecord = FileRecords[parentKey];
+                    }
+                    else
+                    {
+                        parentRecord = FreeFileRecords[parentKey];
+                    }
+                }
+                else
+                {
+                    //this entries parent doesnt exist any more, so make it show up under "PathUnknown", unless we already know where it goes based on DirectoryPathMap
+
+                    if (DirectoryPathMap.ContainsKey(parentKey))
+                    {
+                        path = path.Replace(".", DirectoryPathMap[parentKey]);
+
+                        return path;
+                    }
+
+                    path = path.Replace(".", ".\\PathUnknown");
+
+                    return path;
                 }
 
-                stack.Push(parentKey);
+                var parentFn = GetFileNameAttributeFromFileRecord(parentRecord);
 
-                var parentRecord = FileRecords[parentKey];
+                parentKey =   $"{parentFn.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{parentFn.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
+            }
+            return path;
+        }
 
-                var fileNameAttribute =
-                    (FileName) parentRecord.Attributes.First(t => t.AttributeType == AttributeType.FileName);
 
-                parentKey =
-                    $"{fileNameAttribute.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fileNameAttribute.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
+        private HashSet<string> ProcesssedFileRecords = new HashSet<string>();
+
+        private Dictionary<string, string> DirectoryPathMap;
+
+      
+
+        private FileName GetFileNameAttributeFromFileRecord(FileRecord fr)
+        {
+            var fi = fr.Attributes.SingleOrDefault(t =>
+                t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.DosWindows);
+
+            if (fi != null)
+            {
+                return (FileName) fi;
+            }
+            
+                fi = fr.Attributes.SingleOrDefault(t =>
+                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Windows);
+            
+            if (fi != null)
+            {
+                return (FileName) fi;
             }
 
-            //add the root in case things change later and we need it
-            stack.Push(RootDirectory.Key);
+            
+                fi = fr.Attributes.SingleOrDefault(t =>
+                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Posix);
+            
+            if (fi != null)
+            {
+                return (FileName) fi;
+            }
 
-            return stack;
+           
+                fi = fr.Attributes.Single(t =>
+                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Dos);
+           
+                return (FileName) fi;
+            
         }
+
+//   
     }
 }
