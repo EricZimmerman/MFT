@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using MFT.Attributes;
@@ -99,7 +98,7 @@ namespace MFT
             LogSequenceNumber = BitConverter.ToInt64(rawBytes, 0x8);
 
             SequenceNumber = BitConverter.ToUInt16(rawBytes, 0x10);
-          
+
             ReferenceCount = BitConverter.ToInt16(rawBytes, 0x12);
 
             FirstAttributeOffset = BitConverter.ToInt16(rawBytes, 0x14);
@@ -121,7 +120,6 @@ namespace MFT
             //start attribute processing at FirstAttributeOffset
 
             var index = (int) FirstAttributeOffset;
-
 
             while (index < ActualRecordSize)
             {
@@ -231,7 +229,6 @@ namespace MFT
                         throw new Exception($"Add me: {attrType} (0x{attrType:X})");
                 }
 
-
                 index += attrSize;
             }
 
@@ -261,77 +258,6 @@ namespace MFT
         public short FixupOffset { get; }
 
         public bool FixupOk { get; }
-
-        public List<AdsInfo> GetAlternateDataStreams()
-        {
-            var l = new List<AdsInfo>();
-
-            var dataAttrs =
-                Attributes.Where(t =>
-                    t.AttributeType == AttributeType.Data && t.NameSize>0).ToList();
-
-            foreach (var attribute in dataAttrs)
-            {
-                var da = (Data) attribute;
-
-                ulong size;
-                if (da.IsResident)
-                {
-                    size = (ulong) da.AttributeContentLength;
-                }
-                else
-                {
-                    size = da.NonResidentData.ActualSize;
-                }
-
-                var adsi = new AdsInfo(da.Name,size,da.ResidentData,da.NonResidentData);
-
-                l.Add(adsi);
-            }
-            return l;
-        }
-
-        public ulong GetFileSize()
-        {
-            var fn = Attributes.FirstOrDefault(t => t.AttributeType == AttributeType.FileName);
-            if (fn != null)
-            {
-                var isDirectory = (EntryFlags & EntryFlag.IsDirectory) ==
-                                  EntryFlag.IsDirectory;
-
-                if (isDirectory)
-                {
-                    return 0;
-                }
-            }
-
-            var datas = Attributes.Where(t => t.AttributeType == AttributeType.Data).ToList();
-
-
-            if (datas.Count >= 1)
-            {
-                var data = (Data) datas.First();
-
-                if (data.IsResident)
-                {
-                    return (ulong) data.ResidentData.Data.LongLength;
-                }
-
-                return data.NonResidentData.ActualSize;
-            }
-
-            if (datas.Count == 0)
-            {
-                var fna = (FileName) fn;
-                if (fn != null)
-                {
-                    return fna.FileInfo.LogicalSize;
-                }
-            }
-
-            return 0;
-        }
-
 
         public override string ToString()
         {

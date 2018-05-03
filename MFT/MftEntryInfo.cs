@@ -15,7 +15,7 @@ namespace MFT
 
             uint entryIndex;
 
-            uint entryIndex1 = BitConverter.ToUInt32(rawEntryBytes, 0);
+            var entryIndex1 = BitConverter.ToUInt32(rawEntryBytes, 0);
             uint entryIndex2 = BitConverter.ToUInt16(rawEntryBytes, 4);
 
             if (entryIndex2 == 0)

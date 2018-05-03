@@ -6,12 +6,13 @@ namespace MFT.Other
 {
     public class DirectoryItem
     {
-        public DirectoryItem(string name, string key, string parentPath,  bool hasAds, ReparsePoint reparsePoint, ulong fileSize, bool isHardLink, bool isDeleted)
+        public DirectoryItem(string name, string key, string parentPath, bool hasAds, ReparsePoint reparsePoint,
+            ulong fileSize, bool isHardLink, bool isDeleted)
         {
             Name = name;
             Key = key;
             ParentPath = parentPath;
-        
+
             HasAds = hasAds;
             ReparsePoint = reparsePoint;
             FileSize = fileSize;
@@ -46,7 +47,8 @@ namespace MFT.Other
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine($"Name: {Name} ReparsePoint: {ReparsePoint} Has ADS: {HasAds} IsHardLink: {IsHardLink} IsDeleted: {IsDeleted}");
+            sb.AppendLine(
+                $"Name: {Name} ReparsePoint: {ReparsePoint} Has ADS: {HasAds} IsHardLink: {IsHardLink} IsDeleted: {IsDeleted}");
             foreach (var directory in SubItems)
             {
                 sb.AppendLine(directory.Value.Name);

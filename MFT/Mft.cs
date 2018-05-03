@@ -10,11 +10,14 @@ namespace MFT
 {
     public class Mft
     {
+        private readonly Dictionary<string, string> _directoryPathMap;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+
+        private HashSet<string> ProcesssedFileRecords = new HashSet<string>();
 
         public Mft(byte[] rawbytes)
         {
-
             FileRecords = new Dictionary<string, FileRecord>();
             FreeFileRecords = new Dictionary<string, FileRecord>();
             BadRecords = new List<FileRecord>();
@@ -36,7 +39,7 @@ namespace MFT
 
                 _logger.Debug($"offset: 0x{f.Offset:X} flags: {f.EntryFlags} key: {key}");
 
-               if (f.IsBad)
+                if (f.IsBad)
                 {
                     BadRecords.Add(f);
                 }
@@ -44,14 +47,15 @@ namespace MFT
                 {
                     UninitializedRecords.Add(f);
                 }
-                else if ((f.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) != FileRecord.EntryFlag.FileRecordSegmentInUse)
+                else if ((f.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) !=
+                         FileRecord.EntryFlag.FileRecordSegmentInUse)
                 {
                     FreeFileRecords.Add(key, f);
                 }
-               else
-               {
-                   FileRecords.Add(key, f);
-               }
+                else
+                {
+                    FileRecords.Add(key, f);
+                }
 
                 index += blockSize;
             }
@@ -62,10 +66,11 @@ namespace MFT
             _directoryPathMap = new Dictionary<string, string>();
 
             var rootFolder = FileRecords.Single(t => t.Value.EntryNumber == 5).Value;
-            
-            RootDirectory = new DirectoryItem("", rootFolder.Key(), ".",false,null,rootFolder.GetFileSize(),false,false);
 
-            _directoryPathMap.Add(rootFolder.Key(),".");
+            RootDirectory = new DirectoryItem("", rootFolder.Key(), ".", false, null, rootFolder.GetFileSize(), false,
+                false);
+
+            _directoryPathMap.Add(rootFolder.Key(), ".");
         }
 
         public DirectoryItem RootDirectory { get; }
@@ -78,25 +83,20 @@ namespace MFT
 
         public void BuildFileSystem()
         {
-            //read record
-            //navigate up from each filename record to parent record, keeping keys in a stack (push pop)
-            //once at root, pop each from stack and build into RootDirectory
-            //starting at RootDirectory, if nodes do not exist, create and add going down each level as needed
-            //if it does exist, use that and keep checking down the rest of the entries
-            //this will build out all the directories
-
-            //For all directories, build out a map where key == parent directrory id and value is how to get there
-            BuildDirectoryPathMap(FileRecords.Where(t=>((t.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) == FileRecord.EntryFlag.IsDirectory)));
-           BuildDirectoryPathMap(FreeFileRecords.Where(t=>((t.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) == FileRecord.EntryFlag.IsDirectory)));
+       //For all directories, build out a map where key == parent directrory id and value is how to get there
+            BuildDirectoryPathMap(FileRecords.Where(t =>t.Value.IsDirectory()));
+            BuildDirectoryPathMap(FreeFileRecords.Where(t =>t.Value.IsDirectory()));
 
 
+            //process free files to check for whether the map contains a reference to its parent directory
+
+            BuildDirectoryPathMap(FreeFileRecords.Where(t =>t.Value.IsDirectory() == false));
 
         }
 
 
         private void BuildDirectoryPathMap(IEnumerable<KeyValuePair<string, FileRecord>> fileRecords)
         {
-
             foreach (var fileRecord in fileRecords)
             {
                 if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
@@ -112,6 +112,12 @@ namespace MFT
                     continue;
                 }
 
+                if (fileRecord.Value.Attributes.Count == 0)
+                {
+                    _logger.Warn($"File record at offset 0x{fileRecord.Value.Offset:X} has no attributes. Skipping");
+                    continue;
+                }
+
                 //look for attribute list, pull out non-self referencing attributes
                 var attrList =
                     (AttributeList) fileRecord.Value.Attributes.SingleOrDefault(t =>
@@ -121,11 +127,13 @@ namespace MFT
                 {
                     foreach (var attrListAttributeInformation in attrList.AttributeInformations)
                     {
-                        if (attrListAttributeInformation.EntryInfo.MftEntryNumber != fileRecord.Value.EntryNumber && attrListAttributeInformation.EntryInfo.MftSequenceNumber != fileRecord.Value.SequenceNumber)
+                        if (attrListAttributeInformation.EntryInfo.MftEntryNumber != fileRecord.Value.EntryNumber &&
+                            attrListAttributeInformation.EntryInfo.MftSequenceNumber != fileRecord.Value.SequenceNumber)
                         {
                             _logger.Trace($"found attrlist item: {attrListAttributeInformation}");
 
-                            var attrEntryKey = $"{attrListAttributeInformation.EntryInfo.MftEntryNumber:X8}-{attrListAttributeInformation.EntryInfo.MftSequenceNumber:X8}";
+                            var attrEntryKey =
+                                $"{attrListAttributeInformation.EntryInfo.MftEntryNumber:X8}-{attrListAttributeInformation.EntryInfo.MftSequenceNumber:X8}";
 
                             if (FileRecords.ContainsKey(attrEntryKey) == false)
                             {
@@ -136,7 +144,7 @@ namespace MFT
                                 var attrEntry = FileRecords[attrEntryKey];
 
                                 //pull in all related attributes from this record for processing later
-                                fileRecord.Value.Attributes.AddRange(attrEntry.Attributes);    
+                                fileRecord.Value.Attributes.AddRange(attrEntry.Attributes);
                             }
                         }
                     }
@@ -166,18 +174,15 @@ namespace MFT
                 {
                     fna = GetFileNameAttributeFromFileRecord(fileRecord.Value);
                 }
+
                 var path = GetParentPathFromInUse(fna);
 
-                var isDeleted = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) !=
-                            FileRecord.EntryFlag.FileRecordSegmentInUse;
-
-                _directoryPathMap.Add(fileRecord.Value.Key(),path);
-
-               var isDir = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
-                           FileRecord.EntryFlag.IsDirectory;
-
-                _logger.Info($"{fna.FileInfo.FileName} (is dir: {isDir} deleted: {isDeleted})> {fileRecord.Value.Key()} ==> {path}");
-
+                if (fileRecord.Value.IsDirectory())
+                {
+                    _directoryPathMap.Add(fileRecord.Value.Key(), path);
+                }
+                
+                  _logger.Info($"{fna.FileInfo.FileName} (is dir: {fileRecord.Value.IsDirectory()} deleted: {fileRecord.Value.IsDeleted()})> {fileRecord.Value.Key()} ==> {path}");
             }
         }
 
@@ -185,7 +190,8 @@ namespace MFT
         {
             var path = RootDirectory.ParentPath;
 
-            var parentKey =   $"{fileName.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fileName.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
+            var parentKey =
+                $"{fileName.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fileName.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
 
             while (parentKey != RootDirectory.Key)
             {
@@ -195,7 +201,7 @@ namespace MFT
 
                 FileRecord parentRecord = null;
 
-                if ((FileRecords.ContainsKey(parentKey)) || FreeFileRecords.ContainsKey(parentKey))
+                if (FileRecords.ContainsKey(parentKey) || FreeFileRecords.ContainsKey(parentKey))
                 {
                     //it exists somewhere
                     if (FileRecords.ContainsKey(parentKey))
@@ -225,17 +231,13 @@ namespace MFT
 
                 var parentFn = GetFileNameAttributeFromFileRecord(parentRecord);
 
-                parentKey =   $"{parentFn.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{parentFn.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
+                parentKey =
+                    $"{parentFn.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{parentFn.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
             }
+
             return path;
         }
 
-
-        private HashSet<string> ProcesssedFileRecords = new HashSet<string>();
-
-        private readonly Dictionary<string, string> _directoryPathMap;
-
-      
 
         private FileName GetFileNameAttributeFromFileRecord(FileRecord fr)
         {
@@ -246,30 +248,29 @@ namespace MFT
             {
                 return (FileName) fi;
             }
-            
-                fi = fr.Attributes.SingleOrDefault(t =>
-                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Windows);
-            
+
+            fi = fr.Attributes.SingleOrDefault(t =>
+                t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Windows);
+
             if (fi != null)
             {
                 return (FileName) fi;
             }
 
-            
-                fi = fr.Attributes.SingleOrDefault(t =>
-                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Posix);
-            
+
+            fi = fr.Attributes.SingleOrDefault(t =>
+                t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Posix);
+
             if (fi != null)
             {
                 return (FileName) fi;
             }
 
-           
-                fi = fr.Attributes.Single(t =>
-                    t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Dos);
-           
-                return (FileName) fi;
-            
+
+            fi = fr.Attributes.Single(t =>
+                t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Dos);
+
+            return (FileName) fi;
         }
 
 //   

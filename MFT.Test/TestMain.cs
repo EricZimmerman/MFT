@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -33,15 +31,16 @@ namespace MFT.Test
             {
                 var reparse = string.Empty;
 
-                if (subitem.ReparsePoint!=null)
+                if (subitem.ReparsePoint != null)
                 {
                     if (subitem.ReparsePoint.PrintName.Length > 0)
                     {
-                        reparse = $"Reparse: {subitem.ReparsePoint.PrintName} --> {subitem.ReparsePoint.SubstituteName.Replace(@"\??\","")} ";
+                        reparse =
+                            $"Reparse: {subitem.ReparsePoint.PrintName} --> {subitem.ReparsePoint.SubstituteName.Replace(@"\??\", "")} ";
                     }
                     else
                     {
-                        reparse = $"Reparse: {subitem.ReparsePoint.SubstituteName.Replace(@"\??\","")} ";
+                        reparse = $"Reparse: {subitem.ReparsePoint.SubstituteName.Replace(@"\??\", "")} ";
                     }
                 }
 
@@ -51,7 +50,8 @@ namespace MFT.Test
                 }
                 else
                 {
-                    logger.Info($"\t{subitem.Name} (Ads: {subitem.HasAds}) Hardlink: {subitem.IsHardLink} {reparse}file size: 0x{subitem.FileSize:X} Is Deleted: {subitem.IsDeleted}");
+                    logger.Info(
+                        $"\t{subitem.Name} (Ads: {subitem.HasAds}) Hardlink: {subitem.IsHardLink} {reparse}file size: 0x{subitem.FileSize:X} Is Deleted: {subitem.IsDeleted}");
                 }
             }
 
@@ -96,8 +96,8 @@ namespace MFT.Test
             var logger = LogManager.GetCurrentClassLogger();
 
             logger.Info(
-                $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FileRecords.Count(t=>((t.Value.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) != FileRecord.EntryFlag.FileRecordSegmentInUse)):N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
-            
+                $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FileRecords.Count(t => (t.Value.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) != FileRecord.EntryFlag.FileRecordSegmentInUse):N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
+
 //            using (var s = new StreamWriter($@"C:\temp\mft.txt",false,Encoding.Unicode))
 //            {
 //                foreach (var f in m2.FileRecords)
