@@ -59,13 +59,13 @@ namespace MFT
             //this will keep track of the path where each entry can be found
             //key == entry #-seq #
             //value is path to a given key == .\entry-seq\entry-seq and so on from root
-            DirectoryPathMap = new Dictionary<string, string>();
+            _directoryPathMap = new Dictionary<string, string>();
 
             var rootFolder = FileRecords.Single(t => t.Value.EntryNumber == 5).Value;
             
             RootDirectory = new DirectoryItem("", rootFolder.Key(), ".",false,null,rootFolder.GetFileSize(),false,false);
 
-            DirectoryPathMap.Add(rootFolder.Key(),".");
+            _directoryPathMap.Add(rootFolder.Key(),".");
         }
 
         public DirectoryItem RootDirectory { get; }
@@ -168,15 +168,15 @@ namespace MFT
                 }
                 var path = GetParentPathFromInUse(fna);
 
-                var inUse = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) ==
+                var isDeleted = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) !=
                             FileRecord.EntryFlag.FileRecordSegmentInUse;
 
-                DirectoryPathMap.Add(fileRecord.Value.Key(),path);
+                _directoryPathMap.Add(fileRecord.Value.Key(),path);
 
                var isDir = (fileRecord.Value.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
                            FileRecord.EntryFlag.IsDirectory;
 
-                _logger.Info($"{fna.FileInfo.FileName} (is dir: {isDir}) (in use: {inUse})> {fileRecord.Value.Key()} ==> {path}");
+                _logger.Info($"{fna.FileInfo.FileName} (is dir: {isDir} deleted: {isDeleted})> {fileRecord.Value.Key()} ==> {path}");
 
             }
         }
@@ -211,9 +211,9 @@ namespace MFT
                 {
                     //this entries parent doesnt exist any more, so make it show up under "PathUnknown", unless we already know where it goes based on DirectoryPathMap
 
-                    if (DirectoryPathMap.ContainsKey(parentKey))
+                    if (_directoryPathMap.ContainsKey(parentKey))
                     {
-                        path = path.Replace(".", DirectoryPathMap[parentKey]);
+                        path = path.Replace(".", _directoryPathMap[parentKey]);
 
                         return path;
                     }
@@ -233,7 +233,7 @@ namespace MFT
 
         private HashSet<string> ProcesssedFileRecords = new HashSet<string>();
 
-        private Dictionary<string, string> DirectoryPathMap;
+        private readonly Dictionary<string, string> _directoryPathMap;
 
       
 
