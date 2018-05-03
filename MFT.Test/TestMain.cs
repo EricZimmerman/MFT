@@ -96,7 +96,7 @@ namespace MFT.Test
             var logger = LogManager.GetCurrentClassLogger();
 
             logger.Info(
-                $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FileRecords.Count(t => (t.Value.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) != FileRecord.EntryFlag.FileRecordSegmentInUse):N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
+                $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FreeFileRecords.Count:N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
 
 //            using (var s = new StreamWriter($@"C:\temp\mft.txt",false,Encoding.Unicode))
 //            {

@@ -21,6 +21,47 @@ namespace MFT.Other
             return $"{entryNum:X8}-{seqNum:X8}";
         }
 
+        public static FileName GetFileNameAttributeFromFileRecord(this FileRecord fr) //, int attributeNumber = -1
+        {
+//            if (attributeNumber > -1)
+//            {
+//                var fin = fr.Attributes.SingleOrDefault(t =>
+//                    t.AttributeType == AttributeType.FileName && ((FileName) t).AttributeNumber == attributeNumber);
+//
+//                return (FileName) fin;
+//            }
+            var fi = fr.Attributes.FirstOrDefault(t =>
+                t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.DosWindows);
+
+            if (fi != null)
+            {
+                return (FileName) fi;
+            }
+
+            fi = fr.Attributes.FirstOrDefault(t =>
+                t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Windows);
+
+            if (fi != null)
+            {
+                return (FileName) fi;
+            }
+
+
+            fi = fr.Attributes.FirstOrDefault(t =>
+                t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Posix);
+
+            if (fi != null)
+            {
+                return (FileName) fi;
+            }
+
+
+            fi = fr.Attributes.SingleOrDefault(t =>
+                t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Dos);
+
+            return (FileName) fi;
+        }
+
         public static bool IsDirectory(this FileRecord record)
         {
             return (record.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
