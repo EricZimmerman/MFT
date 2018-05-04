@@ -89,7 +89,7 @@ namespace MFT.Test
         {
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(xwf);
+            var m2 = MftFile.Load(tdungan);
 
             m2.BuildFileSystem();
 
