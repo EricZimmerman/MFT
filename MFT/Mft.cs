@@ -453,7 +453,7 @@ namespace MFT
 
                             if (FileRecords.ContainsKey(attrEntryKey) == false)
                             {
-                                _logger.Warn($"Cannot find record with entry/seq #: 0x{attrEntryKey}");
+                                _logger.Warn($"Cannot find record with entry/seq #: 0x{attrEntryKey} Deleted: {fileRecord.Value.IsDeleted()}");
                             }
                             else
                             {
