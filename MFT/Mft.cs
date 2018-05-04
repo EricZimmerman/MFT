@@ -129,7 +129,7 @@ namespace MFT
                 if (fr.IsDirectory())
                 {
                     map = GetMap(fr);
-                    path = GetFullPathFromMap(map,false);
+                    path = GetFullPathFromMap(map);
                     var fn = fr.GetFileNameAttributeFromFileRecord();
                     _logger.Info($"TEST: {fn?.FileInfo.FileName} with key {key} ==> {path}");
                 }
@@ -138,7 +138,7 @@ namespace MFT
                     foreach (var attribute in fr.Attributes.Where(t => t.AttributeType == AttributeType.FileName))
                     {
                         map = GetMap(fr, attribute.AttributeNumber);
-                        path = GetFullPathFromMap(map,false);
+                        path = GetFullPathFromMap(map);
                         var fna = (FileName) attribute;
 
                         _logger.Info(
@@ -184,7 +184,7 @@ namespace MFT
                 if (fr.IsDirectory())
                 {
                     map = GetMap(fr);
-                    path = GetFullPathFromMap(map,true);
+                    path = GetFullPathFromMap(map);
                     var fn = fr.GetFileNameAttributeFromFileRecord();
                     _logger.Info($"TEST DELETED: {fn?.FileInfo.FileName} with key {key} ==> {path}");
                 }
@@ -193,8 +193,13 @@ namespace MFT
                     foreach (var attribute in fr.Attributes.Where(t => t.AttributeType == AttributeType.FileName))
                     {
                         map = GetMap(fr, attribute.AttributeNumber);
-                        path = GetFullPathFromMap(map,true);
+                        path = GetFullPathFromMap(map);
                         var fna1 = (FileName) attribute;
+
+                        if (fna1.FileInfo.FileName.Contains("5.tmp"))
+                        {
+                            Debug.WriteLine(1);
+                        }
 
                         _logger.Info(
                             $"TEST DELETED: {fna1.FileInfo.FileName} with key {key} ==> {path} File size: 0x{fileRecord1.Value.GetFileSize():X}");
@@ -326,7 +331,7 @@ namespace MFT
             return map;
         }
 
-        private string GetFullPathFromMap(string map, bool isDeleted)
+        private string GetFullPathFromMap(string map)
         {
             if (map == "(NONE)")
             {
@@ -490,8 +495,8 @@ namespace MFT
                 {
                     fna = fileRecord.Value.GetFileNameAttributeFromFileRecord();
                 }
-
-                var path = GetParentPathFromInUse(fna);
+                
+                var path = GetParentPath(fna);
 
                 _directoryPathMap.Add(fileRecord.Value.Key(), path);
 
@@ -499,17 +504,19 @@ namespace MFT
             }
         }
 
-        private string GetParentPathFromInUse(FileName fileName)
+        private string GetParentPath(FileName fileName)
         {
             var parentKey =
                 $"{fileName.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fileName.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
 
-            var path = ".";
+            var stack = new Stack<string>();
+
+            stack.Push(".");
 
             while (parentKey != RootDirectory.Key)
             {
                 //traverse up the chain
-                path = $"{path}\\{parentKey}";
+                stack.Push(parentKey);
 
                 FileRecord parentRecord = null;
 
@@ -530,14 +537,12 @@ namespace MFT
                     //this entries parent doesnt exist any more, so make it show up under "PathUnknown", unless we already know where it goes based on DirectoryPathMap
                     if (_directoryPathMap.ContainsKey(parentKey))
                     {
-                        path = $"{path}\\{_directoryPathMap[parentKey].Replace("\\.", "")}";
+                        stack.Push(_directoryPathMap[parentKey].Replace("\\.", ""));
 
-                        return path;
+                        return string.Join("\\", stack);
                     }
 
-                    path = path.Replace(".", ".\\PathUnknown");
-
-                    return path;
+                    return $".\\PathUnknown\\{parentKey}";
                 }
 
                 var parentFn = parentRecord.GetFileNameAttributeFromFileRecord();
@@ -546,7 +551,7 @@ namespace MFT
                     $"{parentFn.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{parentFn.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
             }
 
-            return path;
+            return string.Join("\\", stack);
         }
     }
 }
