@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using MFT.Attributes;
 using MFT.Other;
@@ -14,10 +13,10 @@ namespace MFT
         [Flags]
         public enum EntryFlag
         {
-            FileRecordSegmentInUse = 0x1,
+            InUse = 0x1,
             IsDirectory = 0x2,
-            Unknown0 = 0x4,
-            Unknown1 = 0x8
+            IsMetaDataRecord = 0x4,
+            IsIndexView = 0x8
         }
 
         private const int BaadSig = 0x44414142;
@@ -89,7 +88,7 @@ namespace MFT
                         $"Offset: 0x{Offset:X} Entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X} Fixup values do not match at 0x{fixupOffset:X}. Expected: 0x{FixupData.FixupExpected:X2}, actual: 0x{expected:X2}");
                 }
 
-                //replace fixup expectedw ith actual bytes. bytese has actual replacement values in it.
+                //replace fixup expected with actual bytes. bytese has actual replacement values in it.
                 Buffer.BlockCopy(bytese, 0, rawBytes, fixupOffset, 2);
 
                 counter += 1;
@@ -145,8 +144,6 @@ namespace MFT
 
                 var rawAttr = new byte[attrSize];
                 Buffer.BlockCopy(rawBytes, index, rawAttr, 0, attrSize);
-
-                //File.WriteAllBytes($@"C:\temp\{attrType}.bb",rawAttr);
 
                 switch (attrType)
                 {
@@ -256,7 +253,6 @@ namespace MFT
         public long LogSequenceNumber { get; }
         public short FixupEntryCount { get; }
         public short FixupOffset { get; }
-
         public bool FixupOk { get; }
 
         public override string ToString()

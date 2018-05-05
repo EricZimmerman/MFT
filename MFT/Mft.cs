@@ -14,9 +14,6 @@ namespace MFT
         private readonly Dictionary<string, string> _directoryPathMap;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-
-        private HashSet<string> ProcesssedFileRecords = new HashSet<string>();
-
         public Mft(byte[] rawbytes)
         {
             FileRecords = new Dictionary<string, FileRecord>();
@@ -48,8 +45,8 @@ namespace MFT
                 {
                     UninitializedRecords.Add(f);
                 }
-                else if ((f.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) !=
-                         FileRecord.EntryFlag.FileRecordSegmentInUse)
+                else if ((f.EntryFlags & FileRecord.EntryFlag.InUse) !=
+                         FileRecord.EntryFlag.InUse)
                 {
                     FreeFileRecords.Add(key, f);
                 }
@@ -91,9 +88,10 @@ namespace MFT
             //process free files to check for whether the map contains a reference to its parent directory
             BuildDirectoryPathMap(FreeFileRecords.Where(t => t.Value.IsDirectory() == false));
 
-
             //at this point, _directoryPathMap contains a reference for all possible directories
             //iterate in use and free files and build directory structure
+
+            //this is where we need to build sub items from RootDirectory
 
             var key = string.Empty;
             FileRecord fr = null;
@@ -102,10 +100,10 @@ namespace MFT
 
             foreach (var fileRecord in FileRecords)
             {
-                 key = string.Empty;
-                 fr = null;
-                 map = string.Empty;
-                 path = string.Empty;
+                key = string.Empty;
+                fr = null;
+                map = string.Empty;
+                path = string.Empty;
 
                 key = fileRecord.Value.Key();
                 fr = GetFileRecord(key);
@@ -153,7 +151,6 @@ namespace MFT
                 fr = null;
                 map = string.Empty;
                 path = string.Empty;
-
 
                 key = fileRecord1.Value.Key();
                 fr = GetFileRecord(key);
@@ -458,7 +455,8 @@ namespace MFT
 
                             if (FileRecords.ContainsKey(attrEntryKey) == false)
                             {
-                                _logger.Warn($"Cannot find record with entry/seq #: 0x{attrEntryKey} Deleted: {fileRecord.Value.IsDeleted()}");
+                                _logger.Warn(
+                                    $"Cannot find record with entry/seq #: 0x{attrEntryKey} Deleted: {fileRecord.Value.IsDeleted()}");
                             }
                             else
                             {
@@ -495,12 +493,12 @@ namespace MFT
                 {
                     fna = fileRecord.Value.GetFileNameAttributeFromFileRecord();
                 }
-                
+
                 var path = GetParentPath(fna);
 
                 _directoryPathMap.Add(fileRecord.Value.Key(), path);
 
-                //     _logger.Info($"key: {fileRecord.Value.Key()} {fna.FileInfo.FileName} (is dir: {fileRecord.Value.IsDirectory()} deleted: {fileRecord.Value.IsDeleted()})> {fileRecord.Value.Key()} ==> {path}");
+                     _logger.Info($"key: {fileRecord.Value.Key()} {fna.FileInfo.FileName} (is dir: {fileRecord.Value.IsDirectory()} deleted: {fileRecord.Value.IsDeleted()})> {fileRecord.Value.Key()} ==> {path}");
             }
         }
 

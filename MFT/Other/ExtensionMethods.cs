@@ -11,8 +11,8 @@ namespace MFT.Other
             var entryNum = record.EntryNumber;
             var seqNum = record.SequenceNumber;
 
-            if ((record.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) !=
-                FileRecord.EntryFlag.FileRecordSegmentInUse)
+            if ((record.EntryFlags & FileRecord.EntryFlag.InUse) !=
+                FileRecord.EntryFlag.InUse)
             {
                 //this is free record, so decrement seqNum by one so it matches up with what is expected in ParentMFT references
                 seqNum -= 1;
@@ -67,17 +67,18 @@ namespace MFT.Other
             return (record.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
                    FileRecord.EntryFlag.IsDirectory;
         }
+
         public static bool IsDeleted(this FileRecord record)
         {
-            return (record.EntryFlags & FileRecord.EntryFlag.FileRecordSegmentInUse) !=
-                   FileRecord.EntryFlag.FileRecordSegmentInUse;
+            return (record.EntryFlags & FileRecord.EntryFlag.InUse) !=
+                   FileRecord.EntryFlag.InUse;
         }
 
         public static bool HasAds(this FileRecord record)
         {
             var dataAttrs =
                 record.Attributes.Where(t =>
-                    t.AttributeType == AttributeType.Data && t.NameSize>0).ToList();
+                    t.AttributeType == AttributeType.Data && t.NameSize > 0).ToList();
 
             return dataAttrs.Count > 0;
         }
