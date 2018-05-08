@@ -93,22 +93,12 @@ namespace MFT
 
             //this is where we need to build sub items from RootDirectory
 
-            var key = string.Empty;
-            FileRecord fr = null;
             var map = string.Empty;
             var path = string.Empty;
 
             foreach (var fileRecord in FileRecords)
             {
-                key = string.Empty;
-                fr = null;
-                map = string.Empty;
-                path = string.Empty;
-
-                key = fileRecord.Value.Key();
-                fr = GetFileRecord(key);
-
-                if (fr.GetFileNameAttributeFromFileRecord() == null)
+                if (fileRecord.Value.GetFileNameAttributeFromFileRecord() == null)
                 {
                     _logger.Info(
                         $"Skipping in use filerecord at offset 0x{fileRecord.Value.Offset} because it has no $FILE_NAME attributes");
@@ -124,37 +114,29 @@ namespace MFT
                     continue;
                 }
 
-                if (fr.IsDirectory())
+                if (fileRecord.Value.IsDirectory())
                 {
-                    map = GetMap(fr);
+                    map = GetMap(fileRecord.Value);
                     path = GetFullPathFromMap(map);
-                    var fn = fr.GetFileNameAttributeFromFileRecord();
-                    _logger.Info($"TEST: {fn?.FileInfo.FileName} with key {key} ==> {path}");
+                    var fn = fileRecord.Value.GetFileNameAttributeFromFileRecord();
+                    _logger.Info($"TEST: {fn?.FileInfo.FileName} with key {fileRecord.Value.Key()} ==> {path}");
                 }
                 else
                 {
-                    foreach (var attribute in fr.Attributes.Where(t => t.AttributeType == AttributeType.FileName))
+                    foreach (var attribute in fileRecord.Value.Attributes.Where(t => t.AttributeType == AttributeType.FileName))
                     {
-                        map = GetMap(fr, attribute.AttributeNumber);
+                        map = GetMap(fileRecord.Value, attribute.AttributeNumber);
                         path = GetFullPathFromMap(map);
                         var fna = (FileName) attribute;
 
                         _logger.Info(
-                            $"TEST: {fna.FileInfo.FileName} with key {key} ==> {path} File size: 0x{fileRecord.Value.GetFileSize():X}");
+                            $"TEST: {fna.FileInfo.FileName} with key {fileRecord.Value.Key()} ==> {path} File size: 0x{fileRecord.Value.GetFileSize():X}");
                     }
                 }
             }
 
             foreach (var fileRecord1 in FreeFileRecords)
             {
-                key = string.Empty;
-                fr = null;
-                map = string.Empty;
-                path = string.Empty;
-
-                key = fileRecord1.Value.Key();
-                fr = GetFileRecord(key);
-
                 if (fileRecord1.Value.Attributes.Count == 0)
                 {
                     _logger.Info(
@@ -162,7 +144,7 @@ namespace MFT
                     continue;
                 }
 
-                if (fr.GetFileNameAttributeFromFileRecord() == null)
+                if (fileRecord1.Value.GetFileNameAttributeFromFileRecord() == null)
                 {
                     _logger.Info(
                         $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset} because it has no file_name attributes");
@@ -178,28 +160,23 @@ namespace MFT
                     continue;
                 }
 
-                if (fr.IsDirectory())
+                if (fileRecord1.Value.IsDirectory())
                 {
-                    map = GetMap(fr);
+                    map = GetMap(fileRecord1.Value);
                     path = GetFullPathFromMap(map);
-                    var fn = fr.GetFileNameAttributeFromFileRecord();
-                    _logger.Info($"TEST DELETED: {fn?.FileInfo.FileName} with key {key} ==> {path}");
+                    var fn = fileRecord1.Value.GetFileNameAttributeFromFileRecord();
+                    _logger.Info($"TEST DELETED: {fn?.FileInfo.FileName} with key {fileRecord1.Value.Key()} ==> {path}");
                 }
                 else
                 {
-                    foreach (var attribute in fr.Attributes.Where(t => t.AttributeType == AttributeType.FileName))
+                    foreach (var attribute in fileRecord1.Value.Attributes.Where(t => t.AttributeType == AttributeType.FileName))
                     {
-                        map = GetMap(fr, attribute.AttributeNumber);
+                        map = GetMap(fileRecord1.Value, attribute.AttributeNumber);
                         path = GetFullPathFromMap(map);
                         var fna1 = (FileName) attribute;
 
-                        if (fna1.FileInfo.FileName.Contains("5.tmp"))
-                        {
-                            Debug.WriteLine(1);
-                        }
-
                         _logger.Info(
-                            $"TEST DELETED: {fna1.FileInfo.FileName} with key {key} ==> {path} File size: 0x{fileRecord1.Value.GetFileSize():X}");
+                            $"TEST DELETED: {fna1.FileInfo.FileName} with key {fileRecord1.Value.Key()} ==> {path} File size: 0x{fileRecord1.Value.GetFileSize():X}");
                     }
                 }
             }
