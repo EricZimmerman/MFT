@@ -79,7 +79,7 @@ namespace MFT
         public List<FileRecord> BadRecords { get; }
         public List<FileRecord> UninitializedRecords { get; }
 
-        public void BuildFileSystem()
+        public void BuildFileSystem(bool includeShortNames = false)
         {
             //For all directories, build out a map where key == parent directrory id and value is how to get there
             BuildDirectoryPathMap(FileRecords.Where(t => t.Value.IsDirectory()));
@@ -111,7 +111,7 @@ namespace MFT
                 if (fr.GetFileNameAttributeFromFileRecord() == null)
                 {
                     _logger.Info(
-                        $"Skipping in use filerecord at offset 0x{fileRecord.Value.Offset} because it has no file_name attributes");
+                        $"Skipping in use filerecord at offset 0x{fileRecord.Value.Offset} because it has no $FILE_NAME attributes");
                     continue;
                 }
 
@@ -432,7 +432,7 @@ namespace MFT
 
                 if (fileRecord.Value.Attributes.Count == 0)
                 {
-                    _logger.Warn($"File record at offset 0x{fileRecord.Value.Offset:X} has no attributes. Skipping");
+                    _logger.Warn($"Skipping file record at offset 0x{fileRecord.Value.Offset:X} has no attributes");
                     continue;
                 }
 
@@ -498,7 +498,7 @@ namespace MFT
 
                 _directoryPathMap.Add(fileRecord.Value.Key(), path);
 
-                     _logger.Info($"key: {fileRecord.Value.Key()} {fna.FileInfo.FileName} (is dir: {fileRecord.Value.IsDirectory()} deleted: {fileRecord.Value.IsDeleted()})> {fileRecord.Value.Key()} ==> {path}");
+                     _logger.Trace($"key: {fileRecord.Value.Key()} {fna.FileInfo.FileName} (is dir: {fileRecord.Value.IsDirectory()} deleted: {fileRecord.Value.IsDeleted()})> {fileRecord.Value.Key()} ==> {path}");
             }
         }
 
