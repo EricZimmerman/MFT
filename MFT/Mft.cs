@@ -437,8 +437,6 @@ namespace MFT
 
             var stack = new Stack<string>();
 
-            stack.Push(".");
-
             while (parentKey != RootDirectory.Key)
             {
                 //traverse up the chain
