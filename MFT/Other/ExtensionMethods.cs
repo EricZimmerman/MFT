@@ -21,6 +21,15 @@ namespace MFT.Other
             return $"{entryNum:X8}-{seqNum:X8}";
         }
 
+        public static ReparsePoint GetReparsePoint(this FileRecord record)
+        {
+            var reparseAttr =
+                record.Attributes.Where(t =>
+                    t.AttributeType == AttributeType.ReparsePoint).ToList();
+
+            return (ReparsePoint) reparseAttr.FirstOrDefault();
+        }
+
         public static FileName GetFileNameAttributeFromFileRecord(this FileRecord fr) //, int attributeNumber = -1
         {
 //            if (attributeNumber > -1)

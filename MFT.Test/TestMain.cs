@@ -93,7 +93,7 @@ namespace MFT.Test
         {
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(xwf);
+            var m2 = MftFile.Load(nromanoff);
 
             m2.BuildFileSystem();
 
@@ -102,41 +102,41 @@ namespace MFT.Test
             logger.Info(
                 $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FreeFileRecords.Count:N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
 
-            using (var s = new StreamWriter($@"C:\temp\mft.txt", false, Encoding.Unicode))
-            {
-                foreach (var f in m2.FileRecords)
-                {
-                    s.WriteLine(f.Value);
-                    //logger.Info(f.Value);
-
-//                    var ads = f.Value.GetAlternateDataStreams();
+//            using (var s = new StreamWriter($@"C:\temp\mft.txt", false, Encoding.Unicode))
+//            {
+//                foreach (var f in m2.FileRecords)
+//                {
+//                    s.WriteLine(f.Value);
+//                    //logger.Info(f.Value);
 //
-//                    foreach (var adsInfo in ads)
-//                    {
-//                        logger.Info(adsInfo);
-//                    }
-                }
-
-                s.Flush();
-            }
-
-            using (var s = new StreamWriter($@"C:\temp\mftFree.txt", false, Encoding.Unicode))
-            {
-                foreach (var f in m2.FreeFileRecords)
-                {
-                    s.WriteLine(f.Value);
-                    //  logger.Info(f.Value);
-
-//                    var ads = f.Value.GetAlternateDataStreams();
+////                    var ads = f.Value.GetAlternateDataStreams();
+////
+////                    foreach (var adsInfo in ads)
+////                    {
+////                        logger.Info(adsInfo);
+////                    }
+//                }
 //
-//                    foreach (var adsInfo in ads)
-//                    {
-//                        logger.Info(adsInfo);
-//                    }
-                }
-
-                s.Flush();
-            }
+//                s.Flush();
+//            }
+//
+//            using (var s = new StreamWriter($@"C:\temp\mftFree.txt", false, Encoding.Unicode))
+//            {
+//                foreach (var f in m2.FreeFileRecords)
+//                {
+//                    s.WriteLine(f.Value);
+//                    //  logger.Info(f.Value);
+//
+////                    var ads = f.Value.GetAlternateDataStreams();
+////
+////                    foreach (var adsInfo in ads)
+////                    {
+////                        logger.Info(adsInfo);
+////                    }
+//                }
+//
+//                s.Flush();
+//            }
 
             DumpFiles(m2.RootDirectory);
 

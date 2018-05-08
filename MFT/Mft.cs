@@ -45,8 +45,7 @@ namespace MFT
                 {
                     UninitializedRecords.Add(f);
                 }
-                else if ((f.EntryFlags & FileRecord.EntryFlag.InUse) !=
-                         FileRecord.EntryFlag.InUse)
+                else if (f.IsDeleted())
                 {
                     FreeFileRecords.Add(key, f);
                 }
@@ -92,11 +91,13 @@ namespace MFT
             //iterate in use and free files and build directory structure
 
             //this is where we need to build sub items from RootDirectory
+            BuildRootDirFromRecords(includeShortNames,FileRecords);
+            BuildRootDirFromRecords(includeShortNames,FreeFileRecords);
+        }
 
-            var map = string.Empty;
-            var path = string.Empty;
-
-            foreach (var fileRecord in FileRecords)
+        private void BuildRootDirFromRecords(bool includeShortNames, Dictionary<string,FileRecord> records)
+        {
+            foreach (var fileRecord in records)
             {
                 if (fileRecord.Value.GetFileNameAttributeFromFileRecord() == null)
                 {
@@ -114,79 +115,48 @@ namespace MFT
                     continue;
                 }
 
-                if (fileRecord.Value.IsDirectory())
+                if (fileRecord.Value.IsDirectory() == false)
                 {
-                    map = GetMap(fileRecord.Value);
-                    path = GetFullPathFromMap(map);
-                    var fn = fileRecord.Value.GetFileNameAttributeFromFileRecord();
-                    _logger.Trace($"TEST: {fn?.FileInfo.FileName} with key {fileRecord.Value.Key()} ==> {path}");
-                }
-                else
-                {
+                    var baseEntryNumber = -1;
                     foreach (var attribute in fileRecord.Value.Attributes.Where(t => t.AttributeType == AttributeType.FileName))
                     {
-                        map = GetMap(fileRecord.Value, attribute.AttributeNumber);
-                        path = GetFullPathFromMap(map);
-                        UpdateDirectoryItems(path);
+                        var map = GetMap(fileRecord.Value, attribute.AttributeNumber);
+                        var path = GetFullPathFromMap(map);
+                        var fna1 = (FileName) attribute;
+
+                        if ((includeShortNames == false) & (fna1.FileInfo.NameType == NameTypes.Dos))
+                        {
+                            continue;
+                        }
+
+                        if (baseEntryNumber == -1)
+                        {
+                            baseEntryNumber = (int) fna1.FileInfo.ParentMftRecord.MftEntryNumber;
+                        }
+
+                        var isHardLink = false;
+                        isHardLink = fna1.FileInfo.ParentMftRecord.MftEntryNumber != baseEntryNumber;
+
+                        var dirItem = UpdateDirectoryItems(path, map, isHardLink, false);
                         var fna = (FileName) attribute;
+
+                        //add fna to dirItem
+                        var fkey =
+                            $"{fileRecord.Value.Key()}-{fna.AttributeNumber:X8}";
+                        var fItem = new DirectoryItem(fna.FileInfo.FileName, fkey, $"{dirItem.ParentPath}\\{dirItem.Name}",
+                            fileRecord.Value.HasAds(), null, fileRecord.Value.GetFileSize(), isHardLink, fileRecord.Value.IsDeleted());
+
+                        dirItem.SubItems.Add(fkey, fItem);
 
                         _logger.Trace(
                             $"TEST: {fna.FileInfo.FileName} with key {fileRecord.Value.Key()} ==> {path} File size: 0x{fileRecord.Value.GetFileSize():X}");
                     }
                 }
             }
-
-            foreach (var fileRecord1 in FreeFileRecords)
-            {
-                if (fileRecord1.Value.Attributes.Count == 0)
-                {
-                    _logger.Info(
-                        $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset:X} because it has no attributes");
-                    continue;
-                }
-
-                if (fileRecord1.Value.GetFileNameAttributeFromFileRecord() == null)
-                {
-                    _logger.Info(
-                        $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset:X} because it has no file_name attributes");
-                    continue;
-                }
-
-                if (fileRecord1.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
-                    fileRecord1.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
-                {
-                    //will get this record via attributeList
-                    _logger.Info(
-                        $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset:X} because it is an extension record");
-                    continue;
-                }
-
-                if (fileRecord1.Value.IsDirectory())
-                {
-                    map = GetMap(fileRecord1.Value);
-                    path = GetFullPathFromMap(map);
-                    var fn = fileRecord1.Value.GetFileNameAttributeFromFileRecord();
-                    _logger.Trace($"TEST DELETED: {fn?.FileInfo.FileName} with key {fileRecord1.Value.Key()} ==> {path}");
-                }
-                else
-                {
-                    foreach (var attribute in fileRecord1.Value.Attributes.Where(t => t.AttributeType == AttributeType.FileName))
-                    {
-                        map = GetMap(fileRecord1.Value, attribute.AttributeNumber);
-                        path = GetFullPathFromMap(map);
-                        var fna1 = (FileName) attribute;
-
-                        _logger.Trace(
-                            $"TEST DELETED: {fna1.FileInfo.FileName} with key {fileRecord1.Value.Key()} ==> {path} File size: 0x{fileRecord1.Value.GetFileSize():X}");
-                    }
-                }
-            }
         }
 
-        private DirectoryItem UpdateDirectoryItems(string path)
+        private DirectoryItem UpdateDirectoryItems(string path,string map,bool isHardLink,bool isDeleted)
         {
-           _logger.Info($"UpdateDirItems with path: {path}");
-
             var startDirectory = RootDirectory;
 
             if (startDirectory.ParentPath == path)
@@ -194,6 +164,55 @@ namespace MFT
                 return startDirectory;
             }
 
+            var pathSegs = path.Split(new [] {'\\'},StringSplitOptions.RemoveEmptyEntries);
+            var mapSegs = map.Split(new [] {'\\'},StringSplitOptions.RemoveEmptyEntries);
+
+            var parentPath = ".";
+
+            for (var i = 0; i < mapSegs.Length; i++)
+            {
+                if (startDirectory.SubItems.ContainsKey(mapSegs[i]))
+                {
+                    //its already there
+                    startDirectory = startDirectory.SubItems[mapSegs[i]];
+
+                    parentPath = $"{parentPath}\\{startDirectory.Name}";
+                }
+                else
+                {
+                    if (mapSegs[i] == "PathUnknown")
+                    {
+                        var pun = new DirectoryItem("PathUnknown",mapSegs[i],parentPath,false,null,0,false,true);
+                        startDirectory.SubItems.Add(mapSegs[i],pun);
+
+                        startDirectory = startDirectory.SubItems[mapSegs[i]];
+                        continue;
+                    }
+                    //we need to add it
+                    var fileRecord = GetFileRecord(mapSegs[i]);
+
+                    if (fileRecord == null)
+                    {
+                        var pun = new DirectoryItem($"Directory with ID 0x{mapSegs[i]}", mapSegs[i],
+                            $"{startDirectory.ParentPath}\\{startDirectory.Name}", false, null, 0, false,
+                            false);
+                        if (startDirectory.SubItems.ContainsKey(mapSegs[i]) == false)
+                        {
+                            startDirectory.SubItems.Add(mapSegs[i], pun);
+                        }
+
+                        startDirectory = startDirectory.SubItems[mapSegs[i]];
+                        continue;
+                    }
+                    
+                    parentPath = string.Join("\\",pathSegs.Take(i+1));
+
+                    var newItem = new DirectoryItem(fileRecord.GetFileNameAttributeFromFileRecord().FileInfo.FileName,mapSegs[i],parentPath,fileRecord.HasAds(),fileRecord.GetReparsePoint(),fileRecord.GetFileSize(),isHardLink,isDeleted);
+                    startDirectory.SubItems.Add(mapSegs[i],newItem);
+
+                    startDirectory = startDirectory.SubItems[mapSegs[i]];
+                }
+            }
 
             return startDirectory;
         }
@@ -272,6 +291,7 @@ namespace MFT
 
                 if (seg == "PathUnknown")
                 {
+                    path.Clear();
                     path.Add(seg);
                     continue;
                 }
@@ -291,7 +311,7 @@ namespace MFT
                     else
                     {
                         path.Clear();
-                        path.Add(".");
+                        //path.Add(".");
                         path.Add("PathUnknown");
                         path.Add($"Directory with ID 0x{seg}");
                     }
@@ -459,7 +479,7 @@ namespace MFT
                         return string.Join("\\", stack);
                     }
 
-                    return $".\\PathUnknown\\{parentKey}";
+                    return $"PathUnknown\\{parentKey}";
                 }
 
                 var parentFn = parentRecord.GetFileNameAttributeFromFileRecord();
