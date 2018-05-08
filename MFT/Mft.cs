@@ -101,7 +101,7 @@ namespace MFT
                 if (fileRecord.Value.GetFileNameAttributeFromFileRecord() == null)
                 {
                     _logger.Info(
-                        $"Skipping in use filerecord at offset 0x{fileRecord.Value.Offset} because it has no $FILE_NAME attributes");
+                        $"Skipping in use filerecord at offset 0x{fileRecord.Value.Offset:X} because it has no $FILE_NAME attributes");
                     continue;
                 }
 
@@ -110,7 +110,7 @@ namespace MFT
                 {
                     //will get this record via attributeList
                     _logger.Info(
-                        $"Skipping in use filerecord at offset 0x{fileRecord.Value.Offset} because it is an extension record");
+                        $"Skipping in use filerecord at offset 0x{fileRecord.Value.Offset:X} because it is an extension record");
                     continue;
                 }
 
@@ -119,7 +119,7 @@ namespace MFT
                     map = GetMap(fileRecord.Value);
                     path = GetFullPathFromMap(map);
                     var fn = fileRecord.Value.GetFileNameAttributeFromFileRecord();
-                    _logger.Info($"TEST: {fn?.FileInfo.FileName} with key {fileRecord.Value.Key()} ==> {path}");
+                    _logger.Trace($"TEST: {fn?.FileInfo.FileName} with key {fileRecord.Value.Key()} ==> {path}");
                 }
                 else
                 {
@@ -127,9 +127,10 @@ namespace MFT
                     {
                         map = GetMap(fileRecord.Value, attribute.AttributeNumber);
                         path = GetFullPathFromMap(map);
+                        UpdateDirectoryItems(path);
                         var fna = (FileName) attribute;
 
-                        _logger.Info(
+                        _logger.Trace(
                             $"TEST: {fna.FileInfo.FileName} with key {fileRecord.Value.Key()} ==> {path} File size: 0x{fileRecord.Value.GetFileSize():X}");
                     }
                 }
@@ -140,14 +141,14 @@ namespace MFT
                 if (fileRecord1.Value.Attributes.Count == 0)
                 {
                     _logger.Info(
-                        $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset} because it has no attributes");
+                        $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset:X} because it has no attributes");
                     continue;
                 }
 
                 if (fileRecord1.Value.GetFileNameAttributeFromFileRecord() == null)
                 {
                     _logger.Info(
-                        $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset} because it has no file_name attributes");
+                        $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset:X} because it has no file_name attributes");
                     continue;
                 }
 
@@ -156,7 +157,7 @@ namespace MFT
                 {
                     //will get this record via attributeList
                     _logger.Info(
-                        $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset} because it is an extension record");
+                        $"Skipping free filerecord at offset 0x{fileRecord1.Value.Offset:X} because it is an extension record");
                     continue;
                 }
 
@@ -165,7 +166,7 @@ namespace MFT
                     map = GetMap(fileRecord1.Value);
                     path = GetFullPathFromMap(map);
                     var fn = fileRecord1.Value.GetFileNameAttributeFromFileRecord();
-                    _logger.Info($"TEST DELETED: {fn?.FileInfo.FileName} with key {fileRecord1.Value.Key()} ==> {path}");
+                    _logger.Trace($"TEST DELETED: {fn?.FileInfo.FileName} with key {fileRecord1.Value.Key()} ==> {path}");
                 }
                 else
                 {
@@ -175,11 +176,26 @@ namespace MFT
                         path = GetFullPathFromMap(map);
                         var fna1 = (FileName) attribute;
 
-                        _logger.Info(
+                        _logger.Trace(
                             $"TEST DELETED: {fna1.FileInfo.FileName} with key {fileRecord1.Value.Key()} ==> {path} File size: 0x{fileRecord1.Value.GetFileSize():X}");
                     }
                 }
             }
+        }
+
+        private DirectoryItem UpdateDirectoryItems(string path)
+        {
+           _logger.Info($"UpdateDirItems with path: {path}");
+
+            var startDirectory = RootDirectory;
+
+            if (startDirectory.ParentPath == path)
+            {
+                return startDirectory;
+            }
+
+
+            return startDirectory;
         }
 
         private string GetMap(FileRecord fileRecord, int attributeNumber = -1)
