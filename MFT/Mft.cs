@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using MFT.Attributes;
@@ -101,7 +102,7 @@ namespace MFT
                 if (fileRecord.Value.GetFileNameAttributeFromFileRecord() == null)
                 {
                     _logger.Debug(
-                        $"Skipping in use record at offset 0x{fileRecord.Value.Offset:X} because it has no $FILE_NAME attributes");
+                        $"Skipping record at offset 0x{fileRecord.Value.Offset:X} because it has no $FILE_NAME attributes");
                     continue;
                 }
 
@@ -110,7 +111,7 @@ namespace MFT
                 {
                     //will get this record via attributeList
                     _logger.Debug(
-                        $"Skipping in use record at offset 0x{fileRecord.Value.Offset:X} because it is an extension record");
+                        $"Skipping record at offset 0x{fileRecord.Value.Offset:X} because it is an extension record");
                     continue;
                 }
 
