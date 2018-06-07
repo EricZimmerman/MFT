@@ -326,9 +326,9 @@ namespace MFT
             return string.Join("\\", path);
         }
 
-        private FileRecord GetFileRecord(string key)
+        public FileRecord GetFileRecord(string key)
         {
-            if (key == "(NONE)")
+            if (key == "(NONE)" || key == "PathUnknown")
             {
                 return null;
             }
