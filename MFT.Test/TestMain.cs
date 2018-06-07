@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using MFT.Attributes;
-using MFT.Other;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
