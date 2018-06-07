@@ -333,6 +333,15 @@ namespace MFT
                 return null;
             }
 
+            var segs = key.Split('-');
+            if (segs.Length == 3)
+            {
+                //this is for a file, so adjust
+                key = $"{segs[0]}-{segs[1]}";
+            }
+
+
+
             if (FileRecords.ContainsKey(key))
             {
                 return FileRecords[key];
@@ -343,7 +352,7 @@ namespace MFT
                 return FreeFileRecords[key];
             }
 
-            var segs = key.Split('-');
+           
             var entry = int.Parse(segs[0], NumberStyles.HexNumber);
             var seq = int.Parse(segs[1], NumberStyles.HexNumber);
 

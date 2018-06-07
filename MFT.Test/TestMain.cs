@@ -89,9 +89,11 @@ namespace MFT.Test
         {
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(nromanoff);
+            var m2 = MftFile.Load(xwf);
 
             m2.BuildFileSystem();
+
+         //   m2.GetFileRecord("aaa");
 
             var logger = LogManager.GetCurrentClassLogger();
 
