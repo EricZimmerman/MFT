@@ -42,11 +42,6 @@ namespace MFT.Test
             {
                 var reparse = string.Empty;
 
-                if (subitem.Name.Contains("irectory with ID 0x00000032-000000D3"))
-                {
-                    Debug.WriteLine(1);
-                }
-
                 if (subitem.ReparsePoint != null)
                 {
                     if (subitem.ReparsePoint.PrintName.Length > 0)
@@ -59,8 +54,6 @@ namespace MFT.Test
                         reparse = $"Reparse: {subitem.ReparsePoint.SubstituteName.Replace(@"\??\", "")} ";
                     }
                 }
-
-               
 
                 if (subitem.SubItems.Count > 0)
                 {

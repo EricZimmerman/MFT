@@ -6,22 +6,28 @@ namespace MFT.Other
 {
     public static class ExtensionMethods
     {
-        public static string Key(this FileRecord record)
+        public static int GetReferenceCount(this FileRecord record)
         {
-            var entryNum = record.EntryNumber;
-            var seqNum = record.SequenceNumber;
+            var fns = record.Attributes.Where(t => t.AttributeType == AttributeType.FileName);
 
-            if ((record.EntryFlags & FileRecord.EntryFlag.InUse) !=
-                FileRecord.EntryFlag.InUse)
+            var hashes = new HashSet<string>();
+
+            foreach (var attribute in fns)
             {
-                //this is free record, so decrement seqNum by one so it matches up with what is expected in ParentMFT references
-                seqNum -= 1;
+                var fn = (FileName) attribute;
+                if (fn.FileInfo.NameType == NameTypes.Dos)
+                {
+                    continue;
+                }
+
+                var key = $"{fn.FileInfo.FileName}-{fn.FileInfo.ParentMftRecord.GetKey()}";
+
+                hashes.Add(key);
             }
 
-            return $"{entryNum:X8}-{seqNum:X8}";
+            return hashes.Count;
         }
-
-        public static ReparsePoint GetReparsePoint(this FileRecord record)
+       public static ReparsePoint GetReparsePoint(this FileRecord record)
         {
             var reparseAttr =
                 record.Attributes.Where(t =>
@@ -144,14 +150,12 @@ namespace MFT.Other
 
         public static ulong GetFileSize(this FileRecord record)
         {
-            var fn = record.Attributes.FirstOrDefault(t => t.AttributeType == AttributeType.FileName);
-            if (fn != null)
+            if (record.IsDirectory())
             {
-                if (record.IsDirectory())
-                {
-                    return 0;
-                }
+                return 0;
             }
+
+            var fn = record.Attributes.FirstOrDefault(t => t.AttributeType == AttributeType.FileName);
 
             var datas = record.Attributes.Where(t => t.AttributeType == AttributeType.Data).ToList();
 
@@ -167,13 +171,16 @@ namespace MFT.Other
                 return data.NonResidentData.ActualSize;
             }
 
-            if (datas.Count == 0)
+            if (datas.Count != 0)
+            {
+                return 0;
+            }
+
+          
+            if (fn != null)
             {
                 var fna = (FileName) fn;
-                if (fn != null)
-                {
-                    return fna.FileInfo.LogicalSize;
-                }
+                return fna.FileInfo.LogicalSize;
             }
 
             return 0;
