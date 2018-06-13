@@ -109,7 +109,7 @@ namespace MFT.Test
 
             var m2 = MftFile.Load(xwf);
 
-            m2.BuildFileSystem();
+         //   m2.BuildFileSystem();
 
          //   m2.GetFileRecord("aaa");
 
@@ -129,7 +129,7 @@ namespace MFT.Test
                         continue;
                     }
 
-                    Debug.WriteLine($"{m2FileRecord.Value.EntryNumber},{m2FileRecord.Value.SequenceNumber},\"{fn.FileInfo.FileName}\",InUse,{m2FileRecord.Value.IsDirectory()}");          
+                    Debug.WriteLine($"{m2FileRecord.Value.EntryNumber},{m2FileRecord.Value.SequenceNumber},\"{m2.GetFullParentPath(fn.FileInfo.ParentMftRecord.GetKey())}\\{fn.FileInfo.FileName}\",InUse,{m2FileRecord.Value.IsDirectory()}");          
                 }
             }
 
@@ -143,7 +143,7 @@ namespace MFT.Test
                         continue;
                     }
 
-                    Debug.WriteLine($"{m2FileRecord.Value.EntryNumber},{m2FileRecord.Value.SequenceNumber},\"{fn.FileInfo.FileName}\",Free,{m2FileRecord.Value.IsDirectory()}");          
+                    Debug.WriteLine($"{m2FileRecord.Value.EntryNumber},{m2FileRecord.Value.SequenceNumber},\"{m2.GetFullParentPath(fn.FileInfo.ParentMftRecord.GetKey())}\\{fn.FileInfo.FileName}\",Free,{m2FileRecord.Value.IsDirectory()}");          
                 }
             }
 

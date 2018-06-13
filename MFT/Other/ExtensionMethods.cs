@@ -71,6 +71,20 @@ namespace MFT.Other
             return (FileName) fi;
         }
 
+        public static string GetKey(this MftEntryInfo mftInfo)
+        {
+            return $"{mftInfo.MftEntryNumber:X8}-{mftInfo.MftSequenceNumber:X8}";
+        }
+
+        public static string GetKey(this FileRecord record)
+        {
+            if (record.IsDeleted())
+            {
+                return $"{record.EntryNumber:X8}-{record.SequenceNumber-1:X8}";
+            }
+            return $"{record.EntryNumber:X8}-{record.SequenceNumber:X8}";
+        }
+
         public static bool IsDirectory(this FileRecord record)
         {
             if (record == null)
