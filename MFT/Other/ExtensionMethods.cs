@@ -80,8 +80,9 @@ namespace MFT.Other
         {
             if (record.IsDeleted())
             {
-                return $"{record.EntryNumber:X8}-{record.SequenceNumber-1:X8}";
+                return $"{record.EntryNumber:X8}-{record.SequenceNumber - 1:X8}";
             }
+
             return $"{record.EntryNumber:X8}-{record.SequenceNumber:X8}";
         }
 
@@ -91,6 +92,7 @@ namespace MFT.Other
             {
                 return false;
             }
+
             return (record.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
                    FileRecord.EntryFlag.IsDirectory;
         }
