@@ -1,6 +1,6 @@
 ﻿using MFT.Attributes;
 
-namespace MFT
+namespace MFT.Other
 {
     public class AdsInfo
     {

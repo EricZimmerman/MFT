@@ -49,7 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdsInfo.cs" />
+    <Compile Include="Other\AdsInfo.cs" />
     <Compile Include="Attributes\ACERecord.cs" />
     <Compile Include="Attributes\Attribute.cs" />
     <Compile Include="Attributes\AttributeList.cs" />
@@ -76,13 +76,12 @@
     <Compile Include="Attributes\xACLRecord.cs" />
     <Compile Include="FileRecord.cs" />
     <Compile Include="Mft.cs" />
-    <Compile Include="MftEntryInfo.cs" />
+    <Compile Include="Other\MftEntryInfo.cs" />
     <Compile Include="MftFile.cs" />
     <Compile Include="Other\DataRun.cs" />
     <Compile Include="Other\AttributeInfo.cs" />
     <Compile Include="Other\DirectoryItem.cs" />
     <Compile Include="Other\DirectoryNameMapValue.cs" />
-    <Compile Include="Other\ExtensionRecordInfo.cs" />
     <Compile Include="Other\ExtensionMethods.cs" />
     <Compile Include="Other\FixupData.cs" />
     <Compile Include="Other\IndexEntry.cs" />

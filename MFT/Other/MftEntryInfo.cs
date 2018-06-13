@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MFT
+namespace MFT.Other
 {
     public class MftEntryInfo
     {
