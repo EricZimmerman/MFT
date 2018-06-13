@@ -73,6 +73,10 @@ namespace MFT.Other
 
         public static bool IsDirectory(this FileRecord record)
         {
+            if (record == null)
+            {
+                return false;
+            }
             return (record.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
                    FileRecord.EntryFlag.IsDirectory;
         }

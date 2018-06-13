@@ -80,7 +80,14 @@ namespace MFT
 
         public void BuildFileSystem(bool includeShortNames = false)
         {
-            //For all directories, build out a map where key == parent directrory id and value is how to get there
+
+
+
+
+
+            //
+
+            //For all directories, build out a map where key == parent directory id and value is how to get there
             BuildDirectoryPathMap(FileRecords.Where(t => t.Value.IsDirectory()));
             BuildDirectoryPathMap(FreeFileRecords.Where(t => t.Value.IsDirectory()));
 
@@ -138,14 +145,17 @@ namespace MFT
                         var isHardLink = false;
                         isHardLink = fna1.FileInfo.ParentMftRecord.MftEntryNumber != baseEntryNumber;
 
-                        var dirItem = UpdateDirectoryItems(path, map, isHardLink, false);
+                        var dirItem = UpdateDirectoryItems(path, map, isHardLink, fileRecord.Value.IsDeleted());
                         var fna = (FileName) attribute;
 
                         //add fna to dirItem
+
+                        var parentPath = path;// $"{dirItem.ParentPath}\\{dirItem.Name}";
+
                         var fkey =
                             $"{fileRecord.Value.Key()}-{fna.AttributeNumber:X8}";
                         var fItem = new DirectoryItem(fna.FileInfo.FileName, fkey,
-                            $"{dirItem.ParentPath}\\{dirItem.Name}",
+                            parentPath,
                             fileRecord.Value.HasAds(), null, fileRecord.Value.GetFileSize(), isHardLink,
                             fileRecord.Value.IsDeleted());
 
@@ -179,7 +189,15 @@ namespace MFT
                     //its already there
                     startDirectory = startDirectory.SubItems[mapSegs[i]];
 
-                    parentPath = $"{parentPath}\\{startDirectory.Name}";
+                    if (mapSegs[i] != "PathUnknown" && GetFileRecord(mapSegs[i]).IsDirectory())
+                    {
+                        
+                        parentPath = $"{parentPath}\\{startDirectory.Name}";
+                    }
+                    else
+                    {
+                        parentPath = $"{parentPath}\\{mapSegs[i]}";
+                    }
                 }
                 else
                 {
@@ -199,7 +217,7 @@ namespace MFT
                     {
                         var pun = new DirectoryItem($"Directory with ID 0x{mapSegs[i]}", mapSegs[i],
                             $"{startDirectory.ParentPath}\\{startDirectory.Name}", false, null, 0, false,
-                            false);
+                          true);
                         if (startDirectory.SubItems.ContainsKey(mapSegs[i]) == false)
                         {
                             startDirectory.SubItems.Add(mapSegs[i], pun);
@@ -211,9 +229,21 @@ namespace MFT
 
                     parentPath = string.Join("\\", pathSegs.Take(i + 1));
 
-                    var newItem = new DirectoryItem(fileRecord.GetFileNameAttributeFromFileRecord().FileInfo.FileName,
-                        mapSegs[i], parentPath, fileRecord.HasAds(), fileRecord.GetReparsePoint(),
-                        fileRecord.GetFileSize(), isHardLink, isDeleted);
+                    var name = fileRecord.GetFileNameAttributeFromFileRecord().FileInfo.FileName;
+                    var fsize = fileRecord.GetFileSize();
+                    var hasAds = fileRecord.HasAds();
+                    var reparse = fileRecord.GetReparsePoint();
+                    if (fileRecord.IsDirectory() == false)
+                    {
+                        name = mapSegs.Last();
+                        fsize = 0;
+                        hasAds = false;
+                        reparse = null;
+                    }
+
+                    var newItem = new DirectoryItem(name,
+                        mapSegs[i], parentPath, hasAds, reparse,
+                        fsize, isHardLink, isDeleted);
                     startDirectory.SubItems.Add(mapSegs[i], newItem);
 
                     startDirectory = startDirectory.SubItems[mapSegs[i]];
@@ -248,7 +278,7 @@ namespace MFT
                 key =
                     $"{fr.FileInfo.ParentMftRecord.MftEntryNumber:X8}-{fr.FileInfo.ParentMftRecord.MftSequenceNumber:X8}";
 
-                if (_directoryPathMap.ContainsKey(key))
+                if (_directoryPathMap.ContainsKey(key) && GetFileRecord(key).IsDirectory())
                 {
                     map = _directoryPathMap[key];
                 }
@@ -488,7 +518,7 @@ namespace MFT
                 else
                 {
                     //this entries parent doesnt exist any more, so make it show up under "PathUnknown", unless we already know where it goes based on DirectoryPathMap
-                    if (_directoryPathMap.ContainsKey(parentKey))
+                    if (_directoryPathMap.ContainsKey(parentKey) && GetFileRecord(parentKey).IsDirectory())
                     {
                         stack.Push(_directoryPathMap[parentKey].Replace("\\.", ""));
 

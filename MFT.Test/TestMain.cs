@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using MFT.Attributes;
+using MFT.Other;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -24,12 +26,26 @@ namespace MFT.Test
         {
             var logger = LogManager.GetCurrentClassLogger();
 
-            logger.Info($"Path: {dir.ParentPath}\\{dir.Name} Item count: ({dir.SubItems.Count:N0})");
+
+
+            if (dir.IsDeleted && dir.Name!="PathUnknown")
+            {
+                logger.Info($"Path: {dir.ParentPath} Item count: ({dir.SubItems.Count:N0})");
+            }
+            else
+            {
+                logger.Info($"Path: {dir.ParentPath}\\{dir.Name} Item count: ({dir.SubItems.Count:N0})");    
+            }
 
             foreach (var subitem in dir.SubItems.Values.OrderByDescending(t => t.SubItems.Count > 0)
                 .ThenBy(t => t.Name))
             {
                 var reparse = string.Empty;
+
+                if (subitem.Name.Contains("irectory with ID 0x00000032-000000D3"))
+                {
+                    Debug.WriteLine(1);
+                }
 
                 if (subitem.ReparsePoint != null)
                 {
@@ -43,6 +59,8 @@ namespace MFT.Test
                         reparse = $"Reparse: {subitem.ReparsePoint.SubstituteName.Replace(@"\??\", "")} ";
                     }
                 }
+
+               
 
                 if (subitem.SubItems.Count > 0)
                 {
@@ -101,6 +119,34 @@ namespace MFT.Test
                 $"\r\n\r\nRecord count: {m2.FileRecords.Count:N0} free records: {m2.FreeFileRecords.Count:N0} Bad records: {m2.BadRecords.Count:N0} Uninit records: {m2.UninitializedRecords.Count:N0}");
 
 
+            foreach (var m2FileRecord in m2.FileRecords)
+            {
+                foreach (var attribute in m2FileRecord.Value.Attributes.Where(t=>t.AttributeType == AttributeType.FileName))
+                {
+                    var fn = (FileName) attribute;
+                    if (fn.FileInfo.NameType == NameTypes.Dos)
+                    {
+                        continue;
+                    }
+
+                    Debug.WriteLine($"{m2FileRecord.Value.EntryNumber},{m2FileRecord.Value.SequenceNumber},\"{fn.FileInfo.FileName}\",InUse,{m2FileRecord.Value.IsDirectory()}");          
+                }
+            }
+
+            foreach (var m2FileRecord in m2.FreeFileRecords)
+            {
+                foreach (var attribute in m2FileRecord.Value.Attributes.Where(t=>t.AttributeType == AttributeType.FileName))
+                {
+                    var fn = (FileName) attribute;
+                    if (fn.FileInfo.NameType == NameTypes.Dos)
+                    {
+                        continue;
+                    }
+
+                    Debug.WriteLine($"{m2FileRecord.Value.EntryNumber},{m2FileRecord.Value.SequenceNumber},\"{fn.FileInfo.FileName}\",Free,{m2FileRecord.Value.IsDirectory()}");          
+                }
+            }
+
 //            using (var s = new StreamWriter($@"C:\temp\mft.txt", false, Encoding.Unicode))
 //            {
 //                foreach (var f in m2.FileRecords)
@@ -137,7 +183,7 @@ namespace MFT.Test
 //                s.Flush();
 //            }
 
-            DumpFiles(m2.RootDirectory);
+          //  DumpFiles(m2.RootDirectory);
 
 //              //XWF tests
 //            //file test, existing
