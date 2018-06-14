@@ -59,14 +59,7 @@ namespace MFT
 
             BuildDirectoryNameMap(FileRecords.Where(t => t.Value.IsDirectory()));
             BuildDirectoryNameMap(FreeFileRecords.Where(t => t.Value.IsDirectory()));
-
-            //       var rootFolder = FileRecords.Single(t => t.Value.EntryNumber == 5).Value;
-//
-//            RootDirectory = new DirectoryItem("", rootFolder.Key(), ".", false, null, rootFolder.GetFileSize(), false,
-//                false);
         }
-
-        // public DirectoryItem RootDirectory { get; }
 
         public Dictionary<string, FileRecord> FileRecords { get; }
         public Dictionary<string, FileRecord> FreeFileRecords { get; }
@@ -150,7 +143,7 @@ namespace MFT
                             if (FileRecords.ContainsKey(attrEntryKey) == false)
                             {
                                 _logger.Warn(
-                                    $"Cannot find record with entry/seq #: 0x{attrEntryKey} Deleted: {fileRecord.Value.IsDeleted()}");
+                                    $"Cannot find record with entry/seq #: 0x{attrEntryKey} from Attribute list. Deleted: {fileRecord.Value.IsDeleted()}");
                             }
                             else
                             {

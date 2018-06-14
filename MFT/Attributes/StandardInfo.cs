@@ -100,7 +100,7 @@ namespace MFT.Attributes
             sb.AppendLine();
 
             sb.AppendLine(
-                $"Flags: {Flags.ToString()} MaxVersion: 0x{MaxVersion:X} VersionNumber: 0x{VersionNumber:X}, ClassId: 0x{ClassId:X}" +
+                $"Flags: {Flags.ToString()} MaxVersion: 0x{MaxVersion:X} VersionNumber: 0x{VersionNumber:X}, ClassId: 0x{ClassId:X} " +
                 $"OwnerId: 0x{OwnerId:X} SecurityId: 0x{SecurityId:X}, QuotaCharged: 0x{QuotaCharged:X} " +
                 $"\r\nUpdateSequenceNumber: 0x{UpdateSequenceNumber:X}" +
                 $"\r\nCreatedOn: {CreatedOn?.ToString(MftFile.DateTimeFormat)}" +

@@ -260,7 +260,7 @@ namespace MFT
             var sb = new StringBuilder();
 
             sb.AppendLine(
-                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LogSequenceNumber: 0x{LogSequenceNumber:X} MftRecordToBaseRecord: {MftRecordToBaseRecord} ReferenceCount: 0x{ReferenceCount:X} FixupData: {FixupData} (Fixup OK: {FixupOk})");
+                $"Entry/seq #: 0x{EntryNumber:X}/0x{SequenceNumber:X} Offset: 0x{Offset:X} Flags: {EntryFlags} LogSequenceNumber: 0x{LogSequenceNumber:X} MftRecordToBaseRecord: {MftRecordToBaseRecord}\r\nReferenceCount: 0x{ReferenceCount:X} FixupData: {FixupData} (Fixup OK: {FixupOk})\r\n");
 
             foreach (var attribute in Attributes)
             {

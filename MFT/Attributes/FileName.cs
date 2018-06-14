@@ -27,8 +27,7 @@ namespace MFT.Attributes
 
             sb.AppendLine();
 
-            sb.AppendLine(
-                $"Fileinfo: {FileInfo}");
+            sb.AppendLine(FileInfo.ToString());
 
             return sb.ToString();
         }

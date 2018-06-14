@@ -86,7 +86,7 @@ namespace MFT.Attributes
 
             sb.AppendLine();
 
-            sb.AppendLine($"File name: {FileName} (Len:0x{NameLength:X}) Flags: {Flags}, NameType: {NameType} " +
+            sb.AppendLine($"File name: {FileName} (Len:0x{NameLength:X})\r\nFlags: {Flags}, NameType: {NameType} " +
                           $"ReparseValue: {ReparseValue} PhysicalSize: 0x{PhysicalSize:X}, LogicalSize: 0x{LogicalSize:X}" +
                           $"\r\nParentMftRecord: {ParentMftRecord} " +
                           $"\r\nCreatedOn: {CreatedOn?.ToString(MftFile.DateTimeFormat)}" +

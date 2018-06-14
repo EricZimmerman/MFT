@@ -54,7 +54,7 @@ namespace MFT.Attributes
             sb.AppendLine();
 
             sb.AppendLine(
-                $"FileDroidBirth: {FileDroidBirth} VolumeDroidBirth: {VolumeDroidBirth} FileDroid: {FileDroid} DomainDroidBirth: {DomainDroidBirth}");
+                $"FileDroidBirth: {FileDroidBirth}\r\nVolumeDroidBirth: {VolumeDroidBirth}\r\nFileDroid: {FileDroid}\r\nDomainDroidBirth: {DomainDroidBirth}");
 
             return sb.ToString();
         }

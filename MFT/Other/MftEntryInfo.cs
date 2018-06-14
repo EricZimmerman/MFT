@@ -31,18 +31,19 @@ namespace MFT.Other
             MftEntryNumber = entryIndex;
             MftSequenceNumber = sequenceNumber;
 
-            if (sequenceNumber == 0)
-            {
-                MftSequenceNumber = null;
-            }
+//            if (sequenceNumber == 0)
+//            {
+//                MftSequenceNumber = null;
+//            }
         }
 
         public uint MftEntryNumber { get; set; }
 
-        public short? MftSequenceNumber { get; set; }
+        public short MftSequenceNumber { get; set; }
 
         public override string ToString()
         {
+          
             return $"Entry: 0x{MftEntryNumber:X}, Seq: 0x{MftSequenceNumber:X}";
         }
     }
