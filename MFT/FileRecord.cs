@@ -31,21 +31,26 @@ namespace MFT
 
             var sig = BitConverter.ToInt32(rawBytes, 0);
 
-            if (sig != FileSig && sig != BaadSig && sig != 0x0)
-            {
-                throw new Exception("Invalid signature!");
-            }
+//            if (sig != FileSig && sig != BaadSig && sig != 0x0)
+//            {
+//                logger.Warn($"Invalid signature at beginning of record at offset 0x{offset:X}!");
+//
+//                return;
+//            }
 
             switch (sig)
             {
-                case NoSig:
-                    //not initialized
-                    logger.Debug($"Uninitialized entry (no signature) at offset 0x{offset:X}");
-                    IsUninitialized = true;
-                    return;
+                case FileSig:
+                    break;
+                
                 case BaadSig:
                     logger.Debug($"Bad signature at offset 0x{offset:X}");
                     IsBad = true;
+                    return;
+                    default:
+                    //not initialized
+                    logger.Debug($"Uninitialized entry (no signature) at offset 0x{offset:X}");
+                    IsUninitialized = true;
                     return;
             }
 

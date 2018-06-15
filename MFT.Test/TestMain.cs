@@ -101,7 +101,9 @@ namespace MFT.Test
         {
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(xwf);
+            var test = @"D:\!downloads\20180615_MFTECmd_Bad_MFT_AMJH";
+
+            var m2 = MftFile.Load(test);
 
          //   m2.BuildFileSystem();
 
@@ -131,6 +133,7 @@ namespace MFT.Test
             {
                 foreach (var attribute in m2FileRecord.Value.Attributes.Where(t=>t.AttributeType == AttributeType.FileName))
                 {
+
                     var fn = (FileName) attribute;
                     if (fn.FileInfo.NameType == NameTypes.Dos)
                     {
