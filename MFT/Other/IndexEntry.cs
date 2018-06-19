@@ -119,8 +119,8 @@ namespace MFT.Other
 
             sb.AppendLine();
 
-            sb.AppendLine($"File name: {FileName} (Len:{NameLength}) Flags: {Flags}, NameType: {NameType} " +
-                          $"ReparseValue: {ReparseValue} PhysicalSize: {PhysicalSize}, LogicalSize: {LogicalSize}" +
+            sb.AppendLine($"File name: {FileName} (Len:0x{NameLength:X}) Flags: {Flags}, NameType: {NameType} " +
+                          $"ReparseValue: {ReparseValue} PhysicalSize: 0x{PhysicalSize:X}, LogicalSize: 0x{LogicalSize:X}" +
                           $"\r\nParentMftRecord: {ParentMftRecord} " +
                           $"\r\nCreatedOn: {CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
                           $"\r\nContentModifiedOn: {ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +

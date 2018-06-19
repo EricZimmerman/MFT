@@ -10,7 +10,7 @@ namespace MFT
     public class Mft
     {
         private readonly Dictionary<string, DirectoryNameMapValue> _directoryNameMap;
-        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly Logger _logger = LogManager.GetLogger("MFT");
 
         public Mft(byte[] rawbytes)
         {
@@ -21,7 +21,7 @@ namespace MFT
 
             const int blockSize = 1024;
 
-            var fileBytes = new byte[1024];
+            var fileBytes = new byte[blockSize];
 
             var index = 0;
 

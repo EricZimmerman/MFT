@@ -17,11 +17,6 @@ namespace MFT.Attributes
     {
         public FileInfo(byte[] rawBytes)
         {
-//            if (rawBytes.Length == 0x04)
-//            {
-//                return;
-//            }
-
             var entryBytes = new byte[8];
 
             Buffer.BlockCopy(rawBytes, 0, entryBytes, 0, 8);
@@ -52,7 +47,6 @@ namespace MFT.Attributes
                 LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
             }
 
-
             PhysicalSize = BitConverter.ToUInt64(rawBytes, 0x28);
             LogicalSize = BitConverter.ToUInt64(rawBytes, 0x30);
 
@@ -77,7 +71,6 @@ namespace MFT.Attributes
         public DateTimeOffset? RecordModifiedOn { get; }
         public DateTimeOffset? LastAccessedOn { get; }
         public StandardInfo.Flag Flags { get; }
-
         public MftEntryInfo ParentMftRecord { get; }
 
         public override string ToString()

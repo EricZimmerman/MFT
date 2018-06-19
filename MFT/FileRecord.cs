@@ -10,6 +10,8 @@ namespace MFT
 {
     public class FileRecord
     {
+        private readonly Logger _logger = LogManager.GetLogger("FileRecord");
+
         [Flags]
         public enum EntryFlag
         {
@@ -21,22 +23,12 @@ namespace MFT
 
         private const int BaadSig = 0x44414142;
         private const int FileSig = 0x454c4946;
-        private const int NoSig = 0x0;
 
         public FileRecord(byte[] rawBytes, int offset)
         {
-            var logger = LogManager.GetCurrentClassLogger();
-
             Offset = offset;
 
             var sig = BitConverter.ToInt32(rawBytes, 0);
-
-//            if (sig != FileSig && sig != BaadSig && sig != 0x0)
-//            {
-//                logger.Warn($"Invalid signature at beginning of record at offset 0x{offset:X}!");
-//
-//                return;
-//            }
 
             switch (sig)
             {
@@ -44,12 +36,12 @@ namespace MFT
                     break;
                 
                 case BaadSig:
-                    logger.Debug($"Bad signature at offset 0x{offset:X}");
+                    _logger.Debug($"Bad signature at offset 0x{offset:X}");
                     IsBad = true;
                     return;
                     default:
                     //not initialized
-                    logger.Debug($"Uninitialized entry (no signature) at offset 0x{offset:X}");
+                    _logger.Debug($"Uninitialized entry (no signature) at offset 0x{offset:X}");
                     IsUninitialized = true;
                     return;
             }
@@ -89,7 +81,7 @@ namespace MFT
                 if (expected != FixupData.FixupExpected && EntryFlags != 0x0)
                 {
                     FixupOk = false;
-                    logger.Warn(
+                    _logger.Warn(
                         $"Offset: 0x{Offset:X} Entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X} Fixup values do not match at 0x{fixupOffset:X}. Expected: 0x{FixupData.FixupExpected:X2}, actual: 0x{expected:X2}");
                 }
 
@@ -137,15 +129,15 @@ namespace MFT
 
                     if (index != ActualRecordSize)
                     {
-                        logger.Warn($"Slack space found in entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X}");
+                        _logger.Warn($"Slack space found in entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X}");
                     }
 
                     //TODO process slack here?
                     break;
                 }
 
-                logger.Debug(
-                    $"ActualRecordSize: {ActualRecordSize} attrType: {attrType.ToString()}, size: {attrSize}, index: {index}, offset: 0x{offset:x}, i+o: 0x{index + offset:X}");
+                _logger.Debug(
+                    $"ActualRecordSize: 0x{ActualRecordSize:X} attrType: {attrType.ToString()}, size: 0x{attrSize:X}, index: 0x{index:X}, offset: 0x{offset:X}, i+o: 0x{index + offset:X}");
 
                 var rawAttr = new byte[attrSize];
                 Buffer.BlockCopy(rawBytes, index, rawAttr, 0, attrSize);
@@ -235,7 +227,7 @@ namespace MFT
             }
 
             //rest is slack. handle here?
-            logger.Debug($"Slack starts at {index} i+o: 0x{index + offset:X}");
+            _logger.Debug($"Slack starts at 0x{index:X} i+o: 0x{index + offset:X}");
         }
 
         public List<Attribute> Attributes { get; }

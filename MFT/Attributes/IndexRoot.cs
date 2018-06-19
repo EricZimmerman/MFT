@@ -115,7 +115,7 @@ namespace MFT.Attributes
             sb.AppendLine();
 
             sb.AppendLine(
-                $"IndexedAttributeType: {IndexedAttributeType} EntrySize: 0x{EntrySize:X} NumberClusterBlocks: 0x{NumberClusterBlocks:X} CollationType: {CollationType} Index entries count: {IndexEntries.Count:N0} MftRecord: {MftRecord}");
+                $"IndexedAttributeType: {IndexedAttributeType} EntrySize: 0x{EntrySize:X} NumberClusterBlocks: 0x{NumberClusterBlocks:X} CollationType: {CollationType} Index entries count: 0x{IndexEntries.Count:X} MftRecord: {MftRecord}");
 
             sb.AppendLine();
             sb.AppendLine("FileInfoRecords Entries");

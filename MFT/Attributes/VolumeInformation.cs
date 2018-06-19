@@ -48,7 +48,7 @@ namespace MFT.Attributes
             sb.AppendLine();
 
             sb.AppendLine(
-                $"VolumeFlags: {VolumeFlags} MajorVersion: {MajorVersion} MinorVersion: {MinorVersion} UnknownBytes: {BitConverter.ToString(UnknownBytes)} ");
+                $"VolumeFlags: {VolumeFlags} MajorVersion: 0x{MajorVersion:X} MinorVersion: 0x{MinorVersion:X} UnknownBytes: {BitConverter.ToString(UnknownBytes)} ");
 
             return sb.ToString();
         }

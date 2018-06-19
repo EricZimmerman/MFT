@@ -30,11 +30,6 @@ namespace MFT.Other
 
             MftEntryNumber = entryIndex;
             MftSequenceNumber = sequenceNumber;
-
-//            if (sequenceNumber == 0)
-//            {
-//                MftSequenceNumber = null;
-//            }
         }
 
         public uint MftEntryNumber { get; set; }

@@ -65,7 +65,7 @@
     <Compile Include="Attributes\IndexRoot.cs" />
     <Compile Include="Attributes\LoggedUtilityStream.cs" />
     <Compile Include="Attributes\NonResidentData.cs" />
-    <Compile Include="Attributes\OlbectId.cs" />
+    <Compile Include="Attributes\ObjectId.cs" />
     <Compile Include="Attributes\ReparsePoint.cs" />
     <Compile Include="Attributes\ResidentData.cs" />
     <Compile Include="Attributes\SecurityDescriptor.cs" />
@@ -80,7 +80,6 @@
     <Compile Include="MftFile.cs" />
     <Compile Include="Other\DataRun.cs" />
     <Compile Include="Other\AttributeInfo.cs" />
-    <Compile Include="Other\DirectoryItem.cs" />
     <Compile Include="Other\DirectoryNameMapValue.cs" />
     <Compile Include="Other\ExtensionMethods.cs" />
     <Compile Include="Other\FixupData.cs" />
