@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using MFT.Attributes;
 using MFT.Other;
@@ -109,6 +110,10 @@ namespace MFT
         {
             foreach (var fileRecord in fileRecords)
             {
+                if (fileRecord.Value.EntryNumber == 58956  )
+                {
+                    Debug.WriteLine(1);
+                }
                 if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
                     fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
                 {
@@ -133,7 +138,7 @@ namespace MFT
                     foreach (var attrListAttributeInformation in attrList.AttributeInformations)
                     {
                         if (attrListAttributeInformation.EntryInfo.MftEntryNumber != fileRecord.Value.EntryNumber &&
-                            attrListAttributeInformation.EntryInfo.MftSequenceNumber != fileRecord.Value.SequenceNumber)
+                            attrListAttributeInformation.Name == null) // != fileRecord.Value.SequenceNumber
                         {
                             _logger.Trace($"found attrlist item: {attrListAttributeInformation}");
 

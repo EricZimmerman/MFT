@@ -52,7 +52,7 @@ namespace MFT.Test
 
             var test = @"D:\SynologyDrive\MFTs\20180615_MFTECmd_Bad_MFT_AMJH";
 
-            var m2 = MftFile.Load(test);
+            var m2 = MftFile.Load(nromanoff);
 
          //   m2.BuildFileSystem();getcur
 
