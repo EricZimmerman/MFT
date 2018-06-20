@@ -110,10 +110,6 @@ namespace MFT
         {
             foreach (var fileRecord in fileRecords)
             {
-                if (fileRecord.Value.EntryNumber == 58956  )
-                {
-                    Debug.WriteLine(1);
-                }
                 if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
                     fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
                 {
