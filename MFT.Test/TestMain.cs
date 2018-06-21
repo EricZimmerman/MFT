@@ -50,7 +50,7 @@ namespace MFT.Test
         {
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(xwf);
+            var m2 = MftFile.Load(Vanko);
 
             var logger = LogManager.GetCurrentClassLogger();
 

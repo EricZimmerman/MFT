@@ -75,7 +75,7 @@ namespace MFT
         }
 
         public Dictionary<string, FileRecord> FileRecords { get; }
-        private Dictionary<string, List<FileRecord>> ExtensionFileRecords { get; }
+        public Dictionary<string, List<FileRecord>> ExtensionFileRecords { get; }
         public Dictionary<string, FileRecord> FreeFileRecords { get; }
 
         public List<FileRecord> BadRecords { get; }
