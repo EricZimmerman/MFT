@@ -27,7 +27,8 @@ namespace MFT.Other
 
             return hashes.Count;
         }
-       public static ReparsePoint GetReparsePoint(this FileRecord record)
+
+        public static ReparsePoint GetReparsePoint(this FileRecord record)
         {
             var reparseAttr =
                 record.Attributes.Where(t =>
@@ -176,7 +177,7 @@ namespace MFT.Other
                 return 0;
             }
 
-          
+
             if (fn != null)
             {
                 var fna = (FileName) fn;

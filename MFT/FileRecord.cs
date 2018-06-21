@@ -10,8 +10,6 @@ namespace MFT
 {
     public class FileRecord
     {
-        private readonly Logger _logger = LogManager.GetLogger("FileRecord");
-
         [Flags]
         public enum EntryFlag
         {
@@ -23,6 +21,7 @@ namespace MFT
 
         private const int BaadSig = 0x44414142;
         private const int FileSig = 0x454c4946;
+        private readonly Logger _logger = LogManager.GetLogger("FileRecord");
 
         public FileRecord(byte[] rawBytes, int offset)
         {
@@ -34,12 +33,12 @@ namespace MFT
             {
                 case FileSig:
                     break;
-                
+
                 case BaadSig:
                     _logger.Debug($"Bad signature at offset 0x{offset:X}");
                     IsBad = true;
                     return;
-                    default:
+                default:
                     //not initialized
                     _logger.Debug($"Uninitialized entry (no signature) at offset 0x{offset:X}");
                     IsUninitialized = true;
@@ -139,8 +138,8 @@ namespace MFT
                 }
 
                 _logger.Debug(
-                    $"Found Attribute Type {attrType.ToString()} at absolute offset: 0x{(index + offset):X}");
-                
+                    $"Found Attribute Type {attrType.ToString()} at absolute offset: 0x{index + offset:X}");
+
                 _logger.Trace(
                     $"ActualRecordSize: 0x{ActualRecordSize:X}, size: 0x{attrSize:X}, index: 0x{index:X}");
 
@@ -232,7 +231,7 @@ namespace MFT
             }
 
             //rest is slack. handle here?
-            _logger.Trace($"Slack starts at 0x{index:X} Absolute offset: 0x{(index + offset):X}");
+            _logger.Trace($"Slack starts at 0x{index:X} Absolute offset: 0x{index + offset:X}");
         }
 
         public List<Attribute> Attributes { get; }

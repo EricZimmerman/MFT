@@ -38,7 +38,6 @@ namespace MFT.Other
 
         public override string ToString()
         {
-          
             return $"Entry: 0x{MftEntryNumber:X}, Seq: 0x{MftSequenceNumber:X}";
         }
     }

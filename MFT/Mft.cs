@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using MFT.Attributes;
 using MFT.Other;
@@ -17,7 +16,7 @@ namespace MFT
         {
             FileRecords = new Dictionary<string, FileRecord>();
             FreeFileRecords = new Dictionary<string, FileRecord>();
-            _extensionFileRecords = new Dictionary<string, List<FileRecord>>();
+            ExtensionFileRecords = new Dictionary<string, List<FileRecord>>();
             BadRecords = new List<FileRecord>();
             UninitializedRecords = new List<FileRecord>();
 
@@ -54,6 +53,18 @@ namespace MFT
                     FileRecords.Add(key, f);
                 }
 
+                if (f.IsUninitialized == false && f.IsBad == false && f.MftRecordToBaseRecord.MftEntryNumber > 0 &&
+                    f.MftRecordToBaseRecord.MftSequenceNumber > 0)
+                {
+                    //if the attribute list is NON-resident, have a fall back to get associated records
+                    if (ExtensionFileRecords.ContainsKey(f.MftRecordToBaseRecord.GetKey()) == false)
+                    {
+                        ExtensionFileRecords.Add(f.MftRecordToBaseRecord.GetKey(), new List<FileRecord>());
+                    }
+
+                    ExtensionFileRecords[f.MftRecordToBaseRecord.GetKey()].Add(f);
+                }
+
                 index += blockSize;
             }
 
@@ -64,7 +75,7 @@ namespace MFT
         }
 
         public Dictionary<string, FileRecord> FileRecords { get; }
-        private Dictionary<string, List<FileRecord>> _extensionFileRecords { get; }
+        private Dictionary<string, List<FileRecord>> ExtensionFileRecords { get; }
         public Dictionary<string, FileRecord> FreeFileRecords { get; }
 
         public List<FileRecord> BadRecords { get; }
@@ -116,14 +127,6 @@ namespace MFT
                     fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
                 {
                     //will get this record via attributeList
-                    //TODO verify this case.
-
-                    if (_extensionFileRecords.ContainsKey(fileRecord.Value.MftRecordToBaseRecord.GetKey()) == false)
-                    {
-                        _extensionFileRecords.Add(fileRecord.Value.MftRecordToBaseRecord.GetKey(),new List<FileRecord>());
-                    }
-                    
-                    _extensionFileRecords[fileRecord.Value.MftRecordToBaseRecord.GetKey()].Add(fileRecord.Value);
                     continue;
                 }
 
@@ -140,27 +143,50 @@ namespace MFT
 
                 if (attrList != null)
                 {
-                    foreach (var attrListAttributeInformation in attrList.AttributeInformations)
+                    if (attrList.IsResident)
                     {
-                        if (attrListAttributeInformation.EntryInfo.MftEntryNumber != fileRecord.Value.EntryNumber &&
-                            attrListAttributeInformation.Name == null) // != fileRecord.Value.SequenceNumber
+                        foreach (var attrListAttributeInformation in attrList.AttributeInformations)
                         {
-                            _logger.Debug($"Entry: 0x{fileRecord.Value.EntryNumber:X}, found attrListAttributeInformation item: {attrListAttributeInformation}");
-
-                            var attrEntryKey =
-                                $"{attrListAttributeInformation.EntryInfo.MftEntryNumber:X8}-{attrListAttributeInformation.EntryInfo.MftSequenceNumber:X8}";
-
-                            if (FileRecords.ContainsKey(attrEntryKey) == false)
+                            if (attrListAttributeInformation.EntryInfo.MftEntryNumber != fileRecord.Value.EntryNumber &&
+                                attrListAttributeInformation.Name == null) // != fileRecord.Value.SequenceNumber
                             {
-                                _logger.Warn(
-                                    $"Cannot find FILE record with entry/seq #: 0x{attrEntryKey} from Attribute list. Deleted: {fileRecord.Value.IsDeleted()}");
+                                _logger.Trace(
+                                    $"Entry: 0x{fileRecord.Value.EntryNumber:X}, found attrListAttributeInformation item: {attrListAttributeInformation}");
+
+                                var attrEntryKey =
+                                    $"{attrListAttributeInformation.EntryInfo.MftEntryNumber:X8}-{attrListAttributeInformation.EntryInfo.MftSequenceNumber:X8}";
+
+                                if (FileRecords.ContainsKey(attrEntryKey) == false)
+                                {
+                                    _logger.Warn(
+                                        $"Cannot find FILE record with entry/seq #: 0x{attrEntryKey} from Attribute list. Deleted: {fileRecord.Value.IsDeleted()}");
+                                }
+                                else
+                                {
+                                    _logger.Debug(
+                                        $"Found extension record that match record's entry/seq number! Adding attributes");
+                                    var attrEntry = FileRecords[attrEntryKey];
+
+                                    //pull in all related attributes from this record for processing later
+                                    fileRecord.Value.Attributes.AddRange(attrEntry.Attributes);
+                                }
                             }
-                            else
+                        }
+                    }
+                    else
+                    {
+                        _logger.Debug(
+                            $"Found non-resident attributelist. Checking for extension records that match record's entry/seq number");
+                        //attribute list is non-resident, so we do not have a list to follow. check _extensionFileRecords for any extension records for the current key
+                        if (ExtensionFileRecords.ContainsKey(fileRecord.Key))
+                        {
+                            _logger.Debug(
+                                $"Found extension records that match record's entry/seq number! Adding attributes");
+                            //we have at least 1!
+                            foreach (var record in ExtensionFileRecords[fileRecord.Key])
                             {
-                                var attrEntry = FileRecords[attrEntryKey];
-
                                 //pull in all related attributes from this record for processing later
-                                fileRecord.Value.Attributes.AddRange(attrEntry.Attributes);
+                                fileRecord.Value.Attributes.AddRange(record.Attributes);
                             }
                         }
                     }

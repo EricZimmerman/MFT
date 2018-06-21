@@ -71,6 +71,7 @@ namespace MFT.Attributes
             {
                 name = $", Name: {Name}";
             }
+
             return
                 $"Type: {AttributeType}, Attr #: 0x{AttributeNumber:X} Size: 0x{AttributeSize:X}, Content size: 0x{AttributeContentLength:X}, Name size: 0x{NameSize:X}{name}, Content offset: 0x{ContentOffset:X}, Resident: {IsResident}";
         }
