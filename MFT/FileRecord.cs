@@ -46,6 +46,8 @@ namespace MFT
                     return;
             }
 
+            _logger.Debug($"Processing FILE record at offset 0x{offset:X}");
+
             Attributes = new List<Attribute>();
 
             FixupOffset = BitConverter.ToInt16(rawBytes, 0x4);
@@ -137,7 +139,10 @@ namespace MFT
                 }
 
                 _logger.Debug(
-                    $"ActualRecordSize: 0x{ActualRecordSize:X} attrType: {attrType.ToString()}, size: 0x{attrSize:X}, index: 0x{index:X}, offset: 0x{offset:X}, i+o: 0x{index + offset:X}");
+                    $"Found Attribute Type {attrType.ToString()} at absolute offset: 0x{(index + offset):X}");
+                
+                _logger.Trace(
+                    $"ActualRecordSize: 0x{ActualRecordSize:X}, size: 0x{attrSize:X}, index: 0x{index:X}");
 
                 var rawAttr = new byte[attrSize];
                 Buffer.BlockCopy(rawBytes, index, rawAttr, 0, attrSize);
@@ -227,7 +232,7 @@ namespace MFT
             }
 
             //rest is slack. handle here?
-            _logger.Debug($"Slack starts at 0x{index:X} i+o: 0x{index + offset:X}");
+            _logger.Trace($"Slack starts at 0x{index:X} Absolute offset: 0x{(index + offset):X}");
         }
 
         public List<Attribute> Attributes { get; }

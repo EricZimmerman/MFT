@@ -17,6 +17,7 @@ namespace MFT
         {
             FileRecords = new Dictionary<string, FileRecord>();
             FreeFileRecords = new Dictionary<string, FileRecord>();
+            _extensionFileRecords = new Dictionary<string, List<FileRecord>>();
             BadRecords = new List<FileRecord>();
             UninitializedRecords = new List<FileRecord>();
 
@@ -34,7 +35,7 @@ namespace MFT
 
                 var key = f.GetKey();
 
-                _logger.Debug($"offset: 0x{f.Offset:X} flags: {f.EntryFlags} key: {key}");
+                _logger.Trace($"Offset: 0x{f.Offset:X} flags: {f.EntryFlags} key: {key}");
 
                 if (f.IsBad)
                 {
@@ -63,6 +64,7 @@ namespace MFT
         }
 
         public Dictionary<string, FileRecord> FileRecords { get; }
+        private Dictionary<string, List<FileRecord>> _extensionFileRecords { get; }
         public Dictionary<string, FileRecord> FreeFileRecords { get; }
 
         public List<FileRecord> BadRecords { get; }
@@ -115,6 +117,13 @@ namespace MFT
                 {
                     //will get this record via attributeList
                     //TODO verify this case.
+
+                    if (_extensionFileRecords.ContainsKey(fileRecord.Value.MftRecordToBaseRecord.GetKey()) == false)
+                    {
+                        _extensionFileRecords.Add(fileRecord.Value.MftRecordToBaseRecord.GetKey(),new List<FileRecord>());
+                    }
+                    
+                    _extensionFileRecords[fileRecord.Value.MftRecordToBaseRecord.GetKey()].Add(fileRecord.Value);
                     continue;
                 }
 
@@ -136,7 +145,7 @@ namespace MFT
                         if (attrListAttributeInformation.EntryInfo.MftEntryNumber != fileRecord.Value.EntryNumber &&
                             attrListAttributeInformation.Name == null) // != fileRecord.Value.SequenceNumber
                         {
-                            _logger.Trace($"found attrlist item: {attrListAttributeInformation}");
+                            _logger.Debug($"Entry: 0x{fileRecord.Value.EntryNumber:X}, found attrListAttributeInformation item: {attrListAttributeInformation}");
 
                             var attrEntryKey =
                                 $"{attrListAttributeInformation.EntryInfo.MftEntryNumber:X8}-{attrListAttributeInformation.EntryInfo.MftSequenceNumber:X8}";
@@ -144,7 +153,7 @@ namespace MFT
                             if (FileRecords.ContainsKey(attrEntryKey) == false)
                             {
                                 _logger.Warn(
-                                    $"Cannot find record with entry/seq #: 0x{attrEntryKey} from Attribute list. Deleted: {fileRecord.Value.IsDeleted()}");
+                                    $"Cannot find FILE record with entry/seq #: 0x{attrEntryKey} from Attribute list. Deleted: {fileRecord.Value.IsDeleted()}");
                             }
                             else
                             {
