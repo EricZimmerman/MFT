@@ -98,14 +98,14 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** ATTRIBUTE LIST ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
 
             sb.AppendLine(
-                $"DataRuns: {string.Join("|", DataRuns)} AttributeInfos: {string.Join("|", AttributeInformations)}");
+                $"DataRuns: {string.Join("\r\n", DataRuns)}\r\nAttribute Infos: {string.Join("\r\n", AttributeInformations)}");
 
             return sb.ToString();
         }

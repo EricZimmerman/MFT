@@ -28,7 +28,7 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** DATA ****");
 
             sb.AppendLine(base.ToString());
 
@@ -36,12 +36,12 @@ namespace MFT.Attributes
 
             if (ResidentData == null)
             {
-                sb.AppendLine("NonResidentData");
+                sb.AppendLine("Non Resident Data");
                 sb.AppendLine(NonResidentData.ToString());
             }
             else
             {
-                sb.AppendLine("ResidentData");
+                sb.AppendLine("Resident Data");
                 sb.AppendLine(ResidentData.ToString());
             }
 

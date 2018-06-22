@@ -24,7 +24,7 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** VOLUME NAME ****");
 
             sb.AppendLine(base.ToString());
 

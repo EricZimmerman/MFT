@@ -104,13 +104,13 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** REPARSE POINT ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
 
-            sb.AppendLine($"SubstituteName: {SubstituteName} PrintName: {PrintName} Tag: {Tag}");
+            sb.AppendLine($"Substitute Name: {SubstituteName} Print Name: {PrintName} Tag: {Tag}");
 
             return sb.ToString();
         }

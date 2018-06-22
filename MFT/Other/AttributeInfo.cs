@@ -31,7 +31,13 @@ namespace MFT.Other
 
         public override string ToString()
         {
-            return $"Entry info: {EntryInfo} Name: {Name} FirstVcn: 0x{FirstVirtualClusterNumber:X}";
+            var name = string.Empty;
+            if (Name != null)
+            {
+                name = $" Name: {Name}";
+            }
+
+            return $"Entry info: {EntryInfo}{name} First Vcn: 0x{FirstVirtualClusterNumber:X}";
         }
     }
 }

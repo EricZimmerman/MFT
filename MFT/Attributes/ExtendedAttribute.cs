@@ -7,21 +7,23 @@ namespace MFT.Attributes
     {
         public ExtendedAttribute(byte[] rawBytes) : base(rawBytes)
         {
-            var content = new byte[AttributeContentLength];
+            Content = new byte[AttributeContentLength];
 
-            Buffer.BlockCopy(rawBytes, ContentOffset, content, 0, AttributeContentLength);
+            Buffer.BlockCopy(rawBytes, ContentOffset, Content, 0, AttributeContentLength);
         }
+
+        public byte[] Content { get; }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** EXTENDED ATTRIBUTE ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
-            sb.AppendLine("ExtendedAttribute (do you need raw bytes?)");
+            sb.AppendLine($"Extended Attribute: {BitConverter.ToString(Content)}");
 
             return sb.ToString();
         }

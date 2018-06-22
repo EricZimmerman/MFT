@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using MFT.Attributes;
 using MFT.Other;
 using NLog;
@@ -78,39 +76,43 @@ namespace MFT
             BuildDirectoryNameMap(FreeFileRecords.Where(t => t.Value.IsDirectory()));
         }
 
-        private void ProcessExtensionBlocks()
-        {
-                foreach (var fileRecord in ExtensionFileRecords)
-                {
-                    FileRecord baseRecord=null;
-                    if (FileRecords.ContainsKey(fileRecord.Key))
-                    {
-                        baseRecord = FileRecords[fileRecord.Key];
-                    }
-                    else if (FreeFileRecords.ContainsKey(fileRecord.Key))
-                    {
-                        baseRecord = FreeFileRecords[fileRecord.Key];
-                    }
-
-                    if (baseRecord == null)
-                    {
-                        continue;
-                    }
-
-                    //pull in all related attributes from this record for processing later
-                    foreach (var fileRecordAttribute in fileRecord.Value)
-                    {
-                        baseRecord.Attributes.AddRange(fileRecordAttribute.Attributes);    
-                    }
-                }
-        }
-
         public Dictionary<string, FileRecord> FileRecords { get; }
         private Dictionary<string, List<FileRecord>> ExtensionFileRecords { get; }
         public Dictionary<string, FileRecord> FreeFileRecords { get; }
 
         public List<FileRecord> BadRecords { get; }
         public List<FileRecord> UninitializedRecords { get; }
+
+        private void ProcessExtensionBlocks()
+        {
+            _logger.Debug("Processing Extension FILE records");
+
+            foreach (var fileRecord in ExtensionFileRecords)
+            {
+                FileRecord baseRecord = null;
+                if (FileRecords.ContainsKey(fileRecord.Key))
+                {
+                    baseRecord = FileRecords[fileRecord.Key];
+                }
+                else if (FreeFileRecords.ContainsKey(fileRecord.Key))
+                {
+                    baseRecord = FreeFileRecords[fileRecord.Key];
+                }
+
+                if (baseRecord == null)
+                {
+                    continue;
+                }
+
+                _logger.Debug($"FILE record '{fileRecord.Key}', Extension records found: {fileRecord.Value.Count:N0}");
+
+                //pull in all related attributes from this record for processing later
+                foreach (var fileRecordAttribute in fileRecord.Value)
+                {
+                    baseRecord.Attributes.AddRange(fileRecordAttribute.Attributes);
+                }
+            }
+        }
 
         /// <summary>
         ///     Given an MFT entry # and seq #, return the full path

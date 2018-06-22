@@ -41,14 +41,14 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** VOLUME INFORMATION ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
 
             sb.AppendLine(
-                $"VolumeFlags: {VolumeFlags} MajorVersion: 0x{MajorVersion:X} MinorVersion: 0x{MinorVersion:X} UnknownBytes: {BitConverter.ToString(UnknownBytes)} ");
+                $"Volume Flags: {VolumeFlags} Major Version: 0x{MajorVersion:X} Minor Version: 0x{MinorVersion:X} Unknown Bytes: {BitConverter.ToString(UnknownBytes)} ");
 
             return sb.ToString();
         }

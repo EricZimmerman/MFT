@@ -20,7 +20,7 @@ namespace MFT.Other
 
         public override string ToString()
         {
-            return $"Name: {Name} size: 0x{Size:X}";
+            return $"Name: {Name} Size: 0x{Size:X}";
         }
     }
 }

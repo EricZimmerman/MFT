@@ -38,23 +38,23 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** SECURITY DESCRIPTOR ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
 
             sb.AppendLine(
-                $"SecurityInfo: {SecurityInfo}");
+                $"Security Info: {SecurityInfo}");
 
             if (IsResident)
             {
-                sb.AppendLine($"ResidentData: {ResidentData}");
-                sb.AppendLine($"SecurityInfo: {SecurityInfo}");
+                sb.AppendLine($"Resident Data: {ResidentData}");
+                sb.AppendLine($"Security Info: {SecurityInfo}");
             }
             else
             {
-                sb.AppendLine($"NonResidentData: {NonResidentData}");
+                sb.AppendLine($"Non Resident Data: {NonResidentData}");
             }
 
             return sb.ToString();

@@ -65,7 +65,6 @@ namespace MFT.Test
                     var fn = (FileName) attribute;
                     if (fn.FileInfo.NameType == NameTypes.Dos)
                     {
-                        continue;
                     }
 
                     Debug.WriteLine(
@@ -81,7 +80,6 @@ namespace MFT.Test
                     var fn = (FileName) attribute;
                     if (fn.FileInfo.NameType == NameTypes.Dos)
                     {
-                        continue;
                     }
 
                     Debug.WriteLine(

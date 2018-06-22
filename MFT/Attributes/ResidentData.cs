@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace MFT.Attributes
 {
@@ -13,7 +14,9 @@ namespace MFT.Attributes
 
         public override string ToString()
         {
-            return $"Data: {BitConverter.ToString(Data)}";
+            var asAscii = Encoding.GetEncoding(1252).GetString(Data);
+            var asUnicode = Encoding.Unicode.GetString(Data);
+            return $"Data: {BitConverter.ToString(Data)}\r\n\r\nASCII: {asAscii}\r\nUnicode: {asUnicode}";
         }
     }
 }

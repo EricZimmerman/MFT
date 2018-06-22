@@ -47,14 +47,14 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** OBJECT ID ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
 
             sb.AppendLine(
-                $"FileDroidBirth: {FileDroidBirth}\r\nVolumeDroidBirth: {VolumeDroidBirth}\r\nFileDroid: {FileDroid}\r\nDomainDroidBirth: {DomainDroidBirth}");
+                $"File Droid Birth: {FileDroidBirth}\r\nVolume Droid Birth: {VolumeDroidBirth}\r\nFile Droid: {FileDroid}\r\nDomain Droid Birth: {DomainDroidBirth}");
 
             return sb.ToString();
         }

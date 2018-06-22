@@ -21,14 +21,14 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** LOGGED UTILITY STREAM ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
 
             sb.AppendLine(
-                $"ResidentData: {ResidentData}");
+                $"Resident Data: {ResidentData}");
 
             return sb.ToString();
         }

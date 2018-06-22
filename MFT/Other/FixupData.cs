@@ -44,7 +44,7 @@ namespace MFT.Other
 
             var fua = sb.ToString().TrimEnd('|');
 
-            return $"Expected: {BitConverter.ToString(BitConverter.GetBytes(FixupExpected))} FixupActual: {fua}";
+            return $"Expected: {BitConverter.ToString(BitConverter.GetBytes(FixupExpected))} Fixup Actual: {fua}";
         }
     }
 }

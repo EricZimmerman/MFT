@@ -15,14 +15,14 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** INDEX ALLOCATION ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
 
             sb.AppendLine(
-                $"NonResidentData: {NonResidentData}");
+                $"Non Resident Data: {NonResidentData}");
 
             return sb.ToString();
         }

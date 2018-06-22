@@ -93,20 +93,20 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** STANDARD INFO ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
 
             sb.AppendLine(
-                $"Flags: {Flags.ToString()} MaxVersion: 0x{MaxVersion:X} VersionNumber: 0x{VersionNumber:X}, ClassId: 0x{ClassId:X} " +
-                $"OwnerId: 0x{OwnerId:X} SecurityId: 0x{SecurityId:X}, QuotaCharged: 0x{QuotaCharged:X} " +
-                $"\r\nUpdateSequenceNumber: 0x{UpdateSequenceNumber:X}" +
-                $"\r\nCreatedOn: {CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
-                $"\r\nContentModifiedOn: {ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
-                $"\r\nRecordModifiedOn: {RecordModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
-                $"\r\nLastAccessedOn: {LastAccessedOn?.ToString(MftFile.DateTimeFormat)}");
+                $"Flags: {Flags.ToString()}, Max Version: 0x{MaxVersion:X}, Version #: 0x{VersionNumber:X}, Class Id: 0x{ClassId:X} " +
+                $"Owner Id: 0x{OwnerId:X}, Security Id: 0x{SecurityId:X}, Quota Charged: 0x{QuotaCharged:X} " +
+                $"\r\nUpdate Sequence #: 0x{UpdateSequenceNumber:X}" +
+                $"\r\n\r\nCreated On:\t\t{CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
+                $"\r\nContent Modified On:\t{ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
+                $"\r\nRecord Modified On:\t{RecordModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
+                $"\r\nLast Accessed On:\t{LastAccessedOn?.ToString(MftFile.DateTimeFormat)}");
 
             return sb.ToString();
         }

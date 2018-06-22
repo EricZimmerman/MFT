@@ -108,17 +108,17 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** INDEX ROOT ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
 
             sb.AppendLine(
-                $"IndexedAttributeType: {IndexedAttributeType} EntrySize: 0x{EntrySize:X} NumberClusterBlocks: 0x{NumberClusterBlocks:X} CollationType: {CollationType} Index entries count: 0x{IndexEntries.Count:X} MftRecord: {MftRecord}");
+                $"Indexed Attribute Type: {IndexedAttributeType} Entry Size: 0x{EntrySize:X} Number Cluster Blocks: 0x{NumberClusterBlocks:X} Collation Type: {CollationType} Index entries count: 0x{IndexEntries.Count:X} Mft Record: {MftRecord}");
 
             sb.AppendLine();
-            sb.AppendLine("FileInfoRecords Entries");
+            sb.AppendLine("FileInfo Records Entries");
 
             foreach (var ie in IndexEntries)
             {

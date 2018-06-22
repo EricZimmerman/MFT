@@ -24,15 +24,15 @@ namespace MFT.Attributes
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("**** " + GetType().Name.ToUpperInvariant() + " ****");
+            sb.AppendLine("**** EXTENDED ATTRIBUTE INFORMATION ****");
 
             sb.AppendLine(base.ToString());
 
             sb.AppendLine();
-            sb.AppendLine("ExtendedAttributeInformation");
+            sb.AppendLine("Extended Attribute Information");
 
             sb.AppendLine(
-                $"EaSize: {EaSize} NumberOfExtendedAttrWithNeedEaSet: {NumberOfExtendedAttrWithNeedEaSet} SizeOfEaData: {SizeOfEaData} ");
+                $"Ea Size: 0x{EaSize:X}, Number Of Extended Attrributes With Need Ea Set: 0x{NumberOfExtendedAttrWithNeedEaSet:X} Size Of Ea Data: 0x{SizeOfEaData:X} ");
 
             return sb.ToString();
         }
