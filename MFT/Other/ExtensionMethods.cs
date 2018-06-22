@@ -131,6 +131,11 @@ namespace MFT.Other
             {
                 var da = (Data) attribute;
 
+                if (da.IsResident == false && da.NonResidentData.StartingVirtualClusterNumber > 0)
+                {
+                    continue;
+                }
+
                 ulong size;
                 if (da.IsResident)
                 {

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using MFT.Attributes;
 using MFT.Other;
 using NLog;
@@ -70,12 +72,41 @@ namespace MFT
 
             _directoryNameMap = new Dictionary<string, DirectoryNameMapValue>();
 
+            ProcessExtensionBlocks();
+
             BuildDirectoryNameMap(FileRecords.Where(t => t.Value.IsDirectory()));
             BuildDirectoryNameMap(FreeFileRecords.Where(t => t.Value.IsDirectory()));
         }
 
+        private void ProcessExtensionBlocks()
+        {
+                foreach (var fileRecord in ExtensionFileRecords)
+                {
+                    FileRecord baseRecord=null;
+                    if (FileRecords.ContainsKey(fileRecord.Key))
+                    {
+                        baseRecord = FileRecords[fileRecord.Key];
+                    }
+                    else if (FreeFileRecords.ContainsKey(fileRecord.Key))
+                    {
+                        baseRecord = FreeFileRecords[fileRecord.Key];
+                    }
+
+                    if (baseRecord == null)
+                    {
+                        continue;
+                    }
+
+                    //pull in all related attributes from this record for processing later
+                    foreach (var fileRecordAttribute in fileRecord.Value)
+                    {
+                        baseRecord.Attributes.AddRange(fileRecordAttribute.Attributes);    
+                    }
+                }
+        }
+
         public Dictionary<string, FileRecord> FileRecords { get; }
-        public Dictionary<string, List<FileRecord>> ExtensionFileRecords { get; }
+        private Dictionary<string, List<FileRecord>> ExtensionFileRecords { get; }
         public Dictionary<string, FileRecord> FreeFileRecords { get; }
 
         public List<FileRecord> BadRecords { get; }
@@ -126,7 +157,7 @@ namespace MFT
                 if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
                     fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
                 {
-                    //will get this record via attributeList
+                    //will get this record via extensionRecord
                     continue;
                 }
 
@@ -134,62 +165,6 @@ namespace MFT
                 {
                     _logger.Debug($"Skipping file record at offset 0x{fileRecord.Value.Offset:X} has no attributes");
                     continue;
-                }
-
-                //look for attribute list, pull out non-self referencing attributes
-                var attrList =
-                    (AttributeList) fileRecord.Value.Attributes.SingleOrDefault(t =>
-                        t.AttributeType == AttributeType.AttributeList);
-
-                if (attrList != null)
-                {
-                    if (attrList.IsResident)
-                    {
-                        foreach (var attrListAttributeInformation in attrList.AttributeInformations)
-                        {
-                            if (attrListAttributeInformation.EntryInfo.MftEntryNumber != fileRecord.Value.EntryNumber &&
-                                attrListAttributeInformation.Name == null) // != fileRecord.Value.SequenceNumber
-                            {
-                                _logger.Trace(
-                                    $"Entry: 0x{fileRecord.Value.EntryNumber:X}, found attrListAttributeInformation item: {attrListAttributeInformation}");
-
-                                var attrEntryKey =
-                                    $"{attrListAttributeInformation.EntryInfo.MftEntryNumber:X8}-{attrListAttributeInformation.EntryInfo.MftSequenceNumber:X8}";
-
-                                if (FileRecords.ContainsKey(attrEntryKey) == false)
-                                {
-                                    _logger.Warn(
-                                        $"Cannot find FILE record with entry/seq #: 0x{attrEntryKey} from Attribute list. Deleted: {fileRecord.Value.IsDeleted()}");
-                                }
-                                else
-                                {
-                                    _logger.Debug(
-                                        $"Found extension record that match record's entry/seq number! Adding attributes");
-                                    var attrEntry = FileRecords[attrEntryKey];
-
-                                    //pull in all related attributes from this record for processing later
-                                    fileRecord.Value.Attributes.AddRange(attrEntry.Attributes);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        _logger.Debug(
-                            $"Found non-resident attributelist. Checking for extension records that match record's entry/seq number");
-                        //attribute list is non-resident, so we do not have a list to follow. check _extensionFileRecords for any extension records for the current key
-                        if (ExtensionFileRecords.ContainsKey(fileRecord.Key))
-                        {
-                            _logger.Debug(
-                                $"Found extension records that match record's entry/seq number! Adding attributes");
-                            //we have at least 1!
-                            foreach (var record in ExtensionFileRecords[fileRecord.Key])
-                            {
-                                //pull in all related attributes from this record for processing later
-                                fileRecord.Value.Attributes.AddRange(record.Attributes);
-                            }
-                        }
-                    }
                 }
 
                 var fileNameRecords = fileRecord.Value.Attributes.Where(t => t.AttributeType == AttributeType.FileName)
