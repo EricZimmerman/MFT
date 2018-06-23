@@ -22,8 +22,12 @@ namespace MFT.Attributes
 
             sb.AppendLine(base.ToString());
 
+            var asAscii = Encoding.GetEncoding(1252).GetString(Content);
+            var asUnicode = Encoding.Unicode.GetString(Content);
+           
+
             sb.AppendLine();
-            sb.AppendLine($"Extended Attribute: {BitConverter.ToString(Content)}");
+            sb.AppendLine($"Extended Attribute:: {BitConverter.ToString(Content)}\r\n\r\nASCII: {asAscii}\r\nUnicode: {asUnicode}");
 
             return sb.ToString();
         }
