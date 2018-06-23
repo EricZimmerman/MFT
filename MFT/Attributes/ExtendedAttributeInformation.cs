@@ -32,7 +32,7 @@ namespace MFT.Attributes
             sb.AppendLine("Extended Attribute Information");
 
             sb.AppendLine(
-                $"Ea Size: 0x{EaSize:X}, Number Of Extended Attrributes With Need Ea Set: 0x{NumberOfExtendedAttrWithNeedEaSet:X} Size Of Ea Data: 0x{SizeOfEaData:X} ");
+                $"Ea Size: 0x{EaSize:X}, Number Of Extended Attributes With Need Ea Set: 0x{NumberOfExtendedAttrWithNeedEaSet:X} Size Of Ea Data: 0x{SizeOfEaData:X} ");
 
             return sb.ToString();
         }

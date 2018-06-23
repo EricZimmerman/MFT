@@ -9,6 +9,7 @@ namespace MFT.Attributes
         {
             ReservedZero,
             ReservedOne,
+            ReservedTwo,
             DriverExtender,
             HierarchicalStorageManager2,
             SISFilterDriver,
@@ -17,7 +18,29 @@ namespace MFT.Attributes
             DistributedFileSystemR,
             MountPoint,
             SymbolicLink,
-            HierarchicalStorageManager
+            Wim,
+            Csv,
+            HierarchicalStorageManager,
+            DeDupe,
+            Nfs,
+            FilePlaceHolder,
+            Wof,
+            Wci,
+            GlobalReparse,
+            AppExeCLink,
+            Hfs,
+            Unhandled,
+            OneDrive,
+            Cloud,
+       CloudRoot,
+            CloudOnDemand,
+            CloudRootOnDemand,
+            Gvfs,
+            IisCache,
+            LxSymLink,
+            WciTombstone,
+            GvfsTombstone,
+            AppXStrim
         }
 
         public ReparsePoint(byte[] rawBytes) : base(rawBytes)
@@ -36,6 +59,9 @@ namespace MFT.Attributes
                 case 0x00000001:
                     Tag = ReparsePointTag.ReservedOne;
                     break;
+                case 0x00000002:
+                    Tag = ReparsePointTag.ReservedTwo;
+                    break;
                 case 0x80000005:
                     Tag = ReparsePointTag.DriverExtender;
                     break;
@@ -44,6 +70,12 @@ namespace MFT.Attributes
                     break;
                 case 0x80000007:
                     Tag = ReparsePointTag.SISFilterDriver;
+                    break;
+                case 0x80000008:
+                    Tag = ReparsePointTag.Wim;
+                    break;
+                case 0x80000009:
+                    Tag = ReparsePointTag.Csv;
                     break;
                 case 0x8000000a:
                     Tag = ReparsePointTag.DistributedFileSystem;
@@ -62,6 +94,73 @@ namespace MFT.Attributes
                     break;
                 case 0xc0000004:
                     Tag = ReparsePointTag.HierarchicalStorageManager;
+                    break;
+                case 0x80000013:
+                    Tag = ReparsePointTag.DeDupe;
+                    break;
+                case 0x80000014:
+                    Tag = ReparsePointTag.Nfs;
+                    break;
+                case 0x80000015:
+                    Tag = ReparsePointTag.FilePlaceHolder;
+                    break;
+
+                case 0x80000017:
+                    Tag = ReparsePointTag.Wof;
+                    break;
+                case 0x80000018:
+                    Tag = ReparsePointTag.Wci;
+                    break;
+                case 0x80000019:
+                    Tag = ReparsePointTag.GlobalReparse;
+                    break;
+                case 0x8000001B:
+                    Tag = ReparsePointTag.AppExeCLink;
+                    break;
+                case 0x8000001E:
+                    Tag = ReparsePointTag.Hfs;
+                    break;
+                case 0x80000020:
+                    Tag = ReparsePointTag.Unhandled;
+                    break;
+                case 0x80000021:
+                    Tag = ReparsePointTag.OneDrive;
+                    break;
+                case 0x9000001A:
+                    Tag = ReparsePointTag.Cloud;
+                    break;
+                case 0x9000101A:
+                    Tag = ReparsePointTag.CloudRoot;
+                    break;
+                case 0x9000201A:
+                    Tag = ReparsePointTag.CloudOnDemand;
+                    break;
+
+                case 0x9000301A:
+                    Tag = ReparsePointTag.CloudRootOnDemand;
+                    break;
+                case 0x9000001C:
+                    Tag = ReparsePointTag.Gvfs;
+                    break;
+                case 0xA0000010:
+                    Tag = ReparsePointTag.IisCache;
+                    break;
+                case 0xA0000019:
+                    Tag = ReparsePointTag.GlobalReparse;
+                    break;
+                case 0xA000001D:
+                    Tag = ReparsePointTag.LxSymLink;
+                    break;
+                case 0xA000001F:
+                    Tag = ReparsePointTag.WciTombstone;
+                    break;
+
+                case 0xA0000022:
+                    Tag = ReparsePointTag.GvfsTombstone;
+                    break;
+
+                case 0xC0000014:
+                    Tag = ReparsePointTag.AppXStrim;
                     break;
             }
 
