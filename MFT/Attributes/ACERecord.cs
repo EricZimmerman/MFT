@@ -136,7 +136,7 @@ namespace MFT.Attributes
 
             sb.AppendLine($"ACE Type: {ACEType}");
 
-            sb.AppendLine($"ACE Flags: {ACEFlags}");
+            sb.AppendLine($"ACE Flags: {ACEFlags.ToString().Replace(", ","|")}");
 
             sb.AppendLine($"Mask: {Mask}");
 

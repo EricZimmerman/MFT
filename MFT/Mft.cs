@@ -34,7 +34,7 @@ namespace MFT
 
                 var key = f.GetKey();
 
-                _logger.Trace($"Offset: 0x{f.Offset:X} flags: {f.EntryFlags} key: {key}");
+                _logger.Trace($"Offset: 0x{f.Offset:X} flags: {f.EntryFlags.ToString().Replace(", ","|")} key: {key}");
 
                 if (f.IsBad)
                 {
