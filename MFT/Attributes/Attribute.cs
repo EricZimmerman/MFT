@@ -26,6 +26,14 @@ namespace MFT.Attributes
         UserDefinedAttribute = 0x1000
     }
 
+    [Flags]
+    public enum AttributeDataFlag
+    {
+        Compressed = 0x0001,
+        Encrypted = 0x4000,
+        Sparse = 0x8000
+    }
+
     public abstract class Attribute
     {
         protected Attribute(byte[] rawBytes)
@@ -39,6 +47,8 @@ namespace MFT.Attributes
 
             NameSize = rawBytes[0x09];
             NameOffset = BitConverter.ToInt16(rawBytes, 0xA);
+
+            AttributeDataFlag = (AttributeDataFlag) BitConverter.ToInt16(rawBytes, 0xC);
 
             AttributeContentLength = BitConverter.ToInt32(rawBytes, 0x10);
             ContentOffset = BitConverter.ToInt16(rawBytes, 0x14);
@@ -56,6 +66,8 @@ namespace MFT.Attributes
         public int NameSize { get; }
         public int NameOffset { get; }
 
+        public AttributeDataFlag AttributeDataFlag { get; }
+
         public string Name { get; }
         public int AttributeNumber { get; }
 
@@ -72,8 +84,15 @@ namespace MFT.Attributes
                 name = $", Name: {Name}";
             }
 
+            var flags = string.Empty;
+
+            if (AttributeDataFlag > 0)
+            {
+                flags = $" Attribute flags: {AttributeDataFlag.ToString().Replace(", ", "|")},";
+            }
+
             return
-                $"Type: {AttributeType}, Attribute #: 0x{AttributeNumber:X}, Size: 0x{AttributeSize:X}, Content size: 0x{AttributeContentLength:X}, Name size: 0x{NameSize:X}{name}, Content offset: 0x{ContentOffset:X}, Resident: {IsResident}";
+                $"Type: {AttributeType}, Attribute #: 0x{AttributeNumber:X},{flags} Size: 0x{AttributeSize:X}, Content size: 0x{AttributeContentLength:X}, Name size: 0x{NameSize:X}{name}, Content offset: 0x{ContentOffset:X}, Resident: {IsResident}";
         }
     }
 }
