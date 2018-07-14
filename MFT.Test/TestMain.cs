@@ -19,7 +19,7 @@ namespace MFT.Test
         public static string nromanoff = @"D:\SynologyDrive\MFTs\nromanoff\$MFT";
         public static string nfury = @"D:\SynologyDrive\MFTs\nfury\$MFT";
         public static string CAPUANO = @"D:\SynologyDrive\MFTs\$MFT_FROM_CAPUANO";
-        public static string Vanko = @"D:\SynologyDrive\MFTs\vanko\vanko_MFT";
+        public static string Vanko = @"D:\Egnyte\Private\ezimmerman\MFTs\vanko\$MFT";
         public static string test = @"D:\SynologyDrive\MFTs\20180615_MFTECmd_Bad_MFT_AMJH";
 
 
