@@ -66,18 +66,12 @@ namespace MFT
             FixupOk = true;
 
             //fixup verification
-            var counter = 0;
+            var counter = 512;
             foreach (var bytese in FixupData.FixupActual)
             {
-                //build the offset to where we need to check
-                var fixupOffset = counter * 510 + 512;
-
-                if (counter == 0)
-                {
-                    //the first check needs a slight adjustment, but the rest work ok!
-                    fixupOffset = fixupOffset - 2;
-                }
-
+                //adjust the offset to where we need to check
+                var fixupOffset = counter - 2;
+                
                 var expected = BitConverter.ToInt16(rawBytes, fixupOffset);
                 if (expected != FixupData.FixupExpected && EntryFlags != 0x0)
                 {
@@ -89,7 +83,7 @@ namespace MFT
                 //replace fixup expected with actual bytes. bytese has actual replacement values in it.
                 Buffer.BlockCopy(bytese, 0, rawBytes, fixupOffset, 2);
 
-                counter += 1;
+                counter += 512;
             }
 
             LogSequenceNumber = BitConverter.ToInt64(rawBytes, 0x8);

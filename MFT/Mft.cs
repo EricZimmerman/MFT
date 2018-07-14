@@ -12,7 +12,7 @@ namespace MFT
         private readonly Dictionary<string, DirectoryNameMapValue> _directoryNameMap;
         private readonly Logger _logger = LogManager.GetLogger("MFT");
 
-        public Mft(byte[] rawbytes)
+        public Mft(byte[] rawBytes)
         {
             FileRecords = new Dictionary<string, FileRecord>();
             FreeFileRecords = new Dictionary<string, FileRecord>();
@@ -20,15 +20,21 @@ namespace MFT
             BadRecords = new List<FileRecord>();
             UninitializedRecords = new List<FileRecord>();
 
-            const int blockSize = 1024;
+            var sig = BitConverter.ToInt32(rawBytes, 0);
+            if (sig != 0x454c4946) //Does not match FILE
+            {
+                throw new Exception("Invalid header! Expected 'FILE' Signature.");
+            }
+            
+            var blockSize = BitConverter.ToInt32(rawBytes, 0x1c);
 
             var fileBytes = new byte[blockSize];
 
             var index = 0;
 
-            while (index < rawbytes.Length)
+            while (index < rawBytes.Length)
             {
-                Buffer.BlockCopy(rawbytes, index, fileBytes, 0, blockSize);
+                Buffer.BlockCopy(rawBytes, index, fileBytes, 0, blockSize);
 
                 var f = new FileRecord(fileBytes, index);
 
