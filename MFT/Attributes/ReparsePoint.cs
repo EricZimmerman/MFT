@@ -179,20 +179,25 @@ namespace MFT.Attributes
                 return;
             }
 
-            if (Tag == ReparsePointTag.SymbolicLink)
-            {
-                baseOffset += 2;
-            }
 
             if (subNameSize > 0)
             {
-                SubstituteName = Encoding.Unicode.GetString(content, baseOffset + subNameOffset, subNameSize);
+                if (subNameOffset == 0)
+                {
+                    subNameOffset = 0x10;
+                }
+                SubstituteName = Encoding.Unicode.GetString(content, subNameOffset, subNameSize);
             }
 
             if (printNameSize > 0)
             {
-                PrintName = Encoding.Unicode.GetString(content, baseOffset + printNameOffset, printNameSize);
+                if (printNameOffset == 0)
+                {
+                    printNameOffset = (short) (subNameOffset + subNameSize);
+                }
+                PrintName = Encoding.Unicode.GetString(content, printNameOffset, printNameSize);
             }
+            
         }
 
         public string SubstituteName { get; }

@@ -22,6 +22,7 @@ namespace MFT.Test
         public static string Vanko = @"D:\Egnyte\Private\ezimmerman\MFTs\vanko\$MFT";
         public static string test = @"D:\SynologyDrive\MFTs\20180615_MFTECmd_Bad_MFT_AMJH";
         public static string test4k = @"D:\Egnyte\Private\ezimmerman\MFTs\mft_4k_mftf.dat";
+        public static string oneOff = @"C:\Users\eric\Desktop\$MFT_AC00h_57Fh";
 
 
         [OneTimeSetUp]
@@ -51,7 +52,7 @@ namespace MFT.Test
         {
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(test4k);
+            var m2 = MftFile.Load(oneOff );
 
             var logger = LogManager.GetCurrentClassLogger();
 
