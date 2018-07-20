@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using MFT.Attributes;
 using MFT.Other;
@@ -23,7 +24,7 @@ namespace MFT.Test
         public static string test = @"D:\SynologyDrive\MFTs\20180615_MFTECmd_Bad_MFT_AMJH";
         public static string test4k = @"D:\Egnyte\Private\ezimmerman\MFTs\mft_4k_mftf.dat";
         public static string oneOff = @"D:\Egnyte\Private\ezimmerman\MFTs\MFT_SymLink";
-        public static string oneOff2 = @"D:\Temp\Win10_$MFT";
+        public static string oneOff2 = @"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT";
 
 
         [OneTimeSetUp]
@@ -51,6 +52,11 @@ namespace MFT.Test
         [Test]
         public void Something()
         {
+
+//            var foo = new MFT.FileRecord(File.ReadAllBytes(@"D:\Temp\ProblemFRS1"),1);
+//            var foo1 = new MFT.FileRecord(File.ReadAllBytes(@"D:\Temp\ProblemFRS2"),1);
+//            
+
             var start = DateTimeOffset.Now;
 
             var m2 = MftFile.Load(xwf );

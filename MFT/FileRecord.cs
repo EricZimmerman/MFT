@@ -198,8 +198,18 @@ namespace MFT
                         break;
 
                     case AttributeType.ReparsePoint:
-                        var rp = new ReparsePoint(rawAttr);
-                        Attributes.Add(rp);
+                        try
+                        {
+                            var rp = new ReparsePoint(rawAttr);
+                            Attributes.Add(rp);
+                        }
+                        catch (Exception e)
+                        {
+                            var l = LogManager.GetLogger("ReparsePoint");
+
+                            l.Error($"There was an error parsing a ReparsePoint in FILE record at offset 0x{Offset:X}. Please extract via --dd and --do and send to saericzimmerman@gmail.com");
+                        }
+                        
                         break;
 
                     case AttributeType.AttributeList:

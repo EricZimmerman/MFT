@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using NLog;
 
 namespace MFT.Attributes
 {
@@ -180,15 +181,14 @@ namespace MFT.Attributes
                 return;
             }
 
-
-            
+           
             if (subNameSize > 0)
             {
                 if (subNameOffset == 0)
                 {
                     subNameOffset = 0x10;
                 }
-                else if (subNameOffset == 0x1c)
+                else 
                 {
                     subNameOffset = 0x14;
                 }
@@ -209,8 +209,10 @@ namespace MFT.Attributes
              
                 PrintName = Encoding.Unicode.GetString(content, printNameOffset, printNameSize);
             }
+          
+            
 
-        
+      
             
         }
 
