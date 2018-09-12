@@ -25,6 +25,7 @@ namespace MFT.Test
         public static string test4k = @"D:\Egnyte\Private\ezimmerman\MFTs\mft_4k_mftf.dat";
         public static string oneOff = @"D:\Egnyte\Private\ezimmerman\MFTs\MFT_SymLink";
         public static string oneOff2 = @"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT";
+        public static string oneOff4 = @"C:\Temp\MFT";
 
 
         [OneTimeSetUp]
@@ -59,7 +60,7 @@ namespace MFT.Test
 
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(xwf );
+            var m2 = MftFile.Load(oneOff4 );
 
             var logger = LogManager.GetCurrentClassLogger();
 
