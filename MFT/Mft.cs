@@ -36,6 +36,8 @@ namespace MFT
             {
                 Buffer.BlockCopy(rawBytes, index, fileBytes, 0, blockSize);
 
+                CurrentOffset = index;
+
                 var f = new FileRecord(fileBytes, index);
 
                 var key = f.GetKey();
@@ -76,6 +78,8 @@ namespace MFT
 
             _directoryNameMap = new Dictionary<string, DirectoryNameMapValue>();
 
+            CurrentOffset = index;
+
             ProcessExtensionBlocks();
 
             BuildDirectoryNameMap(FileRecords.Where(t => t.Value.IsDirectory()));
@@ -88,6 +92,12 @@ namespace MFT
 
         public List<FileRecord> BadRecords { get; }
         public List<FileRecord> UninitializedRecords { get; }
+
+        /// <summary>
+        /// When the MFT is being processed, this is set to the offset where the FILE record being processed starts.
+        /// <remarks>Used to include the offset where errors happen in parsing for log messages</remarks>
+        /// </summary>
+        public static int CurrentOffset {get; private set; }
 
         private void ProcessExtensionBlocks()
         {

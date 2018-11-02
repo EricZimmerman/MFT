@@ -37,17 +37,13 @@ namespace MFT.Attributes
             var createdRaw = BitConverter.ToInt64(rawBytes, 0x18);
             if (createdRaw > 0)
             {
-              
                 CreatedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x18)).ToUniversalTime();
-          
             }
 
             var contentModRaw = BitConverter.ToInt64(rawBytes, 0x20);
             if (contentModRaw > 0)
             {
-             
                 ContentModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x20)).ToUniversalTime();
-           
             }
 
             var recordModRaw = BitConverter.ToInt64(rawBytes, 0x28);
@@ -60,16 +56,14 @@ namespace MFT.Attributes
                 catch (Exception e)
                 {
                     var l = LogManager.GetLogger("SI");
-                    l.Warn($"Error parsing SI Record Modified timestamp: {e.Message}");
+                    l.Debug($"Error parsing SI Record Modified timestamp in FILE record at offset 0x{Mft.CurrentOffset:X}: {e.Message}");
                 }
             }
 
             var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x30);
             if (lastAccessRaw > 0)
             {
-             
                 LastAccessedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x30)).ToUniversalTime();
-     
             }
 
             Flags = (Flag) BitConverter.ToInt32(rawBytes, 0x38);
