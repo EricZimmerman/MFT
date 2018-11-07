@@ -54,7 +54,16 @@ namespace MFT
                 }
                 else if (f.IsDeleted())
                 {
-                    FreeFileRecords.Add(key, f);
+                    if (FreeFileRecords.ContainsKey(key))
+                    {
+                        _logger.Warn($"At offset 0x{f.Offset:X}, a free FILE record with key '{key}' already exists! You may want to review this manually. Skipping...");
+                    }
+                    else
+                    {
+                        FreeFileRecords.Add(key, f);
+                    }
+
+                    
                 }
                 else
                 {
