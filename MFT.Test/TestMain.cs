@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Boot;
 using MFT.Attributes;
 using MFT.Other;
 using NLog;
@@ -25,7 +26,7 @@ namespace MFT.Test
         public static string test4k = @"D:\Egnyte\Private\ezimmerman\MFTs\mft_4k_mftf.dat";
         public static string oneOff = @"D:\Egnyte\Private\ezimmerman\MFTs\MFT_SymLink";
         public static string oneOff2 = @"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT";
-        public static string oneOff4 = @"C:\Users\eric\Desktop\$MFT\$MFT";
+        //public static string oneOff4 = @"C:\Users\eric\Desktop\$MFT\$MFT";
 
 
         [OneTimeSetUp]
@@ -50,6 +51,42 @@ namespace MFT.Test
             LogManager.Configuration = config;
         }
 
+
+        [Test]
+        public void Boot()
+        {
+            var bb = BootFile.Load(@"..\..\TestFiles\Boot\$Boot");
+
+            Debug.WriteLine($"$Boot.BootEntryPoint: {bb.BootEntryPoint}");
+            Debug.WriteLine($"$Boot.FileSystemSignature: {bb.FileSystemSignature}");
+            
+            Debug.WriteLine($"$Boot.BytesPerSector: {bb.BytesPerSector}");
+            Debug.WriteLine($"$Boot.SectorsPerCluster: {bb.SectorsPerCluster}");
+            Debug.WriteLine($"$Boot.ReservedSectors: {bb.ReservedSectors}");
+            Debug.WriteLine($"$Boot.MediaDescriptor: {bb.MediaDescriptor:X} ({bb.DecodeMediaDescriptor()})");
+
+            Debug.WriteLine($"$Boot.SectorsPerTrack: {bb.SectorsPerTrack}");
+            Debug.WriteLine($"$Boot.NumberOfHeads: {bb.NumberOfHeads}");
+            Debug.WriteLine($"$Boot.NumberOfHiddenSectors: {bb.NumberOfHiddenSectors}");
+
+            Debug.WriteLine($"$Boot.TotalSectors: {bb.TotalSectors}");
+            
+            Debug.WriteLine($"$Boot.MftClusterBlockNumber: {bb.MftClusterBlockNumber}");
+            Debug.WriteLine($"$Boot.MirrorMftClusterBlockNumber: {bb.MirrorMftClusterBlockNumber}");
+            
+            Debug.WriteLine($"$Boot.MftEntrySize: {bb.MftEntrySize}");
+            Debug.WriteLine($"$Boot.IndexEntrySize: {bb.IndexEntrySize}");
+            
+            Debug.WriteLine($"$Boot.VolumeSerialNumber 64: {bb.GetVolumeSerialNumber()}");
+            Debug.WriteLine($"$Boot.VolumeSerialNumber 32: {bb.GetVolumeSerialNumber(true)}");
+            Debug.WriteLine($"$Boot.VolumeSerialNumber 32 rev: {bb.GetVolumeSerialNumber(true,true)}");
+            
+            
+            Debug.WriteLine($"$Boot.SectorSignature: {bb.GetSectorSignature()}");
+            
+
+        }
+
         [Test]
         public void Something()
         {
@@ -60,7 +97,7 @@ namespace MFT.Test
 
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(oneOff4 );
+            var m2 = MftFile.Load(oneOff2 );
 
             var logger = LogManager.GetCurrentClassLogger();
 

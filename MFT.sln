@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.106
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MFT", "MFT\MFT.csproj", "{DDA9E417-B536-4730-B578-AA45F8B130C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MFT", "MFT\MFT.csproj", "{DDA9E417-B536-4730-B578-AA45F8B130C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MFT.Test", "MFT.Test\MFT.Test.csproj", "{6DDDB050-A947-4B94-8E1C-70326008C65B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Boot", "Boot\Boot.csproj", "{BA9C6030-EC7D-4C1D-A6BC-0D86824E1111}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,15 @@ Global
 		{6DDDB050-A947-4B94-8E1C-70326008C65B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DDDB050-A947-4B94-8E1C-70326008C65B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DDDB050-A947-4B94-8E1C-70326008C65B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA9C6030-EC7D-4C1D-A6BC-0D86824E1111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA9C6030-EC7D-4C1D-A6BC-0D86824E1111}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA9C6030-EC7D-4C1D-A6BC-0D86824E1111}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA9C6030-EC7D-4C1D-A6BC-0D86824E1111}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {84153A83-ACF2-4023-B3AC-6E55C42DB388}
 	EndGlobalSection
 EndGlobal

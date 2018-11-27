@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="TestFiles\Boot\%24Boot" />
     <None Include="TestFiles\NIST\DFR-16\%24MFT" />
     <None Include="TestFiles\tdungan\%24MFT" />
     <None Include="TestFiles\xw\%24MFT" />
@@ -62,10 +63,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentAssertions">
-      <Version>5.4.2</Version>
+      <Version>5.5.3</Version>
     </PackageReference>
     <PackageReference Include="NLog">
-      <Version>4.5.10</Version>
+      <Version>4.5.11</Version>
     </PackageReference>
     <PackageReference Include="NUnit">
       <Version>3.11.0</Version>
@@ -75,6 +76,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Boot\Boot.csproj">
+      <Project>{ba9c6030-ec7d-4c1d-a6bc-0d86824e1111}</Project>
+      <Name>Boot</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MFT\MFT.csproj">
       <Project>{dda9e417-b536-4730-b578-aa45f8b130c7}</Project>
       <Name>MFT</Name>
