@@ -3,12 +3,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Boot;
+using FluentAssertions;
 using MFT.Attributes;
 using MFT.Other;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NUnit.Framework;
+using Usn;
 
 namespace MFT.Test
 {
@@ -87,6 +89,29 @@ namespace MFT.Test
 
         }
 
+        
+        [Test]
+        public void Usn()
+        { 
+
+            var usn1 = UsnFile.Load(@"..\..\TestFiles\Usn\record.usn");
+            usn1.UsnEntries.Count.Should().Be(1);
+            //Debug.WriteLine(usn1.UsnEntries.First().ToString());
+
+            var usn2 = UsnFile.Load(@"D:\Temp\ntfs\testUsn.bin");
+            usn2.UsnEntries.Count.Should().Be(41);
+            
+            foreach (var usn2UsnEntry in usn2.UsnEntries)
+            {
+                Debug.WriteLine(usn2UsnEntry.ToString());
+            }
+
+
+            var usn3 = UsnFile.Load(@"C:\Temp\tout\C\$Extend\$J");
+            usn3.UsnEntries.Count.Should().Be(41);
+
+        }
+
         [Test]
         public void Something()
         {
@@ -97,7 +122,7 @@ namespace MFT.Test
 
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(oneOff2 );
+            var m2 = MftFile.Load(xwf );
 
             var logger = LogManager.GetCurrentClassLogger();
 

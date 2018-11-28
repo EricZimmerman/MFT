@@ -1,19 +1,23 @@
 ﻿using System;
 using System.Text;
+using NLog;
 
 namespace Boot
 {
     public class Boot
     {
+        private readonly Logger _logger = LogManager.GetLogger("Boot");
+
         public Boot(byte[] rawBytes)
         {
+
             const int expectedSectorSig = 0xaa55;
 
             SectorSignature = BitConverter.ToUInt16(rawBytes, 510);
 
             if (SectorSignature != expectedSectorSig)
             {
-                throw new Exception("Expected signature (0x55 0xAA) not found at offset 0x1FE");
+                _logger.Warn($"Expected signature (0x55 0xAA) not found at offset 0x1FE. Value found: {GetSectorSignature()}");
             }
 
             BootEntryPoint = $"0x{rawBytes[0]:X2} 0x{rawBytes[1]:X2} 0x{rawBytes[2]:X2}";

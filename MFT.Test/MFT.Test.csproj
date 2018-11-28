@@ -56,6 +56,7 @@
     <None Include="TestFiles\Boot\%24Boot" />
     <None Include="TestFiles\NIST\DFR-16\%24MFT" />
     <None Include="TestFiles\tdungan\%24MFT" />
+    <None Include="TestFiles\Usn\record.usn" />
     <None Include="TestFiles\xw\%24MFT" />
   </ItemGroup>
   <ItemGroup>
@@ -83,6 +84,10 @@
     <ProjectReference Include="..\MFT\MFT.csproj">
       <Project>{dda9e417-b536-4730-b578-aa45f8b130c7}</Project>
       <Name>MFT</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Usn\Usn.csproj">
+      <Project>{23d6fa96-d020-4cb6-8ed8-82d3f49317a2}</Project>
+      <Name>Usn</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
