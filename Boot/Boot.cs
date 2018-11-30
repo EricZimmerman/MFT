@@ -10,7 +10,6 @@ namespace Boot
 
         public Boot(byte[] rawBytes)
         {
-
             const int expectedSectorSig = 0xaa55;
 
             SectorSignature = BitConverter.ToUInt16(rawBytes, 510);

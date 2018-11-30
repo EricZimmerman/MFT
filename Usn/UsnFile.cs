@@ -19,7 +19,7 @@ namespace Usn
             {
                 if (br.PeekChar() != 0)
                 {
-                    return new Usn(br.ReadBytes((int) br.BaseStream.Length));
+                    return new Usn(br.ReadBytes((int) br.BaseStream.Length),0);
                 }
 
                 //beginning is sparse, so we have to find the start of the data
@@ -85,7 +85,7 @@ namespace Usn
                 var ms = new MemoryStream();
                 ms.Write(br.ReadBytes((int) dataSize), 0, (int) dataSize);
 
-                return new Usn(ms.GetBuffer());
+                return new Usn(ms.GetBuffer(),startIndex);
             }
         }
 

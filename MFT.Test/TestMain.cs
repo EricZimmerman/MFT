@@ -10,6 +10,8 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NUnit.Framework;
+using SDS;
+using Secure;
 using Usn;
 
 namespace MFT.Test
@@ -53,6 +55,36 @@ namespace MFT.Test
             LogManager.Configuration = config;
         }
 
+        [Test]
+        public void Sds()
+        {
+            var ss = SdsFile.Load(@"D:\Temp\ntfs\$Secure_$SDS");
+            //ss..Count.Should().Be(41);
+            
+            
+
+        }
+
+        [Test]
+        public void Sii()
+        {
+            var ssi = SiiFile.Load(@"D:\Temp\ntfs\sds2\$Sii");
+            //ss..Count.Should().Be(41);
+            
+            
+
+        }
+
+        [Test]
+        public void Sdh()
+        {
+            var sdh = SdhFile.Load(@"D:\Temp\ntfs\sds2\$Sdh");
+            //ss..Count.Should().Be(41);
+            
+            
+
+        }
+
 
         [Test]
         public void Boot()
@@ -94,21 +126,28 @@ namespace MFT.Test
         public void Usn()
         { 
 
-            var usn1 = UsnFile.Load(@"..\..\TestFiles\Usn\record.usn");
-            usn1.UsnEntries.Count.Should().Be(1);
-            //Debug.WriteLine(usn1.UsnEntries.First().ToString());
+//            var usn1 = UsnFile.Load(@"..\..\TestFiles\Usn\record.usn");
+//            usn1.UsnEntries.Count.Should().Be(1);
+//            //Debug.WriteLine(usn1.UsnEntries.First().ToString());
+//
+//            var usn2 = UsnFile.Load(@"D:\Temp\ntfs\testUsn.bin");
+//            usn2.UsnEntries.Count.Should().Be(41);
+//            
+//            foreach (var usn2UsnEntry in usn2.UsnEntries)
+//            {
+//                Debug.WriteLine(usn2UsnEntry.ToString());
+//            }
 
-            var usn2 = UsnFile.Load(@"D:\Temp\ntfs\testUsn.bin");
-            usn2.UsnEntries.Count.Should().Be(41);
-            
-            foreach (var usn2UsnEntry in usn2.UsnEntries)
-            {
-                Debug.WriteLine(usn2UsnEntry.ToString());
-            }
+
+            var usn3 = UsnFile.Load(@"D:\Temp\ntfs\Troy\$J");
+
+//            foreach (var usn2UsnEntry in usn3.UsnEntries)
+//            {
+//                Debug.WriteLine(usn2UsnEntry.ToString());
+//            }
 
 
-            var usn3 = UsnFile.Load(@"C:\Temp\tout\C\$Extend\$J");
-            usn3.UsnEntries.Count.Should().Be(41);
+            usn3.UsnEntries.Count.Should().Be(328539);
 
         }
 

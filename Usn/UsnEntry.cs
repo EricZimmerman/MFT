@@ -136,8 +136,9 @@ namespace Usn
             ClientReplicationManagement = 0x00000008
         }
 
-        public UsnEntry(byte[] rawBytes)
+        public UsnEntry(byte[] rawBytes, long offset)
         {
+            OffsetToData = offset;
             Size = BitConverter.ToInt32(rawBytes, 0);
             MajorVersion = BitConverter.ToInt16(rawBytes, 4);
             MinorVersion = BitConverter.ToInt16(rawBytes, 6);
@@ -188,10 +189,12 @@ namespace Usn
 
         public string Name { get; }
 
+        public long OffsetToData { get;set; }
+
         public override string ToString()
         {
             return
-                $"Name: {Name}, Usn: {UpdateSequenceNumber}, File ref: {FileReference} parent ref: {ParentFileReference}, Timestamp: {UpdateTimestamp:yyyy/MM/dd HH:mm:ss.fffffff}, Reasons: {UpdateReasons}, File attr: {FileAttributes}";
+                $"Offset: 0x {OffsetToData:X} Name: {Name}, Usn: {UpdateSequenceNumber}, File ref: {FileReference} parent ref: {ParentFileReference}, Timestamp: {UpdateTimestamp:yyyy/MM/dd HH:mm:ss.fffffff}, Reasons: {UpdateReasons}, File attr: {FileAttributes}";
         }
 
         public static string GetDescriptionFromEnumValue(Enum value)

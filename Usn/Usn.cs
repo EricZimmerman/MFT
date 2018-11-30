@@ -8,7 +8,7 @@ namespace Usn
     {
         private readonly Logger _logger = LogManager.GetLogger("Usn");
 
-        public Usn(byte[] rawBytes)
+        public Usn(byte[] rawBytes, long startingOffset)
         {
             var index = 0;
 
@@ -20,13 +20,14 @@ namespace Usn
 
                 if (size == 0)
                 {
-                    break;
+                    index += 4;
+                    continue;
                 }
 
                 var buff = new byte[size];
                 Buffer.BlockCopy(rawBytes, index, buff, 0, size);
 
-                var ue = new UsnEntry(buff);
+                var ue = new UsnEntry(buff,startingOffset + index);
                 UsnEntries.Add(ue);
 
                 index += size;
