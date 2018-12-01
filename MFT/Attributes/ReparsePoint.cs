@@ -174,7 +174,7 @@ namespace MFT.Attributes
             SubstituteName = string.Empty;
             PrintName = string.Empty;
 
-            var baseOffset = 0x10;
+            //var baseOffset = 0x10;
 
             if (Tag != ReparsePointTag.SymbolicLink && Tag != ReparsePointTag.MountPoint)
             {

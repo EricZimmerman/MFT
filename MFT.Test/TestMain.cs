@@ -56,9 +56,20 @@ namespace MFT.Test
         }
 
         [Test]
-        public void Sds()
+        public void Sds_sds1_Secure_SDS()
         {
-            var ss = SdsFile.Load(@"D:\Temp\ntfs\$Secure_$SDS");
+            
+            var ss = SdsFile.Load(@"D:\Temp\ntfs\sds1\$Secure_$SDS");
+            //ss..Count.Should().Be(41);
+            
+            
+
+        }
+
+        [Test]
+        public void Sds1_ntfs_sds2_SDS()
+        {
+            var ss = SdsFile.Load(@"D:\Temp\ntfs\sds2\$SDS");
             //ss..Count.Should().Be(41);
             
             

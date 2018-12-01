@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AceRecord.cs" />
     <Compile Include="FixupData.cs" />
     <Compile Include="Sdh.cs" />
     <Compile Include="SdhFile.cs" />
@@ -49,6 +50,8 @@
     <Compile Include="SdsFile.cs" />
     <Compile Include="SiiFile.cs" />
     <Compile Include="Sii.cs" />
+    <Compile Include="SecurityDescriptor.cs" />
+    <Compile Include="XAclRecord.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NLog">

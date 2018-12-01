@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace SDS
 {
-  public static  class SdsFile
+    public static class SdsFile
     {
         public static Sds Load(string sdsFile)
         {
@@ -18,7 +13,7 @@ namespace SDS
 
             var bytes = File.ReadAllBytes(sdsFile);
 
-         
+
             return new Sds(bytes);
         }
     }

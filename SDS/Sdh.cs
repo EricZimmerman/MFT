@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NLog;
 
 namespace Secure
@@ -24,7 +20,6 @@ namespace Secure
                 {
                     throw new Exception("Invalid header! Expected 'INDX' Signature.");
                 }
-
             }
 
             index += 4;
@@ -37,6 +32,8 @@ namespace Secure
             index += 8;
             var virtualClusterNumber = BitConverter.ToInt64(rawBytes, index);
             index += 8;
+
+            var dataStartPosition = index;
 
             var indexValOffset = BitConverter.ToInt32(rawBytes, index);
             index += 4;
@@ -52,7 +49,7 @@ namespace Secure
             var fixupBuffer = new byte[fixupTotalLength];
             Buffer.BlockCopy(rawBytes, fixupOffset, fixupBuffer, 0, fixupTotalLength);
 
-            
+
             var fixupData = new FixupData(fixupBuffer);
 
             var fixupOk = true;
@@ -63,9 +60,9 @@ namespace Secure
             {
                 //adjust the offset to where we need to check
                 var fixupOffset1 = counter - 2;
-                
+
                 var expected = BitConverter.ToInt16(rawBytes, fixupOffset1);
-                if (expected != fixupData.FixupExpected )
+                if (expected != fixupData.FixupExpected)
                 {
                     fixupOk = false;
                     logger.Warn(
@@ -80,7 +77,7 @@ namespace Secure
 
             index += fixupTotalLength;
 
-            while (index % 8 !=0)
+            while (index % 8 != 0)
             {
                 index += 1;
             }
@@ -88,17 +85,17 @@ namespace Secure
 
             //figure out how to use indexAllocated ot at least indexnode size. do we need both? indexallocated + 0x18 is start of next index record
 
-            while (index<rawBytes.Length)
+            while (index < dataStartPosition + indexAllocatedSize)
             {
                 var startIndex = index;
 
-                
+
                 var offsetToData = BitConverter.ToInt16(rawBytes, index);
                 index += 2;
                 var dataSize = BitConverter.ToInt16(rawBytes, index);
                 index += 2;
 
-                index += 4;//padding
+                index += 4; //padding
 
                 var indexEntrySize = BitConverter.ToInt16(rawBytes, index);
                 index += 2;
@@ -114,11 +111,8 @@ namespace Secure
                 var hash = BitConverter.ToInt32(rawBytes, index);
                 index += 4;
 
-                Debug.WriteLine($"startIndex 0x {startIndex} ");
-
-
-                
-
+                Debug.WriteLine(
+                    $"startIndex 0x {startIndex:X} OffsetToData: 0x {offsetToData:X} dataSize: 0x {dataSize:X} ");
             }
         }
     }

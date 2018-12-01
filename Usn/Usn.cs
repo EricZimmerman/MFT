@@ -27,11 +27,14 @@ namespace Usn
                 var buff = new byte[size];
                 Buffer.BlockCopy(rawBytes, index, buff, 0, size);
 
+                _logger.Trace($"Processing UsnEntry at 0x{(startingOffset+index):X}");
                 var ue = new UsnEntry(buff,startingOffset + index);
                 UsnEntries.Add(ue);
 
                 index += size;
             }
+
+            _logger.Debug($"Found {UsnEntries.Count:N0} records");
         }
 
         public List<UsnEntry> UsnEntries { get; }

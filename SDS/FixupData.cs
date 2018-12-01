@@ -25,7 +25,7 @@ namespace Secure
         /// <summary>
         ///     the data expected at the end of each 512 byte chunk
         /// </summary>
-        public  short FixupExpected { get; }
+        public short FixupExpected { get; }
 
         /// <summary>
         ///     The actual bytes to be overlayed before processing a record, in order

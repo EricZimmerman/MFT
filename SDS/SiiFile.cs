@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace Secure
 {
     public static class SiiFile
-    { public static Sii Load(string ssiFile)
+    {
+        public static Sii Load(string ssiFile)
         {
             if (File.Exists(ssiFile) == false)
             {
@@ -16,9 +12,8 @@ namespace Secure
             }
 
             var bytes = File.ReadAllBytes(ssiFile);
-         
+
             return new Sii(bytes);
         }
-
     }
 }
