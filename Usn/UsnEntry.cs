@@ -189,7 +189,7 @@ namespace Usn
 
         public string Name { get; }
 
-        public long OffsetToData { get;set; }
+        public long OffsetToData { get; set; }
 
         public override string ToString()
         {

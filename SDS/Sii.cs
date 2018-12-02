@@ -7,6 +7,9 @@ namespace Secure
     {
         public Sii(byte[] rawBytes)
         {
+            //TODO finish? see Sdh for framework
+
+
             var sig = 0x58444E49;
 
             var index = 0x0;

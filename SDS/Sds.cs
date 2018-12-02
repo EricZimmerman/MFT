@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
 using Secure;
@@ -13,15 +14,10 @@ namespace SDS
 
             var logger = LogManager.GetLogger("SDS");
 
+            SdsEntries = new List<SdsEntry>();
+
             while (index <= rawBytes.Length)
             {
-                var startingOffset = index;
-
-                if (startingOffset == 0x20B4A0)
-                {
-                    Debug.WriteLine(1);
-                }
-
                 var hash = BitConverter.ToUInt32(rawBytes, index);
                 var id = BitConverter.ToInt32(rawBytes, index + 4);
                 var offset = BitConverter.ToInt64(rawBytes, index + 4 + 4);
@@ -41,15 +37,18 @@ namespace SDS
                 if (id > 0)
                 {
                     logger.Debug(
-                        $"Offset 0x {startingOffset:X} Hash: 0x {hash:X} id: {id} offset: 0x {offset:X} size 0x '{size:X}'");
+                        $"Offset 0x{offset:X} Hash: 0x{hash:X} id: {id}  size 0x{size:X}");
 
                     var dataSize = size - 0x14;
                     var buff = new byte[dataSize];
-                    Buffer.BlockCopy(rawBytes, startingOffset + 0x14, buff, 0, dataSize);
+                    Buffer.BlockCopy(rawBytes, (int) (offset + 0x14), buff, 0, dataSize);
 
                     var sk = new SecurityDescriptor(buff);
+                    logger.Trace(sk);
 
-                    //  Debug.WriteLine($"Offset 0x {startingOffset:X} {sk}");
+                    var sde = new SdsEntry(hash, id, offset, size, sk);
+
+                    SdsEntries.Add(sde);
                 }
 
 
@@ -62,5 +61,8 @@ namespace SDS
                 }
             }
         }
+
+        public List<SdsEntry> SdsEntries { get; }
+
     }
 }

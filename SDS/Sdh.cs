@@ -82,6 +82,7 @@ namespace Secure
                 index += 1;
             }
 
+            //TODO finish?
 
             //figure out how to use indexAllocated ot at least indexnode size. do we need both? indexallocated + 0x18 is start of next index record
 

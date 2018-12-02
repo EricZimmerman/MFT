@@ -60,7 +60,7 @@ namespace MFT.Test
         {
             
             var ss = SdsFile.Load(@"D:\Temp\ntfs\sds1\$Secure_$SDS");
-            //ss..Count.Should().Be(41);
+            ss.SdsEntries.Count.Should().Be(9978);
             
             
 
@@ -70,9 +70,12 @@ namespace MFT.Test
         public void Sds1_ntfs_sds2_SDS()
         {
             var ss = SdsFile.Load(@"D:\Temp\ntfs\sds2\$SDS");
-            //ss..Count.Should().Be(41);
-            
-            
+            ss.SdsEntries.Count.Should().Be(1391);
+//
+//            foreach (var ssSdsEntry in ss.SdsEntries)
+//            {
+//                Debug.WriteLine(ssSdsEntry.SecurityDescriptor);
+//            }
 
         }
 
@@ -150,15 +153,16 @@ namespace MFT.Test
 //            }
 
 
-            var usn3 = UsnFile.Load(@"D:\Temp\ntfs\Troy\$J");
-
+//            var usn3 = UsnFile.Load(@"D:\Temp\ntfs\Troy\$J");
+//usn3.UsnEntries.Count.Should().Be(328539);
 //            foreach (var usn2UsnEntry in usn3.UsnEntries)
 //            {
 //                Debug.WriteLine(usn2UsnEntry.ToString());
 //            }
 
-
-            usn3.UsnEntries.Count.Should().Be(328539);
+            var usn4 = UsnFile.Load(@"D:\Temp\ntfs\vssJ\vss1-usnjrnl");
+            usn4.UsnEntries.Count.Should().Be(38948);
+            
 
         }
 
