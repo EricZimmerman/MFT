@@ -25,10 +25,10 @@ namespace MFT.Attributes
                 return;
             }
 
-            SecurityInfo = new SKSecurityDescriptor(ResidentData.Data);
+            SecurityInfo = new SkSecurityDescriptor(ResidentData.Data);
         }
 
-        public SKSecurityDescriptor SecurityInfo { get; }
+        public SkSecurityDescriptor SecurityInfo { get; }
 
         public ResidentData ResidentData { get; }
 

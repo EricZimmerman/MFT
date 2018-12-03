@@ -10,7 +10,7 @@ namespace MFT.Attributes
     public class XAclRecord
     {
         // public enums...
-        public enum ACLTypeEnum
+        public enum AclTypeEnum
         {
             Security,
             Discretionary
@@ -20,11 +20,11 @@ namespace MFT.Attributes
         /// <summary>
         ///     Initializes a new instance of the <see cref="XAclRecord" /> class.
         /// </summary>
-        public XAclRecord(byte[] rawBytes, ACLTypeEnum aclTypetype)
+        public XAclRecord(byte[] rawBytes, AclTypeEnum aclTypetype)
         {
             RawBytes = rawBytes;
 
-            ACLType = aclTypetype;
+            AclType = aclTypetype;
         }
 
         // public properties...
@@ -79,7 +79,7 @@ namespace MFT.Attributes
 
         public ushort AclSize => BitConverter.ToUInt16(RawBytes, 0x2);
 
-        public ACLTypeEnum ACLType { get; }
+        public AclTypeEnum AclType { get; }
         public byte[] RawBytes { get; }
 
         public byte Sbz1 => RawBytes[1];
@@ -93,7 +93,7 @@ namespace MFT.Attributes
 
             sb.AppendLine($"ACL Revision: 0x{AclRevision:X}");
             sb.AppendLine($"ACL Size: 0x{AclSize:X}");
-            sb.AppendLine($"ACL Type: {ACLType}");
+            sb.AppendLine($"ACL Type: {AclType}");
             sb.AppendLine($"Sbz1: 0x{Sbz1:X}");
             sb.AppendLine($"Sbz2: 0x{Sbz2:X}");
 

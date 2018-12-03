@@ -18,18 +18,18 @@ namespace MFT.Test
     [TestFixture]
     public class TestMain
     {
-        public static string xwf = @"D:\Code\MFT\MFT.Test\TestFiles\xw\$MFT";
+        public static string Xwf = @"D:\Code\MFT\MFT.Test\TestFiles\xw\$MFT";
         public static string Mft4 = @"D:\Code\MFT\MFT.Test\TestFiles\NIST\DFR-16\$MFT";
-        public static string tdungan = @"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT";
-        public static string nromanoff = @"D:\SynologyDrive\MFTs\nromanoff\$MFT";
-        public static string nfury = @"D:\SynologyDrive\MFTs\nfury\$MFT";
-        public static string CAPUANO = @"D:\SynologyDrive\MFTs\$MFT_FROM_CAPUANO";
+        public static string Tdungan = @"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT";
+        public static string Nromanoff = @"D:\SynologyDrive\MFTs\nromanoff\$MFT";
+        public static string Nfury = @"D:\SynologyDrive\MFTs\nfury\$MFT";
+        public static string Capuano = @"D:\SynologyDrive\MFTs\$MFT_FROM_CAPUANO";
         public static string Vanko = @"D:\Egnyte\Private\ezimmerman\MFTs\vanko\$MFT";
-        public static string test = @"D:\SynologyDrive\MFTs\20180615_MFTECmd_Bad_MFT_AMJH";
-        public static string test4k = @"D:\Egnyte\Private\ezimmerman\MFTs\mft_4k_mftf.dat";
-        public static string oneOff = @"D:\Egnyte\Private\ezimmerman\MFTs\MFT_SymLink";
+        public static string Test = @"D:\SynologyDrive\MFTs\20180615_MFTECmd_Bad_MFT_AMJH";
+        public static string Test4K = @"D:\Egnyte\Private\ezimmerman\MFTs\mft_4k_mftf.dat";
+        public static string OneOff = @"D:\Egnyte\Private\ezimmerman\MFTs\MFT_SymLink";
 
-        public static string oneOff2 = @"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT";
+        public static string OneOff2 = @"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT";
         //public static string oneOff4 = @"C:\Users\eric\Desktop\$MFT\$MFT";
 
 
@@ -104,7 +104,7 @@ namespace MFT.Test
 
             foreach (var ssSdsEntry in ss.SdsEntries)
             {
-                Debug.WriteLine($"Offset: 0x{ssSdsEntry.FileOffset:X} {ssSdsEntry.SecurityDescriptor}");
+             //   Debug.WriteLine($"Offset: 0x{ssSdsEntry.FileOffset:X} {ssSdsEntry.SecurityDescriptor}");
             }
         }
 
@@ -136,7 +136,7 @@ namespace MFT.Test
 
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(xwf);
+            var m2 = MftFile.Load(Xwf);
 
             var logger = LogManager.GetCurrentClassLogger();
 

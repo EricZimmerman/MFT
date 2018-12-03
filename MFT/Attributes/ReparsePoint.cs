@@ -12,7 +12,7 @@ namespace MFT.Attributes
             ReservedTwo,
             DriverExtender,
             HierarchicalStorageManager2,
-            SISFilterDriver,
+            SisFilterDriver,
             DistributedFileSystem,
             FilterManagerTestHarness,
             DistributedFileSystemR,
@@ -69,7 +69,7 @@ namespace MFT.Attributes
                     Tag = ReparsePointTag.HierarchicalStorageManager2;
                     break;
                 case 0x80000007:
-                    Tag = ReparsePointTag.SISFilterDriver;
+                    Tag = ReparsePointTag.SisFilterDriver;
                     break;
                 case 0x80000008:
                     Tag = ReparsePointTag.Wim;

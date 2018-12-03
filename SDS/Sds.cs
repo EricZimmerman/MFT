@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using MFT.Attributes;
 using NLog;
 
@@ -43,14 +44,13 @@ namespace Secure
                     var buff = new byte[dataSize];
                     Buffer.BlockCopy(rawBytes, (int) (offset + 0x14), buff, 0, dataSize);
 
-                    var sk = new SKSecurityDescriptor(buff);
+                    var sk = new SkSecurityDescriptor(buff);
                     logger.Trace(sk);
 
                     var sde = new SdsEntry(hash, id, offset, size, sk, startingIndex);
 
                     SdsEntries.Add(sde);
                 }
-
 
                 index += size;
 

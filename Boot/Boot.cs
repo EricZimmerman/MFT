@@ -28,14 +28,14 @@ namespace Boot
             SectorsPerCluster = rawBytes[13];
 
             ReservedSectors = BitConverter.ToInt16(rawBytes, 14);
-            NumberOfFATs = rawBytes[16];
+            NumberOfFaTs = rawBytes[16];
 
             RootDirectoryEntries = BitConverter.ToInt16(rawBytes, 17);
             TotalNumberOfSectors16 = BitConverter.ToInt16(rawBytes, 19);
 
             MediaDescriptor = rawBytes[21];
 
-            SectorsPerFAT = BitConverter.ToInt16(rawBytes, 22);
+            SectorsPerFat = BitConverter.ToInt16(rawBytes, 22);
 
             SectorsPerTrack = BitConverter.ToInt16(rawBytes, 24);
             NumberOfHeads = BitConverter.ToInt16(rawBytes, 26);
@@ -81,7 +81,7 @@ namespace Boot
         /// <summary>
         ///     Not used by NTFS
         /// </summary>
-        public int NumberOfFATs { get; }
+        public int NumberOfFaTs { get; }
 
         /// <summary>
         ///     Not used by NTFS
@@ -95,7 +95,7 @@ namespace Boot
         /// <summary>
         ///     Not used by NTFS
         /// </summary>
-        public int SectorsPerFAT { get; }
+        public int SectorsPerFat { get; }
 
         /// <summary>
         ///     Not used by NTFS
