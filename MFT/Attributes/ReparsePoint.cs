@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Text;
-using NLog;
 
 namespace MFT.Attributes
 {
@@ -34,7 +32,7 @@ namespace MFT.Attributes
             Unhandled,
             OneDrive,
             Cloud,
-       CloudRoot,
+            CloudRoot,
             CloudOnDemand,
             CloudRootOnDemand,
             Gvfs,
@@ -181,17 +179,18 @@ namespace MFT.Attributes
                 return;
             }
 
-           
+
             if (subNameSize > 0)
             {
                 if (subNameOffset == 0)
                 {
                     subNameOffset = 0x10;
                 }
-                else 
+                else
                 {
                     subNameOffset = 0x14;
                 }
+
                 SubstituteName = Encoding.Unicode.GetString(content, subNameOffset, subNameSize);
             }
 
@@ -206,14 +205,9 @@ namespace MFT.Attributes
                     printNameOffset = (short) (subNameOffset + printNameOffset);
                 }
 
-             
+
                 PrintName = Encoding.Unicode.GetString(content, printNameOffset, printNameSize);
             }
-          
-            
-
-      
-            
         }
 
         public string SubstituteName { get; }

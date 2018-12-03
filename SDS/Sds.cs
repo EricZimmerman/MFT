@@ -46,7 +46,7 @@ namespace Secure
                     var sk = new SKSecurityDescriptor(buff);
                     logger.Trace(sk);
 
-                    var sde = new SdsEntry(hash, id, offset, size, sk,startingIndex);
+                    var sde = new SdsEntry(hash, id, offset, size, sk, startingIndex);
 
                     SdsEntries.Add(sde);
                 }
@@ -63,6 +63,5 @@ namespace Secure
         }
 
         public List<SdsEntry> SdsEntries { get; }
-
     }
 }

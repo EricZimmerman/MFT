@@ -31,7 +31,7 @@ namespace MFT.Attributes
         public override string ToString()
         {
             return
-                $"Index Values Offset: 0x{IndexValuesOffset:X} Index Node Size: 0x{IndexNodeSize:X} Allocated Index Node Size: 0x{AllocatedIndexNodeSize:X} Index Node Flags: {IndexNodeFlags.ToString().Replace(", ","|")}";
+                $"Index Values Offset: 0x{IndexValuesOffset:X} Index Node Size: 0x{IndexNodeSize:X} Allocated Index Node Size: 0x{AllocatedIndexNodeSize:X} Index Node Flags: {IndexNodeFlags.ToString().Replace(", ", "|")}";
         }
     }
 }

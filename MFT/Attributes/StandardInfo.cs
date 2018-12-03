@@ -51,12 +51,14 @@ namespace MFT.Attributes
             {
                 try
                 {
-                    RecordModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x28)).ToUniversalTime();
+                    RecordModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x28))
+                        .ToUniversalTime();
                 }
                 catch (Exception e)
                 {
                     var l = LogManager.GetLogger("SI");
-                    l.Debug($"Error parsing SI Record Modified timestamp in FILE record at offset 0x{Mft.CurrentOffset:X}: {e.Message}");
+                    l.Debug(
+                        $"Error parsing SI Record Modified timestamp in FILE record at offset 0x{Mft.CurrentOffset:X}: {e.Message}");
                 }
             }
 
@@ -109,7 +111,7 @@ namespace MFT.Attributes
             sb.AppendLine();
 
             sb.AppendLine(
-                $"Flags: {Flags.ToString().Replace(", ","|")}, Max Version: 0x{MaxVersion:X}, Version #: 0x{VersionNumber:X}, Class Id: 0x{ClassId:X}, " +
+                $"Flags: {Flags.ToString().Replace(", ", "|")}, Max Version: 0x{MaxVersion:X}, Version #: 0x{VersionNumber:X}, Class Id: 0x{ClassId:X}, " +
                 $"Owner Id: 0x{OwnerId:X}, Security Id: 0x{SecurityId:X}, Quota Charged: 0x{QuotaCharged:X} " +
                 $"\r\nUpdate Sequence #: 0x{UpdateSequenceNumber:X}" +
                 $"\r\n\r\nCreated On:\t\t{CreatedOn?.ToString(MftFile.DateTimeFormat)}" +

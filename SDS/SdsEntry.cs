@@ -5,8 +5,8 @@ namespace Secure
 {
     public class SdsEntry
     {
+        private readonly uint _hash;
 
-        private uint _hash;
         public SdsEntry(uint hash, int id, long offset, int size, SKSecurityDescriptor sk, long fileOffset)
         {
             _hash = hash;
@@ -20,18 +20,17 @@ namespace Secure
 
         public string Hash => GetHash();
 
-        private string GetHash()
-        {
-                var b = BitConverter.GetBytes(_hash);
-                return $"{b[0]:X2}{b[1]:X2}{b[2]:X2}{b[3]:X2}";
-           
-        }
-
         public int Id { get; }
         public long Offset { get; }
         public int Size { get; }
         public long FileOffset { get; }
 
         public SKSecurityDescriptor SecurityDescriptor { get; }
+
+        private string GetHash()
+        {
+            var b = BitConverter.GetBytes(_hash);
+            return $"{b[0]:X2}{b[1]:X2}{b[2]:X2}{b[3]:X2}";
+        }
     }
 }

@@ -119,13 +119,14 @@ namespace MFT.Other
 
             sb.AppendLine();
 
-            sb.AppendLine($"File name: {FileName} (Len:0x{NameLength:X}) Flags: {Flags.ToString().Replace(", ","|")}, Name Type: {NameType} " +
-                          $"Reparse Value: 0x{ReparseValue:X} Physical Size: 0x{PhysicalSize:X}, Logical Size: 0x{LogicalSize:X}" +
-                          $"\r\nParent Mft Record: {ParentMftRecord} " +
-                          $"\r\nCreated On: {CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
-                          $"\r\nContent Modified On: {ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
-                          $"\r\nRecord Modified On: {RecordModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
-                          $"\r\nLast Accessed On: {LastAccessedOn?.ToString(MftFile.DateTimeFormat)}");
+            sb.AppendLine(
+                $"File name: {FileName} (Len:0x{NameLength:X}) Flags: {Flags.ToString().Replace(", ", "|")}, Name Type: {NameType} " +
+                $"Reparse Value: 0x{ReparseValue:X} Physical Size: 0x{PhysicalSize:X}, Logical Size: 0x{LogicalSize:X}" +
+                $"\r\nParent Mft Record: {ParentMftRecord} " +
+                $"\r\nCreated On: {CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
+                $"\r\nContent Modified On: {ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
+                $"\r\nRecord Modified On: {RecordModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
+                $"\r\nLast Accessed On: {LastAccessedOn?.ToString(MftFile.DateTimeFormat)}");
 
             return sb.ToString();
         }

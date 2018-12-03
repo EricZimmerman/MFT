@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using Boot;
 using FluentAssertions;
@@ -29,6 +28,7 @@ namespace MFT.Test
         public static string test = @"D:\SynologyDrive\MFTs\20180615_MFTECmd_Bad_MFT_AMJH";
         public static string test4k = @"D:\Egnyte\Private\ezimmerman\MFTs\mft_4k_mftf.dat";
         public static string oneOff = @"D:\Egnyte\Private\ezimmerman\MFTs\MFT_SymLink";
+
         public static string oneOff2 = @"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT";
         //public static string oneOff4 = @"C:\Users\eric\Desktop\$MFT\$MFT";
 
@@ -55,19 +55,57 @@ namespace MFT.Test
             LogManager.Configuration = config;
         }
 
+
+        [Test]
+        public void Boot()
+        {
+            var bb = BootFile.Load(@"..\..\TestFiles\Boot\$Boot");
+
+            Debug.WriteLine($"$Boot.BootEntryPoint: {bb.BootEntryPoint}");
+            Debug.WriteLine($"$Boot.FileSystemSignature: {bb.FileSystemSignature}");
+
+            Debug.WriteLine($"$Boot.BytesPerSector: {bb.BytesPerSector}");
+            Debug.WriteLine($"$Boot.SectorsPerCluster: {bb.SectorsPerCluster}");
+            Debug.WriteLine($"$Boot.ReservedSectors: {bb.ReservedSectors}");
+            Debug.WriteLine($"$Boot.MediaDescriptor: {bb.MediaDescriptor:X} ({bb.DecodeMediaDescriptor()})");
+
+            Debug.WriteLine($"$Boot.SectorsPerTrack: {bb.SectorsPerTrack}");
+            Debug.WriteLine($"$Boot.NumberOfHeads: {bb.NumberOfHeads}");
+            Debug.WriteLine($"$Boot.NumberOfHiddenSectors: {bb.NumberOfHiddenSectors}");
+
+            Debug.WriteLine($"$Boot.TotalSectors: {bb.TotalSectors}");
+
+            Debug.WriteLine($"$Boot.MftClusterBlockNumber: {bb.MftClusterBlockNumber}");
+            Debug.WriteLine($"$Boot.MirrorMftClusterBlockNumber: {bb.MirrorMftClusterBlockNumber}");
+
+            Debug.WriteLine($"$Boot.MftEntrySize: {bb.MftEntrySize}");
+            Debug.WriteLine($"$Boot.IndexEntrySize: {bb.IndexEntrySize}");
+
+            Debug.WriteLine($"$Boot.VolumeSerialNumber 64: {bb.GetVolumeSerialNumber()}");
+            Debug.WriteLine($"$Boot.VolumeSerialNumber 32: {bb.GetVolumeSerialNumber(true)}");
+            Debug.WriteLine($"$Boot.VolumeSerialNumber 32 rev: {bb.GetVolumeSerialNumber(true, true)}");
+
+
+            Debug.WriteLine($"$Boot.SectorSignature: {bb.GetSectorSignature()}");
+        }
+
+        [Test]
+        public void Sdh()
+        {
+            var sdh = SdhFile.Load(@"D:\Temp\ntfs\sds2\$Sdh");
+            //ss..Count.Should().Be(41);
+        }
+
         [Test]
         public void Sds_sds1_Secure_SDS()
         {
-            
             var ss = SdsFile.Load(@"D:\Temp\ntfs\sds1\$Secure_$SDS");
             ss.SdsEntries.Count.Should().Be(9978);
 
             foreach (var ssSdsEntry in ss.SdsEntries)
             {
-                Debug.WriteLine(ssSdsEntry.SecurityDescriptor);
-
+                Debug.WriteLine($"Offset: 0x{ssSdsEntry.FileOffset:X} {ssSdsEntry.SecurityDescriptor}");
             }
-
         }
 
         [Test]
@@ -80,7 +118,6 @@ namespace MFT.Test
 //            {
 //                Debug.WriteLine(ssSdsEntry.SecurityDescriptor);
 //            }
-
         }
 
         [Test]
@@ -88,100 +125,18 @@ namespace MFT.Test
         {
             var ssi = SiiFile.Load(@"D:\Temp\ntfs\sds2\$Sii");
             //ss..Count.Should().Be(41);
-            
-            
-
-        }
-
-        [Test]
-        public void Sdh()
-        {
-            var sdh = SdhFile.Load(@"D:\Temp\ntfs\sds2\$Sdh");
-            //ss..Count.Should().Be(41);
-            
-            
-
-        }
-
-
-        [Test]
-        public void Boot()
-        {
-            var bb = BootFile.Load(@"..\..\TestFiles\Boot\$Boot");
-
-            Debug.WriteLine($"$Boot.BootEntryPoint: {bb.BootEntryPoint}");
-            Debug.WriteLine($"$Boot.FileSystemSignature: {bb.FileSystemSignature}");
-            
-            Debug.WriteLine($"$Boot.BytesPerSector: {bb.BytesPerSector}");
-            Debug.WriteLine($"$Boot.SectorsPerCluster: {bb.SectorsPerCluster}");
-            Debug.WriteLine($"$Boot.ReservedSectors: {bb.ReservedSectors}");
-            Debug.WriteLine($"$Boot.MediaDescriptor: {bb.MediaDescriptor:X} ({bb.DecodeMediaDescriptor()})");
-
-            Debug.WriteLine($"$Boot.SectorsPerTrack: {bb.SectorsPerTrack}");
-            Debug.WriteLine($"$Boot.NumberOfHeads: {bb.NumberOfHeads}");
-            Debug.WriteLine($"$Boot.NumberOfHiddenSectors: {bb.NumberOfHiddenSectors}");
-
-            Debug.WriteLine($"$Boot.TotalSectors: {bb.TotalSectors}");
-            
-            Debug.WriteLine($"$Boot.MftClusterBlockNumber: {bb.MftClusterBlockNumber}");
-            Debug.WriteLine($"$Boot.MirrorMftClusterBlockNumber: {bb.MirrorMftClusterBlockNumber}");
-            
-            Debug.WriteLine($"$Boot.MftEntrySize: {bb.MftEntrySize}");
-            Debug.WriteLine($"$Boot.IndexEntrySize: {bb.IndexEntrySize}");
-            
-            Debug.WriteLine($"$Boot.VolumeSerialNumber 64: {bb.GetVolumeSerialNumber()}");
-            Debug.WriteLine($"$Boot.VolumeSerialNumber 32: {bb.GetVolumeSerialNumber(true)}");
-            Debug.WriteLine($"$Boot.VolumeSerialNumber 32 rev: {bb.GetVolumeSerialNumber(true,true)}");
-            
-            
-            Debug.WriteLine($"$Boot.SectorSignature: {bb.GetSectorSignature()}");
-            
-
-        }
-
-        
-        [Test]
-        public void Usn()
-        { 
-
-//            var usn1 = UsnFile.Load(@"..\..\TestFiles\Usn\record.usn");
-//            usn1.UsnEntries.Count.Should().Be(1);
-//            //Debug.WriteLine(usn1.UsnEntries.First().ToString());
-//
-//            var usn2 = UsnFile.Load(@"D:\Temp\ntfs\testUsn.bin");
-//            usn2.UsnEntries.Count.Should().Be(41);
-//            
-//            foreach (var usn2UsnEntry in usn2.UsnEntries)
-//            {
-//                Debug.WriteLine(usn2UsnEntry.ToString());
-//            }
-
-
-//            var usn3 = UsnFile.Load(@"D:\Temp\ntfs\Troy\$J");
-//usn3.UsnEntries.Count.Should().Be(328539);
-//            foreach (var usn2UsnEntry in usn3.UsnEntries)
-//            {
-//                Debug.WriteLine(usn2UsnEntry.ToString());
-//            }
-
-            var usn4 = UsnFile.Load(@"D:\Temp\ntfs\vssJ\vss1-usnjrnl");
-            usn4.UsnEntries.Count.Should().Be(38948);
-
-            
-
         }
 
         [Test]
         public void Something()
         {
-
 //            var foo = new MFT.FileRecord(File.ReadAllBytes(@"D:\Temp\ProblemFRS1"),1);
 //            var foo1 = new MFT.FileRecord(File.ReadAllBytes(@"D:\Temp\ProblemFRS2"),1);
 //            
 
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(xwf );
+            var m2 = MftFile.Load(xwf);
 
             var logger = LogManager.GetCurrentClassLogger();
 
@@ -223,6 +178,34 @@ namespace MFT.Test
             var dif = end.Subtract(start).TotalSeconds;
 
             Debug.WriteLine(dif);
+        }
+
+
+        [Test]
+        public void Usn()
+        {
+//            var usn1 = UsnFile.Load(@"..\..\TestFiles\Usn\record.usn");
+//            usn1.UsnEntries.Count.Should().Be(1);
+//            //Debug.WriteLine(usn1.UsnEntries.First().ToString());
+//
+//            var usn2 = UsnFile.Load(@"D:\Temp\ntfs\testUsn.bin");
+//            usn2.UsnEntries.Count.Should().Be(41);
+//            
+//            foreach (var usn2UsnEntry in usn2.UsnEntries)
+//            {
+//                Debug.WriteLine(usn2UsnEntry.ToString());
+//            }
+
+
+//            var usn3 = UsnFile.Load(@"D:\Temp\ntfs\Troy\$J");
+//usn3.UsnEntries.Count.Should().Be(328539);
+//            foreach (var usn2UsnEntry in usn3.UsnEntries)
+//            {
+//                Debug.WriteLine(usn2UsnEntry.ToString());
+//            }
+
+            var usn4 = UsnFile.Load(@"D:\Temp\ntfs\vssJ\vss1-usnjrnl");
+            usn4.UsnEntries.Count.Should().Be(38948);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace MFT.Attributes
             SeDaclProtected = 0x1000,
             SeGroupDefaulted = 0x0002,
             SeOwnerDefaulted = 0x0001,
-			SeServerSecurity = 0x0080,
+            SeServerSecurity = 0x0080,
             SeDaclUntrusted = 0x0040,
             SeRmControlValid = 0x4000,
             SeSaclAutoInherited = 0x0800,
@@ -92,7 +92,7 @@ namespace MFT.Attributes
             }
         }
 
-        public Helpers.SidTypeEnum GroupSIDType => Helpers.GetSIDTypeFromSIDString(GroupSid);
+        public Helpers.SidTypeEnum GroupSIDType => Helpers.GetSidTypeFromSidString(GroupSid);
 
         public uint OwnerOffset => BitConverter.ToUInt32(RawBytes, 0x04);
 
@@ -109,7 +109,7 @@ namespace MFT.Attributes
             }
         }
 
-        public Helpers.SidTypeEnum OwnerSIDType => Helpers.GetSIDTypeFromSIDString(OwnerSid);
+        public Helpers.SidTypeEnum OwnerSIDType => Helpers.GetSidTypeFromSidString(OwnerSid);
 
         public string Padding { get; }
         public byte[] RawBytes { get; }

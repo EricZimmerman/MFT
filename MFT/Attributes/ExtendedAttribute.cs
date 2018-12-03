@@ -24,10 +24,11 @@ namespace MFT.Attributes
 
             var asAscii = Encoding.GetEncoding(1252).GetString(Content);
             var asUnicode = Encoding.Unicode.GetString(Content);
-           
+
 
             sb.AppendLine();
-            sb.AppendLine($"Extended Attribute:: {BitConverter.ToString(Content)}\r\n\r\nASCII: {asAscii}\r\nUnicode: {asUnicode}");
+            sb.AppendLine(
+                $"Extended Attribute:: {BitConverter.ToString(Content)}\r\n\r\nASCII: {asAscii}\r\nUnicode: {asUnicode}");
 
             return sb.ToString();
         }

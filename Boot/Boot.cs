@@ -16,7 +16,8 @@ namespace Boot
 
             if (SectorSignature != expectedSectorSig)
             {
-                _logger.Warn($"Expected signature (0x55 0xAA) not found at offset 0x1FE. Value found: {GetSectorSignature()}");
+                _logger.Warn(
+                    $"Expected signature (0x55 0xAA) not found at offset 0x1FE. Value found: {GetSectorSignature()}");
             }
 
             BootEntryPoint = $"0x{rawBytes[0]:X2} 0x{rawBytes[1]:X2} 0x{rawBytes[2]:X2}";

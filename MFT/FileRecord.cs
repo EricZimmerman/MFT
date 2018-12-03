@@ -71,7 +71,7 @@ namespace MFT
             {
                 //adjust the offset to where we need to check
                 var fixupOffset = counter - 2;
-                
+
                 var expected = BitConverter.ToInt16(rawBytes, fixupOffset);
                 if (expected != FixupData.FixupExpected && EntryFlags != 0x0)
                 {
@@ -207,9 +207,10 @@ namespace MFT
                         {
                             var l = LogManager.GetLogger("ReparsePoint");
 
-                            l.Error($"There was an error parsing a ReparsePoint in FILE record at offset 0x{Offset:X}. Please extract via --dd and --do and send to saericzimmerman@gmail.com");
+                            l.Error(
+                                $"There was an error parsing a ReparsePoint in FILE record at offset 0x{Offset:X}. Please extract via --dd and --do and send to saericzimmerman@gmail.com");
                         }
-                        
+
                         break;
 
                     case AttributeType.AttributeList:
@@ -265,7 +266,7 @@ namespace MFT
             var sb = new StringBuilder();
 
             sb.AppendLine(
-                $"Entry-seq #: 0x{EntryNumber:X}-0x{SequenceNumber:X}, Offset: 0x{Offset:X}, Flags: {EntryFlags.ToString().Replace(", ","|")}, Log Sequence #: 0x{LogSequenceNumber:X}, Mft Record To Base Record: {MftRecordToBaseRecord}\r\nReference Count: 0x{ReferenceCount:X}, Fixup Data: {FixupData} (Fixup OK: {FixupOk})\r\n");
+                $"Entry-seq #: 0x{EntryNumber:X}-0x{SequenceNumber:X}, Offset: 0x{Offset:X}, Flags: {EntryFlags.ToString().Replace(", ", "|")}, Log Sequence #: 0x{LogSequenceNumber:X}, Mft Record To Base Record: {MftRecordToBaseRecord}\r\nReference Count: 0x{ReferenceCount:X}, Fixup Data: {FixupData} (Fixup OK: {FixupOk})\r\n");
 
             foreach (var attribute in Attributes)
             {

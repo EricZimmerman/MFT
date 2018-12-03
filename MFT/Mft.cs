@@ -25,7 +25,7 @@ namespace MFT
             {
                 throw new Exception("Invalid header! Expected 'FILE' Signature.");
             }
-            
+
             var blockSize = BitConverter.ToInt32(rawBytes, 0x1c);
 
             var fileBytes = new byte[blockSize];
@@ -42,7 +42,7 @@ namespace MFT
 
                 var key = f.GetKey();
 
-                _logger.Trace($"Offset: 0x{f.Offset:X} flags: {f.EntryFlags.ToString().Replace(", ","|")} key: {key}");
+                _logger.Trace($"Offset: 0x{f.Offset:X} flags: {f.EntryFlags.ToString().Replace(", ", "|")} key: {key}");
 
                 if (f.IsBad)
                 {
@@ -56,24 +56,24 @@ namespace MFT
                 {
                     if (FreeFileRecords.ContainsKey(key))
                     {
-                        _logger.Warn($"At offset 0x{f.Offset:X}, a free FILE record with key '{key}' already exists! You may want to review this manually. Skipping...");
+                        _logger.Warn(
+                            $"At offset 0x{f.Offset:X}, a free FILE record with key '{key}' already exists! You may want to review this manually. Skipping...");
                     }
                     else
                     {
                         FreeFileRecords.Add(key, f);
                     }
-
-                    
                 }
                 else
                 {
                     if (FileRecords.ContainsKey(key))
                     {
-                        _logger.Warn($"At offset 0x{f.Offset:X}, a FILE record with key '{key}' already exists! You may want to review this manually. Skipping...");
+                        _logger.Warn(
+                            $"At offset 0x{f.Offset:X}, a FILE record with key '{key}' already exists! You may want to review this manually. Skipping...");
                     }
                     else
                     {
-                        FileRecords.Add(key, f); 
+                        FileRecords.Add(key, f);
                     }
                 }
 
@@ -110,10 +110,10 @@ namespace MFT
         public List<FileRecord> UninitializedRecords { get; }
 
         /// <summary>
-        /// When the MFT is being processed, this is set to the offset where the FILE record being processed starts.
-        /// <remarks>Used to include the offset where errors happen in parsing for log messages</remarks>
+        ///     When the MFT is being processed, this is set to the offset where the FILE record being processed starts.
+        ///     <remarks>Used to include the offset where errors happen in parsing for log messages</remarks>
         /// </summary>
-        public static int CurrentOffset {get; private set; }
+        public static int CurrentOffset { get; private set; }
 
         private void ProcessExtensionBlocks()
         {

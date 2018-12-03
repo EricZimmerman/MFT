@@ -39,7 +39,8 @@ namespace Usn
                     continue;
                 }
 
-                if (size < 0x38 || size > 0x137 || majorVer != 2) //~ minimum length, so jump to next page || max defined as max filename length (0xFF) + min length (it should not be bigger than this)
+                if (size < 0x38 || size > 0x137 || majorVer != 2
+                ) //~ minimum length, so jump to next page || max defined as max filename length (0xFF) + min length (it should not be bigger than this)
                 {
                     _logger.Trace(
                         $"Strange size or ver # incorrect at 0x {index:X8}. Increasing index by 0x{PageSize:X}");

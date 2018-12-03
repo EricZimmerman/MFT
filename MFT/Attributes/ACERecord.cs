@@ -42,9 +42,9 @@ namespace MFT.Attributes
             SystemAuditCallbackObject = 0xf,
             SystemAlarmCallbackObject = 0x10,
             SystemMandatoryLabel = 0x11,
-            SystemResourceAttribute  = 0x12,
-            SystemScopedPolicyId  = 0x13,
-            SystemProcessTrustLabel  = 0x14,
+            SystemResourceAttribute = 0x12,
+            SystemScopedPolicyId = 0x13,
+            SystemProcessTrustLabel = 0x14,
             Unknown = 0x99
         }
 
@@ -156,7 +156,7 @@ namespace MFT.Attributes
             }
         }
 
-        public Helpers.SidTypeEnum SidType => Helpers.GetSIDTypeFromSIDString(Sid);
+        public Helpers.SidTypeEnum SidType => Helpers.GetSidTypeFromSidString(Sid);
 
         // public methods...
         public override string ToString()
@@ -167,7 +167,7 @@ namespace MFT.Attributes
 
             sb.AppendLine($"ACE Type: {AceType}");
 
-            sb.AppendLine($"ACE Flags: {AceFlags.ToString().Replace(", ","|")}");
+            sb.AppendLine($"ACE Flags: {AceFlags.ToString().Replace(", ", "|")}");
 
             sb.AppendLine($"Mask: {Mask}");
 
