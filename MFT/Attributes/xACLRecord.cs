@@ -7,7 +7,7 @@ using System.Text;
 namespace MFT.Attributes
 {
     // public classes...
-    public class xACLRecord
+    public class XAclRecord
     {
         // public enums...
         public enum ACLTypeEnum
@@ -18,9 +18,9 @@ namespace MFT.Attributes
 
         // public constructors...
         /// <summary>
-        ///     Initializes a new instance of the <see cref="xACLRecord" /> class.
+        ///     Initializes a new instance of the <see cref="XAclRecord" /> class.
         /// </summary>
-        public xACLRecord(byte[] rawBytes, ACLTypeEnum aclTypetype)
+        public XAclRecord(byte[] rawBytes, ACLTypeEnum aclTypetype)
         {
             RawBytes = rawBytes;
 
@@ -30,7 +30,7 @@ namespace MFT.Attributes
         // public properties...
         public ushort AceCount => BitConverter.ToUInt16(RawBytes, 0x4);
 
-        public List<ACERecord> ACERecords
+        public List<AceRecord> AceRecords
         {
             get
             {
@@ -57,7 +57,7 @@ namespace MFT.Attributes
                     index += aceSize;
                 }
 
-                var records = new List<ACERecord>();
+                var records = new List<AceRecord>();
 
                 foreach (var chunk in chunks)
                 {
@@ -66,7 +66,7 @@ namespace MFT.Attributes
                         continue;
                     }
 
-                    var ace = new ACERecord(chunk);
+                    var ace = new AceRecord(chunk);
 
                     records.Add(ace);
                 }
@@ -102,7 +102,7 @@ namespace MFT.Attributes
             sb.AppendLine();
 
             var i = 0;
-            foreach (var aceRecord in ACERecords)
+            foreach (var aceRecord in AceRecords)
             {
                 sb.AppendLine($"------------ Ace record #{i} ------------");
                 sb.AppendLine(aceRecord.ToString());

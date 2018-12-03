@@ -61,8 +61,12 @@ namespace MFT.Test
             
             var ss = SdsFile.Load(@"D:\Temp\ntfs\sds1\$Secure_$SDS");
             ss.SdsEntries.Count.Should().Be(9978);
-            
-            
+
+            foreach (var ssSdsEntry in ss.SdsEntries)
+            {
+                Debug.WriteLine(ssSdsEntry.SecurityDescriptor);
+
+            }
 
         }
 
@@ -162,6 +166,7 @@ namespace MFT.Test
 
             var usn4 = UsnFile.Load(@"D:\Temp\ntfs\vssJ\vss1-usnjrnl");
             usn4.UsnEntries.Count.Should().Be(38948);
+
             
 
         }

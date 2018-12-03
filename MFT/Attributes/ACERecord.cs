@@ -6,7 +6,7 @@ using System.Text;
 namespace MFT.Attributes
 {
     // public classes...
-    public class ACERecord
+    public class AceRecord
     {
         // public enums...
         [Flags]
@@ -24,15 +24,27 @@ namespace MFT.Attributes
 
         public enum AceTypeEnum
         {
-            AccessAllowedAceType = 0x0,
-            AccessAllowedCompoundAceType = 0x4,
-            AccessAllowedObjectAceType = 0x5,
-            AccessDeniedAceType = 0x1,
-            AccessDeniedObjectAceType = 0x6,
-            SystemAlarmAceType = 0x3,
-            SystemAlarmObjectAceType = 0x8,
-            SystemAuditAceType = 0x2,
-            SystemAuditObjectAceType = 0x7,
+            AccessAllowed = 0x0,
+            AccessAllowedCompound = 0x4,
+            AccessAllowedObject = 0x5,
+            AccessDenied = 0x1,
+            AccessDeniedObject = 0x6,
+            SystemAlarm = 0x3,
+            SystemAlarmObject = 0x8,
+            SystemAudit = 0x2,
+            SystemAuditObject = 0x7,
+            AccessAllowedCallback = 0x9,
+            AccessDeniedCallback = 0xa,
+            AccessAllowedCallbackObject = 0xb,
+            AccessDeniedCallbackObject = 0xc,
+            SystemAuditCallback = 0xd,
+            SystemAlarmCallback = 0xe,
+            SystemAuditCallbackObject = 0xf,
+            SystemAlarmCallbackObject = 0x10,
+            SystemMandatoryLabel = 0x11,
+            SystemResourceAttribute  = 0x12,
+            SystemScopedPolicyId  = 0x13,
+            SystemProcessTrustLabel  = 0x14,
             Unknown = 0x99
         }
 
@@ -48,7 +60,7 @@ namespace MFT.Attributes
             QueryValue = 0x00000001,
             ReadControl = 0x00020000,
             SetValue = 0x00000002,
-            WriteDAC = 0x00040000,
+            WriteDac = 0x00040000,
             WriteOwner = 0x00080000
         }
 
@@ -56,48 +68,72 @@ namespace MFT.Attributes
         /// <summary>
         ///     Initializes a new instance of the <see cref="ACERecord" /> class.
         /// </summary>
-        public ACERecord(byte[] rawBytes)
+        public AceRecord(byte[] rawBytes)
         {
             RawBytes = rawBytes;
         }
 
         // public properties...
-        public AceFlagsEnum ACEFlags => (AceFlagsEnum) RawBytes[1];
+        public AceFlagsEnum AceFlags => (AceFlagsEnum) RawBytes[1];
 
-        public ushort ACESize => BitConverter.ToUInt16(RawBytes, 2);
+        public ushort AceSize => BitConverter.ToUInt16(RawBytes, 2);
 
-        public AceTypeEnum ACEType
+        public AceTypeEnum AceType
         {
             get
             {
                 switch (RawBytes[0])
                 {
                     case 0x0:
-                        return AceTypeEnum.AccessAllowedAceType;
+                        return AceTypeEnum.AccessAllowed;
                     //ncrunch: no coverage start
                     case 0x1:
-                        return AceTypeEnum.AccessDeniedAceType;
+                        return AceTypeEnum.AccessDenied;
 
                     case 0x2:
-                        return AceTypeEnum.SystemAuditAceType;
+                        return AceTypeEnum.SystemAudit;
 
                     case 0x3:
-                        return AceTypeEnum.SystemAlarmAceType;
+                        return AceTypeEnum.SystemAlarm;
 
                     case 0x4:
-                        return AceTypeEnum.AccessAllowedCompoundAceType;
+                        return AceTypeEnum.AccessAllowedCompound;
 
                     case 0x5:
-                        return AceTypeEnum.AccessAllowedObjectAceType;
+                        return AceTypeEnum.AccessAllowedObject;
 
                     case 0x6:
-                        return AceTypeEnum.AccessDeniedObjectAceType;
+                        return AceTypeEnum.AccessDeniedObject;
 
                     case 0x7:
-                        return AceTypeEnum.SystemAuditObjectAceType;
+                        return AceTypeEnum.SystemAuditObject;
 
                     case 0x8:
-                        return AceTypeEnum.SystemAlarmObjectAceType;
+                        return AceTypeEnum.SystemAlarmObject;
+                    case 0x9:
+                        return AceTypeEnum.AccessAllowedCallback;
+                    case 0xa:
+                        return AceTypeEnum.AccessDeniedCallback;
+                    case 0xb:
+                        return AceTypeEnum.AccessAllowedCallbackObject;
+                    case 0xc:
+                        return AceTypeEnum.AccessDeniedCallbackObject;
+                    case 0xd:
+                        return AceTypeEnum.SystemAuditCallback;
+                    case 0xe:
+                        return AceTypeEnum.SystemAlarmCallback;
+                    case 0xf:
+                        return AceTypeEnum.SystemAuditCallbackObject;
+                    case 0x10:
+                        return AceTypeEnum.SystemAlarmCallbackObject;
+                    case 0x11:
+                        return AceTypeEnum.SystemMandatoryLabel;
+                    case 0x12:
+                        return AceTypeEnum.SystemResourceAttribute;
+                    case 0x13:
+                        return AceTypeEnum.SystemScopedPolicyId;
+                    case 0x14:
+                        return AceTypeEnum.SystemProcessTrustLabel;
                     default:
                         return AceTypeEnum.Unknown;
                     //ncrunch: no coverage end
@@ -109,41 +145,36 @@ namespace MFT.Attributes
 
         public byte[] RawBytes { get; }
 
-        public string SID
+        public string Sid
         {
             get
             {
-                //var rawSid = RawBytes.Skip(0x8).Take(ACESize - 0x8).ToArray();
-
-                var rawSidBytes = new byte[ACESize - 0x8];
+                var rawSidBytes = new byte[AceSize - 0x8];
                 Buffer.BlockCopy(RawBytes, 0x8, rawSidBytes, 0, rawSidBytes.Length);
-
-//                var rawAce = new byte[aceSize];
-//                Buffer.BlockCopy(RawBytes, index, rawAce, 0, (int)aceSize);
 
                 return Helpers.ConvertHexStringToSidString(rawSidBytes);
             }
         }
 
-        public Helpers.SidTypeEnum SIDType => Helpers.GetSIDTypeFromSIDString(SID);
+        public Helpers.SidTypeEnum SidType => Helpers.GetSIDTypeFromSIDString(Sid);
 
         // public methods...
         public override string ToString()
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine($"ACE Size: 0x{ACESize:X}");
+            sb.AppendLine($"ACE Size: 0x{AceSize:X}");
 
-            sb.AppendLine($"ACE Type: {ACEType}");
+            sb.AppendLine($"ACE Type: {AceType}");
 
-            sb.AppendLine($"ACE Flags: {ACEFlags.ToString().Replace(", ","|")}");
+            sb.AppendLine($"ACE Flags: {AceFlags.ToString().Replace(", ","|")}");
 
             sb.AppendLine($"Mask: {Mask}");
 
-            sb.AppendLine($"SID: {SID}");
-            sb.AppendLine($"SID Type: {SIDType}");
+            sb.AppendLine($"SID: {Sid}");
+            sb.AppendLine($"SID Type: {SidType}");
 
-            sb.AppendLine($"SID Type Description: {Helpers.GetDescriptionFromEnumValue(SIDType)}");
+            sb.AppendLine($"SID Type Description: {Helpers.GetDescriptionFromEnumValue(SidType)}");
 
             return sb.ToString();
         }

@@ -19,6 +19,8 @@ namespace MFT.Attributes
             SeDaclProtected = 0x1000,
             SeGroupDefaulted = 0x0002,
             SeOwnerDefaulted = 0x0001,
+			SeServerSecurity = 0x0080,
+            SeDaclUntrusted = 0x0040,
             SeRmControlValid = 0x4000,
             SeSaclAutoInherited = 0x0800,
             SeSaclAutoInheritReq = 0x0200,
@@ -54,7 +56,7 @@ namespace MFT.Attributes
         // public properties...
         public ControlEnum Control => (ControlEnum) BitConverter.ToUInt16(RawBytes, 0x02);
 
-        public xACLRecord DACL
+        public XAclRecord Dacl
         {
             get
             {
@@ -66,7 +68,7 @@ namespace MFT.Attributes
                     Buffer.BlockCopy(RawBytes, (int) DaclOffset, rawDacl, 0, (int) sizeDacl);
 
 
-                    return new xACLRecord(rawDacl, xACLRecord.ACLTypeEnum.Discretionary);
+                    return new XAclRecord(rawDacl, XAclRecord.ACLTypeEnum.Discretionary);
                 }
 
                 return null; //ncrunch: no coverage
@@ -77,7 +79,7 @@ namespace MFT.Attributes
 
         public uint GroupOffset => BitConverter.ToUInt32(RawBytes, 0x08);
 
-        public string GroupSID
+        public string GroupSid
         {
             get
             {
@@ -90,11 +92,11 @@ namespace MFT.Attributes
             }
         }
 
-        public Helpers.SidTypeEnum GroupSIDType => Helpers.GetSIDTypeFromSIDString(GroupSID);
+        public Helpers.SidTypeEnum GroupSIDType => Helpers.GetSIDTypeFromSIDString(GroupSid);
 
         public uint OwnerOffset => BitConverter.ToUInt32(RawBytes, 0x04);
 
-        public string OwnerSID
+        public string OwnerSid
         {
             get
             {
@@ -107,14 +109,14 @@ namespace MFT.Attributes
             }
         }
 
-        public Helpers.SidTypeEnum OwnerSIDType => Helpers.GetSIDTypeFromSIDString(OwnerSID);
+        public Helpers.SidTypeEnum OwnerSIDType => Helpers.GetSIDTypeFromSIDString(OwnerSid);
 
         public string Padding { get; }
         public byte[] RawBytes { get; }
 
         public byte Revision => RawBytes[0];
 
-        public xACLRecord SACL
+        public XAclRecord Sacl
         {
             get
             {
@@ -125,7 +127,7 @@ namespace MFT.Attributes
                     var rawSacl = new byte[sizeSacl];
                     Buffer.BlockCopy(RawBytes, (int) SaclOffset, rawSacl, 0, (int) sizeSacl);
 
-                    return new xACLRecord(rawSacl, xACLRecord.ACLTypeEnum.Security);
+                    return new XAclRecord(rawSacl, XAclRecord.ACLTypeEnum.Security);
                 }
 
                 return null;
@@ -144,26 +146,26 @@ namespace MFT.Attributes
 
             sb.AppendLine();
             sb.AppendLine($"Owner offset: 0x{OwnerOffset:X}");
-            sb.AppendLine($"Owner SID: {OwnerSID}");
+            sb.AppendLine($"Owner SID: {OwnerSid}");
             sb.AppendLine($"Owner SID Type: {OwnerSIDType}");
 
             sb.AppendLine();
             sb.AppendLine($"Group offset: 0x{GroupOffset:X}");
-            sb.AppendLine($"Group SID: {GroupSID}");
+            sb.AppendLine($"Group SID: {GroupSid}");
             sb.AppendLine($"Group SID Type: {GroupSIDType}");
 
-            if (DACL != null)
+            if (Dacl != null)
             {
                 sb.AppendLine();
                 sb.AppendLine($"Dacl Offset: 0x{DaclOffset:X}");
-                sb.AppendLine($"DACL: {DACL}");
+                sb.AppendLine($"DACL: {Dacl}");
             }
 
-            if (SACL != null)
+            if (Sacl != null)
             {
                 sb.AppendLine();
                 sb.AppendLine($"Sacl Offset: 0x{SaclOffset:X}");
-                sb.AppendLine($"SACL: {SACL}");
+                sb.AppendLine($"SACL: {Sacl}");
             }
 
             return sb.ToString();

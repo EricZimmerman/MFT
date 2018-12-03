@@ -41,7 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AceRecord.cs" />
     <Compile Include="FixupData.cs" />
     <Compile Include="Sdh.cs" />
     <Compile Include="SdhFile.cs" />
@@ -51,13 +50,17 @@
     <Compile Include="SdsFile.cs" />
     <Compile Include="SiiFile.cs" />
     <Compile Include="Sii.cs" />
-    <Compile Include="SecurityDescriptor.cs" />
-    <Compile Include="XAclRecord.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NLog">
       <Version>4.5.11</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MFT\MFT.csproj">
+      <Project>{dda9e417-b536-4730-b578-aa45f8b130c7}</Project>
+      <Name>MFT</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MFT.Attributes;
 
 namespace Secure
 {
@@ -10,13 +7,14 @@ namespace Secure
     {
 
         private uint _hash;
-        public SdsEntry(uint hash, int id, long offset, int size, SecurityDescriptor sk)
+        public SdsEntry(uint hash, int id, long offset, int size, SKSecurityDescriptor sk, long fileOffset)
         {
             _hash = hash;
             Id = id;
             Offset = offset;
             Size = size;
             SecurityDescriptor = sk;
+            FileOffset = fileOffset;
         }
 
 
@@ -32,7 +30,8 @@ namespace Secure
         public int Id { get; }
         public long Offset { get; }
         public int Size { get; }
+        public long FileOffset { get; }
 
-        public SecurityDescriptor SecurityDescriptor { get; }
+        public SKSecurityDescriptor SecurityDescriptor { get; }
     }
 }

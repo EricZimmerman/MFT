@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using MFT.Attributes;
 using NLog;
-using Secure;
 
-namespace SDS
+namespace Secure
 {
     public class Sds
     {
@@ -18,6 +17,7 @@ namespace SDS
 
             while (index <= rawBytes.Length)
             {
+                var startingIndex = index;
                 var hash = BitConverter.ToUInt32(rawBytes, index);
                 var id = BitConverter.ToInt32(rawBytes, index + 4);
                 var offset = BitConverter.ToInt64(rawBytes, index + 4 + 4);
@@ -43,10 +43,10 @@ namespace SDS
                     var buff = new byte[dataSize];
                     Buffer.BlockCopy(rawBytes, (int) (offset + 0x14), buff, 0, dataSize);
 
-                    var sk = new SecurityDescriptor(buff);
+                    var sk = new SKSecurityDescriptor(buff);
                     logger.Trace(sk);
 
-                    var sde = new SdsEntry(hash, id, offset, size, sk);
+                    var sde = new SdsEntry(hash, id, offset, size, sk,startingIndex);
 
                     SdsEntries.Add(sde);
                 }
