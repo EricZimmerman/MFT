@@ -9,6 +9,8 @@ namespace Usn
         private const int PageSize = 0x1000;
         private readonly Logger _logger = LogManager.GetLogger("Usn");
 
+        public static uint LastOffset = 0;
+
         public Usn(byte[] rawBytes, long startingOffset)
         {
             uint index = 0;
@@ -17,13 +19,21 @@ namespace Usn
 
             var lastGoodPageOffset = startingOffset;
 
+            _logger.Trace("Beginning processing");
+
             while (index < rawBytes.Length)
             {
+                _logger.Trace($"Starting index 0x {index:X8}.");
+
+                LastOffset = index;
+
                 var size = BitConverter.ToUInt32(rawBytes, (int) index);
                 var majorVer = BitConverter.ToInt16(rawBytes, (int) index + 4); //used for error checking
 
                 if (size == 0)
                 {
+                    _logger.Trace($"Size is zero. Increasing index by 0x{PageSize:X}");
+
                     index = (uint) (lastGoodPageOffset + PageSize);
                     lastGoodPageOffset += PageSize;
                     continue;
@@ -59,6 +69,7 @@ namespace Usn
                 }
 
                 _logger.Trace($"Processing UsnEntry at 0x{startingOffset + index:X}");
+
                 var buff = new byte[size];
                 Buffer.BlockCopy(rawBytes, (int) index, buff, 0, (int) size);
 

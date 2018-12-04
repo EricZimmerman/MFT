@@ -8,6 +8,8 @@ namespace Secure
 {
     public class Sds
     {
+        public static uint LastOffset = 0;
+
         public Sds(byte[] rawBytes)
         {
             uint index = 0x0;
@@ -16,9 +18,9 @@ namespace Secure
 
             SdsEntries = new List<SdsEntry>();
 
-            while (index <= rawBytes.Length)
+            while (index < rawBytes.Length)
             {
-                ulong startingIndex = index;
+                LastOffset = index;
 
                 var hash = BitConverter.ToUInt32(rawBytes, (int) index);
                 var id = BitConverter.ToUInt32(rawBytes,(int) index + 4);
@@ -39,14 +41,13 @@ namespace Secure
                 if (id > 0 && size<0x2000)
                 {
                     logger.Debug(
-                        $"Starting index: 0x{startingIndex:X} Offset 0x{offset:X} Hash: 0x{hash:X} id: {id}  size 0x{size:X}");
+                        $"Starting index: 0x{LastOffset:X} Offset 0x{offset:X} Hash: 0x{hash:X} id: {id}  size 0x{size:X}");
 
                     var dataSize = size - 0x14;
 
-                    if (dataSize > rawBytes.Length - (int)startingIndex)
+                    if (dataSize > rawBytes.Length - (int)LastOffset)
                     {
                         break;
-                        
                     }
 
                     var buff = new byte[dataSize];
@@ -55,7 +56,7 @@ namespace Secure
                     var sk = new SkSecurityDescriptor(buff);
                     logger.Trace(sk);
 
-                    var sde = new SdsEntry(hash, id, offset, size, sk, startingIndex);
+                    var sde = new SdsEntry(hash, id, offset, size, sk, LastOffset);
 
                     SdsEntries.Add(sde);
 
