@@ -15,7 +15,7 @@ namespace Usn
 
             var logger = LogManager.GetLogger("Usn");
 
-            using (var br = new BinaryReader(new FileStream(usnFilePath, FileMode.Open)))
+            using (var br = new BinaryReader(new FileStream(usnFilePath, FileMode.Open,FileAccess.Read)))
             {
                 if (br.PeekChar() != 0)
                 {

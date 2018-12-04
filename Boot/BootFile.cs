@@ -12,12 +12,26 @@ namespace Boot
                 throw new FileNotFoundException($"'{bootFilePath}' not found");
             }
 
-            var bytes = File.ReadAllBytes(bootFilePath);
+            using (var br = new BinaryReader(new FileStream(bootFilePath, FileMode.Open, FileAccess.Read)))
+            {
+                var bytes = ReadAllBytes(br);
 
-            var b = new byte[512];
-            Buffer.BlockCopy(bytes, 0, b, 0, 512);
+                return new Boot(bytes);
+            }
+        }
 
-            return new Boot(b);
+        public static byte[] ReadAllBytes(this BinaryReader reader)
+        {
+            const int bufferSize = 4096;
+            using (var ms = new MemoryStream())
+            {
+                byte[] buffer = new byte[bufferSize];
+                int count;
+                while ((count = reader.Read(buffer, 0, buffer.Length)) != 0)
+                    ms.Write(buffer, 0, count);
+                return ms.ToArray();
+            }
+
         }
     }
 }

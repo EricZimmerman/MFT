@@ -10,7 +10,7 @@ namespace Secure
     {
         public Sds(byte[] rawBytes)
         {
-            var index = 0x0;
+            uint index = 0x0;
 
             var logger = LogManager.GetLogger("SDS");
 
@@ -18,11 +18,12 @@ namespace Secure
 
             while (index <= rawBytes.Length)
             {
-                var startingIndex = index;
-                var hash = BitConverter.ToUInt32(rawBytes, index);
-                var id = BitConverter.ToInt32(rawBytes, index + 4);
-                var offset = BitConverter.ToInt64(rawBytes, index + 4 + 4);
-                var size = BitConverter.ToInt32(rawBytes, index + 4 + 4 + 8);
+                ulong startingIndex = index;
+
+                var hash = BitConverter.ToUInt32(rawBytes, (int) index);
+                var id = BitConverter.ToUInt32(rawBytes,(int) index + 4);
+                var offset = BitConverter.ToUInt64(rawBytes, (int) index + 4 + 4);
+                var size = BitConverter.ToUInt32(rawBytes,(int)  index + 4 + 4 + 8);
 
                 if (offset == 0 && size == 0)
                 {
@@ -35,14 +36,21 @@ namespace Secure
                     continue;
                 }
 
-                if (id > 0)
+                if (id > 0 && size<0x2000)
                 {
                     logger.Debug(
-                        $"Offset 0x{offset:X} Hash: 0x{hash:X} id: {id}  size 0x{size:X}");
+                        $"Starting index: 0x{startingIndex:X} Offset 0x{offset:X} Hash: 0x{hash:X} id: {id}  size 0x{size:X}");
 
                     var dataSize = size - 0x14;
+
+                    if (dataSize > rawBytes.Length - (int)startingIndex)
+                    {
+                        break;
+                        
+                    }
+
                     var buff = new byte[dataSize];
-                    Buffer.BlockCopy(rawBytes, (int) (offset + 0x14), buff, 0, dataSize);
+                    Buffer.BlockCopy(rawBytes, (int) (offset + 0x14), buff, 0, (int) dataSize);
 
                     var sk = new SkSecurityDescriptor(buff);
                     logger.Trace(sk);
@@ -50,6 +58,7 @@ namespace Secure
                     var sde = new SdsEntry(hash, id, offset, size, sk, startingIndex);
 
                     SdsEntries.Add(sde);
+
                 }
 
                 index += size;

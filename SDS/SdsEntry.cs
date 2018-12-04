@@ -7,7 +7,7 @@ namespace Secure
     {
         private readonly uint _hash;
 
-        public SdsEntry(uint hash, int id, long offset, int size, SkSecurityDescriptor sk, long fileOffset)
+        public SdsEntry(uint hash, uint id, ulong offset, uint size, SkSecurityDescriptor sk, ulong fileOffset)
         {
             _hash = hash;
             Id = id;
@@ -20,10 +20,10 @@ namespace Secure
 
         public string Hash => GetHash();
 
-        public int Id { get; }
-        public long Offset { get; }
-        public int Size { get; }
-        public long FileOffset { get; }
+        public uint Id { get; }
+        public ulong Offset { get; }
+        public uint Size { get; }
+        public ulong FileOffset { get; }
 
         public SkSecurityDescriptor SecurityDescriptor { get; }
 

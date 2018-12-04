@@ -109,6 +109,30 @@ namespace MFT.Test
         }
 
         [Test]
+        public void sds3()
+        {
+            var ss = SdsFile.Load(@"D:\Temp\ntfs\sds3\$SDS");
+            //ss.SdsEntries.Count.Should().Be(1391);
+//
+//            foreach (var ssSdsEntry in ss.SdsEntries)
+//            {
+//                Debug.WriteLine(ssSdsEntry.SecurityDescriptor);
+//            }
+        }
+
+        [Test]
+        public void sds4()
+        {
+            var ss = SdsFile.Load(@"D:\Temp\ntfs\sds4\Win7_$SDS");
+            //ss.SdsEntries.Count.Should().Be(1391);
+//
+//            foreach (var ssSdsEntry in ss.SdsEntries)
+//            {
+//                Debug.WriteLine(ssSdsEntry.SecurityDescriptor);
+//            }
+        }
+
+        [Test]
         public void Sds1_ntfs_sds2_SDS()
         {
             var ss = SdsFile.Load(@"D:\Temp\ntfs\sds2\$SDS");
@@ -184,28 +208,19 @@ namespace MFT.Test
         [Test]
         public void Usn()
         {
-//            var usn1 = UsnFile.Load(@"..\..\TestFiles\Usn\record.usn");
-//            usn1.UsnEntries.Count.Should().Be(1);
-//            //Debug.WriteLine(usn1.UsnEntries.First().ToString());
-//
-//            var usn2 = UsnFile.Load(@"D:\Temp\ntfs\testUsn.bin");
-//            usn2.UsnEntries.Count.Should().Be(41);
-//            
-//            foreach (var usn2UsnEntry in usn2.UsnEntries)
-//            {
-//                Debug.WriteLine(usn2UsnEntry.ToString());
-//            }
 
-
-//            var usn3 = UsnFile.Load(@"D:\Temp\ntfs\Troy\$J");
-//usn3.UsnEntries.Count.Should().Be(328539);
-//            foreach (var usn2UsnEntry in usn3.UsnEntries)
-//            {
-//                Debug.WriteLine(usn2UsnEntry.ToString());
-//            }
 
             var usn4 = UsnFile.Load(@"D:\Temp\ntfs\vssJ\vss1-usnjrnl");
             usn4.UsnEntries.Count.Should().Be(38948);
         }
+        [Test]
+        public void Usn2()
+        {
+
+            var usn4 = UsnFile.Load(@"J:\C\$Extend\$J");
+         //   usn4.UsnEntries.Count.Should().Be(38948);
+        }
+
+        
     }
 }
