@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using Boot;
 using FluentAssertions;
+using LogFile;
 using MFT.Attributes;
 using MFT.Other;
 using NLog;
@@ -90,6 +91,17 @@ namespace MFT.Test
         }
 
         [Test]
+        public void LogFile()
+        {
+            var lf = Log_File.Load(@"D:\SynologyDrive\ntfs\$LogFile");
+            //ss..Count.Should().Be(41);
+
+            Debug.WriteLine($"{lf.PrimaryRstrPage}");
+            Debug.WriteLine($"{lf.SecondaryRstrPage}");
+            Debug.WriteLine($"{lf.NormalPageArea.Count:N0}");
+        }
+
+        [Test]
         public void Sdh()
         {
             var sdh = SdhFile.Load(@"D:\Temp\ntfs\sds2\$Sdh");
@@ -99,7 +111,7 @@ namespace MFT.Test
         [Test]
         public void Sds_sds1_Secure_SDS()
         {
-            var ss = SdsFile.Load(@"D:\Temp\ntfs\sds1\$Secure_$SDS");
+            var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds1\$Secure_$SDS");
             ss.SdsEntries.Count.Should().Be(9978);
 
             foreach (var ssSdsEntry in ss.SdsEntries)
@@ -111,7 +123,7 @@ namespace MFT.Test
         [Test]
         public void sds3()
         {
-            var ss = SdsFile.Load(@"D:\Temp\ntfs\sds3\$SDS");
+            var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds3\$SDS");
             //ss.SdsEntries.Count.Should().Be(1391);
 //
 //            foreach (var ssSdsEntry in ss.SdsEntries)
@@ -123,7 +135,7 @@ namespace MFT.Test
         [Test]
         public void sds4()
         {
-            var ss = SdsFile.Load(@"D:\Temp\ntfs\sds4\Win7_$SDS");
+            var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds4\Win7_$SDS");
             //ss.SdsEntries.Count.Should().Be(1391);
 //
 //            foreach (var ssSdsEntry in ss.SdsEntries)
@@ -135,7 +147,7 @@ namespace MFT.Test
         [Test]
         public void Sds1_ntfs_sds2_SDS()
         {
-            var ss = SdsFile.Load(@"D:\Temp\ntfs\sds2\$SDS");
+            var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds2\$SDS");
             ss.SdsEntries.Count.Should().Be(1391);
 //
 //            foreach (var ssSdsEntry in ss.SdsEntries)

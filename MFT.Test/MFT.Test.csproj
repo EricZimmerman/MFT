@@ -81,6 +81,10 @@
       <Project>{ba9c6030-ec7d-4c1d-a6bc-0d86824e1111}</Project>
       <Name>Boot</Name>
     </ProjectReference>
+    <ProjectReference Include="..\LogFile\LogFile.csproj">
+      <Project>{ccc2144c-33a7-41b9-8355-c240307a9611}</Project>
+      <Name>LogFile</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MFT\MFT.csproj">
       <Project>{dda9e417-b536-4730-b578-aa45f8b130c7}</Project>
       <Name>MFT</Name>

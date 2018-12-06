@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Usn", "Usn\Usn.csproj", "{2
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Secure", "SDS\Secure.csproj", "{21E6B751-CA17-4612-9806-9B52D3031FCF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogFile", "LogFile\LogFile.csproj", "{CCC2144C-33A7-41B9-8355-C240307A9611}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{21E6B751-CA17-4612-9806-9B52D3031FCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21E6B751-CA17-4612-9806-9B52D3031FCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21E6B751-CA17-4612-9806-9B52D3031FCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCC2144C-33A7-41B9-8355-C240307A9611}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCC2144C-33A7-41B9-8355-C240307A9611}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCC2144C-33A7-41B9-8355-C240307A9611}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCC2144C-33A7-41B9-8355-C240307A9611}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

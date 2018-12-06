@@ -20,6 +20,12 @@ namespace Secure
 
             while (index < rawBytes.Length)
             {
+                if (index + 16 > rawBytes.Length)
+                {
+                    //out of data
+                    break;
+                }
+
                 LastOffset = index;
 
                 var hash = BitConverter.ToUInt32(rawBytes, (int) index);
@@ -38,7 +44,7 @@ namespace Secure
                     continue;
                 }
 
-                if (id > 0 && size<0x2000)
+                if (id > 0 && offset<(ulong) rawBytes.Length) //size < 0x2000
                 {
                     logger.Debug(
                         $"Starting index: 0x{LastOffset:X} Offset 0x{offset:X} Hash: 0x{hash:X} id: {id}  size 0x{size:X}");
