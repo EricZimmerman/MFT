@@ -45,8 +45,16 @@ namespace MFT.Attributes
 
         public ReparsePoint(byte[] rawBytes) : base(rawBytes)
         {
-            var content = new byte[AttributeContentLength];
+            if (AttributeContentLength == 0 || AttributeContentLength == 8)
+            {
+                SubstituteName = string.Empty;
+                PrintName = string.Empty;
+             
+                return;
+            }
 
+            var content = new byte[AttributeContentLength];
+            
             Buffer.BlockCopy(rawBytes, ContentOffset, content, 0, AttributeContentLength);
 
             var tag = BitConverter.ToUInt32(content, 0);
@@ -172,13 +180,10 @@ namespace MFT.Attributes
             SubstituteName = string.Empty;
             PrintName = string.Empty;
 
-            //var baseOffset = 0x10;
-
             if (Tag != ReparsePointTag.SymbolicLink && Tag != ReparsePointTag.MountPoint)
             {
                 return;
             }
-
 
             if (subNameSize > 0)
             {
