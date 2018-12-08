@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using NLog;
 
 namespace Usn
@@ -41,7 +42,7 @@ namespace Usn
 
                 if (size > PageSize)
                 {
-                    _logger.Trace($"Junk data found at 0x {index:X8}. Increasing index by 0x{PageSize:X}");
+                    _logger.Trace($"Junk data found at 0x {(startingOffset + index):X8}. Increasing index by 0x{PageSize:X}");
 
                     index += PageSize;
                     lastGoodPageOffset += PageSize;
@@ -49,12 +50,11 @@ namespace Usn
                     continue;
                 }
 
-                if (size < 0x38 || size > 0x137 || majorVer != 2
+                if (size < 0x38 || size > 0x200 || majorVer != 2
                 ) //~ minimum length, so jump to next page || max defined as max filename length (0xFF) + min length (it should not be bigger than this)
                 {
-                    _logger.Trace(
-                        $"Strange size or ver # incorrect at 0x {index:X8}. Increasing index by 0x{PageSize:X}");
-
+                    _logger.Trace($"Strange size or ver # incorrect at 0x {(startingOffset + index):X8}. Increasing index by 0x{PageSize:X}. Size: 0x{size:X} version: {majorVer}");
+                    
                     index = (uint) (lastGoodPageOffset + PageSize);
                     lastGoodPageOffset += PageSize;
 

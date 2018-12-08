@@ -17,11 +17,16 @@ namespace Usn
 
             using (var br = new BinaryReader(new FileStream(usnFilePath, FileMode.Open,FileAccess.Read)))
             {
+                logger.Trace("Binary reader open");
                 if (br.PeekChar() != 0)
                 {
-                    return new Usn(br.ReadBytes((int) br.BaseStream.Length), 0);
+                    logger.Trace("First byte is not zero. Reading everything");
+                    var bb = ReadAllBytes(br);
+                    return new Usn(bb,0);
                 }
 
+
+                logger.Trace("Beginning data appears to be sparse");
                 //beginning is sparse, so we have to find the start of the data
 
                 long startOffset;
@@ -92,6 +97,20 @@ namespace Usn
         private static bool CheckByteRangeAllZeros(byte[] buff)
         {
             return buff.All(b => b == 0);
+        }
+
+        public static byte[] ReadAllBytes(BinaryReader reader)
+        {
+            const int bufferSize = 4096;
+            using (var ms = new MemoryStream())
+            {
+                byte[] buffer = new byte[bufferSize];
+                int count;
+                while ((count = reader.Read(buffer, 0, buffer.Length)) != 0)
+                    ms.Write(buffer, 0, count);
+                return ms.ToArray();
+            }
+
         }
     }
 }
