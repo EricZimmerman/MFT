@@ -231,9 +231,10 @@ namespace MFT.Test
         public void Usn2()
         {
 
-            var usn4 = UsnFile.Load(@"J:\C\$Extend\$J");
+            var usn4 = UsnFile.Load(@"D:\!Downloads\J.bin");
          //   usn4.UsnEntries.Count.Should().Be(38948);
         }
+
 
         
     }

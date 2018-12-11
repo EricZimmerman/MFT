@@ -18,7 +18,11 @@ namespace Usn
             using (var br = new BinaryReader(new FileStream(usnFilePath, FileMode.Open,FileAccess.Read)))
             {
                 logger.Trace("Binary reader open");
-                if (br.PeekChar() != 0)
+
+                var firstByte = br.ReadByte();
+                br.BaseStream.Seek(0, SeekOrigin.Begin);
+
+                if (firstByte != 0)
                 {
                     logger.Trace("First byte is not zero. Reading everything");
                     var bb = ReadAllBytes(br);
