@@ -103,9 +103,9 @@ namespace MFT.Test
         }
 
         [Test]
-        public void Sdh()
+        public void Sds()
         {
-            var sdh = SdhFile.Load(@"D:\Temp\ntfs\sds2\$Sdh");
+            var sds = SdsFile.Load(@"C:\Users\eric\Desktop\Failed-SDS\2");
             //ss..Count.Should().Be(41);
         }
 
@@ -149,7 +149,7 @@ namespace MFT.Test
         public void Sds1_ntfs_sds2_SDS()
         {
             var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds2\$SDS");
-            ss.SdsEntries.Count.Should().Be(1391);
+            ss.SdsEntries.Count.Should().Be(1696);
 //
 //            foreach (var ssSdsEntry in ss.SdsEntries)
 //            {

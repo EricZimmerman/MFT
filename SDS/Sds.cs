@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using MFT.Attributes;
 using NLog;
 
@@ -33,7 +32,7 @@ namespace Secure
                 var offset = BitConverter.ToUInt64(rawBytes, (int) index + 4 + 4);
                 var size = BitConverter.ToUInt32(rawBytes,(int)  index + 4 + 4 + 8);
 
-                if (offset == 0 && size == 0)
+                if ((offset == 0 && size == 0) || offset>(ulong) rawBytes.Length)
                 {
                     //end of page, so get to start of next section
                     while (index % 0x40000 != 0)
@@ -65,7 +64,6 @@ namespace Secure
                     var sde = new SdsEntry(hash, id, offset, size, sk, LastOffset);
 
                     SdsEntries.Add(sde);
-
                 }
 
                 index += size;
