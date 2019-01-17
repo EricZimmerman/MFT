@@ -231,8 +231,13 @@ namespace MFT.Test
         public void Usn2()
         {
 
-            var usn4 = UsnFile.Load(@"D:\!Downloads\J.bin");
-         //   usn4.UsnEntries.Count.Should().Be(38948);
+            var usn4 = UsnFile.Load(@"D:\SynologyDrive\ntfs\Troy\J.bin");
+            
+            var bb = File.ReadAllBytes(@"D:\SynologyDrive\ntfs\Troy\$J");
+
+            var foo = UsnFile.FindStartingOffset(new MemoryStream(bb));
+
+            //   usn4.UsnEntries.Count.Should().Be(38948);
         }
 
 
