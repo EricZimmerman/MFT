@@ -106,8 +106,8 @@ namespace MFT
             BuildDirectoryNameMap(FreeFileRecords.Where(t => t.Value.IsDirectory()));
 
             //THIS ADDS almost 10 seconds, so refactor as above
-      //      BuildParentChildMap(FileRecords);
-        //    BuildParentChildMap(FreeFileRecords);
+            BuildParentChildMap(FileRecords);
+            BuildParentChildMap(FreeFileRecords);
         }
 
 
@@ -169,14 +169,14 @@ namespace MFT
             }
         }
 
-        public HashSet<ParentMapEntry> GetDirectoryContents(string key)
+        public List<ParentMapEntry> GetDirectoryContents(string key)
         {
             if (_parentDirectoryNameMap.ContainsKey(key))
             {
-                return _parentDirectoryNameMap[key];
+                return _parentDirectoryNameMap[key].OrderByDescending(t=>t.IsDirectory).ThenBy(t=>t.FileName).ToList();
             }
 
-            return new HashSet<ParentMapEntry>();
+            return new List<ParentMapEntry>();
         }
 
         private void ProcessExtensionBlocks()
