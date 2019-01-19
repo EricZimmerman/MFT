@@ -101,13 +101,13 @@ namespace MFT
             ProcessExtensionBlocks();
 
 
-            //TODO refactor this to make one pass. pass in all records and just do the dir specific stuff as needed
-            BuildDirectoryNameMap(FileRecords.Where(t => t.Value.IsDirectory()));
-            BuildDirectoryNameMap(FreeFileRecords.Where(t => t.Value.IsDirectory()));
+  
+          //  BuildDirectoryNameMap(FileRecords.Where(t => t.Value.IsDirectory()));
+           // BuildDirectoryNameMap(FreeFileRecords.Where(t => t.Value.IsDirectory()));
 
-            //THIS ADDS almost 10 seconds, so refactor as above
-            BuildParentChildMap(FileRecords);
-            BuildParentChildMap(FreeFileRecords);
+          
+            BuildMaps(FileRecords);
+            BuildMaps(FreeFileRecords);
         }
 
 
@@ -124,7 +124,7 @@ namespace MFT
         /// </summary>
         public static int CurrentOffset { get; private set; }
 
-        private void BuildParentChildMap(Dictionary<string, FileRecord> fileRecords)
+        private void BuildMaps(Dictionary<string, FileRecord> fileRecords)
         {
             foreach (var fileRecord in fileRecords)
             {
@@ -152,18 +152,32 @@ namespace MFT
                         continue;
                     }
 
-                    var key = fileRecord.Value.GetKey();
-                    var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
-
-                    if (_parentDirectoryNameMap.ContainsKey(parentKey) == false)
+                    if (fileRecord.Value.IsDirectory())
                     {
-                        _parentDirectoryNameMap.Add(parentKey, new HashSet<ParentMapEntry>());
+                        var keyDir = fileRecord.Value.GetKey();
+
+                        if (_directoryNameMap.ContainsKey(keyDir) == false)
+                        {
+                            _directoryNameMap.Add(keyDir,
+                                new DirectoryNameMapValue(fna.FileInfo.FileName, $"{fna.FileInfo.ParentMftRecord.GetKey()}",
+                                    fileRecord.Value.IsDeleted()));
+                        }
                     }
-
-                    if (fna.FileInfo.FileName.Equals(".") == false)
+                    else
                     {
-                        _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName, key,
-                            fileRecord.Value.IsDirectory()));
+                        var key = fileRecord.Value.GetKey();
+                        var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
+
+                        if (_parentDirectoryNameMap.ContainsKey(parentKey) == false)
+                        {
+                            _parentDirectoryNameMap.Add(parentKey, new HashSet<ParentMapEntry>());
+                        }
+
+                        if (fna.FileInfo.FileName.Equals(".") == false)
+                        {
+                            _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName, key,
+                                fileRecord.Value.IsDirectory()));
+                        }
                     }
                 }
             }
