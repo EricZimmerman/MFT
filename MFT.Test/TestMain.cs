@@ -103,6 +103,43 @@ namespace MFT.Test
         }
 
         [Test]
+        public void MFTs()
+        {
+
+            var m = MftFile.Load(@"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT");
+
+
+            //ss..Count.Should().Be(41);
+
+
+        }
+
+        [Test]
+        public void LXXATTR_LXATTRB()
+        {
+            var lf = File.ReadAllBytes(@"D:\Temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xABD9C00.bin");
+
+
+            var ea = new FileRecord(lf,0xABD9C00);
+
+            //ss..Count.Should().Be(41);
+
+
+        }
+
+        [Test]
+        public void LXATTRB()
+        {
+            var lf =  File.ReadAllBytes(@"D:\Temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xD99C800.bin");
+            //ss..Count.Should().Be(41);
+
+            var ea = new FileRecord(lf,0xD99C800);
+
+          
+        }
+
+
+        [Test]
         public void Sds()
         {
             var sds = SdsFile.Load(@"C:\Users\eric\Desktop\Failed-SDS\2");
