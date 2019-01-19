@@ -11,6 +11,7 @@ namespace MFT
     {
         private readonly Dictionary<string, DirectoryNameMapValue> _directoryNameMap;
         private readonly Logger _logger = LogManager.GetLogger("MFT");
+        private readonly Dictionary<string, HashSet<ParentMapEntry>> _parentDirectoryNameMap;
 
         public Mft(byte[] rawBytes)
         {
@@ -93,14 +94,22 @@ namespace MFT
             }
 
             _directoryNameMap = new Dictionary<string, DirectoryNameMapValue>();
+            _parentDirectoryNameMap = new Dictionary<string, HashSet<ParentMapEntry>>();
 
             CurrentOffset = index;
 
             ProcessExtensionBlocks();
 
+
+            //TODO refactor this to make one pass. pass in all records and just do the dir specific stuff as needed
             BuildDirectoryNameMap(FileRecords.Where(t => t.Value.IsDirectory()));
             BuildDirectoryNameMap(FreeFileRecords.Where(t => t.Value.IsDirectory()));
+
+            //THIS ADDS almost 10 seconds, so refactor as above
+      //      BuildParentChildMap(FileRecords);
+        //    BuildParentChildMap(FreeFileRecords);
         }
+
 
         public Dictionary<string, FileRecord> FileRecords { get; }
         private Dictionary<string, List<FileRecord>> ExtensionFileRecords { get; }
@@ -114,6 +123,61 @@ namespace MFT
         ///     <remarks>Used to include the offset where errors happen in parsing for log messages</remarks>
         /// </summary>
         public static int CurrentOffset { get; private set; }
+
+        private void BuildParentChildMap(Dictionary<string, FileRecord> fileRecords)
+        {
+            foreach (var fileRecord in fileRecords)
+            {
+                if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
+                    fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
+                {
+                    //will get this record via extensionRecord
+                    continue;
+                }
+
+                if (fileRecord.Value.Attributes.Count == 0)
+                {
+                    _logger.Debug($"Skipping file record at offset 0x{fileRecord.Value.Offset:X} has no attributes");
+                    continue;
+                }
+
+                var fileNameRecords = fileRecord.Value.Attributes.Where(t => t.AttributeType == AttributeType.FileName)
+                    .ToList();
+
+                foreach (var fileNameRecord in fileNameRecords)
+                {
+                    var fna = (FileName) fileNameRecord;
+                    if (fna.FileInfo.NameType == NameTypes.Dos)
+                    {
+                        continue;
+                    }
+
+                    var key = fileRecord.Value.GetKey();
+                    var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
+
+                    if (_parentDirectoryNameMap.ContainsKey(parentKey) == false)
+                    {
+                        _parentDirectoryNameMap.Add(parentKey, new HashSet<ParentMapEntry>());
+                    }
+
+                    if (fna.FileInfo.FileName.Equals(".") == false)
+                    {
+                        _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName, key,
+                            fileRecord.Value.IsDirectory()));
+                    }
+                }
+            }
+        }
+
+        public HashSet<ParentMapEntry> GetDirectoryContents(string key)
+        {
+            if (_parentDirectoryNameMap.ContainsKey(key))
+            {
+                return _parentDirectoryNameMap[key];
+            }
+
+            return new HashSet<ParentMapEntry>();
+        }
 
         private void ProcessExtensionBlocks()
         {

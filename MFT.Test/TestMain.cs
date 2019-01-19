@@ -23,7 +23,7 @@ namespace MFT.Test
         public static string Xwf = @"D:\Code\MFT\MFT.Test\TestFiles\xw\$MFT";
         public static string Mft4 = @"D:\Code\MFT\MFT.Test\TestFiles\NIST\DFR-16\$MFT";
         public static string Tdungan = @"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT";
-        public static string Nromanoff = @"D:\SynologyDrive\MFTs\nromanoff\$MFT";
+        public static string Nromanoff = @"D:\Egnyte\Private\ezimmerman\MFTs\nromanoff\$MFT";
         public static string Nfury = @"D:\SynologyDrive\MFTs\nfury\$MFT";
         public static string Capuano = @"D:\SynologyDrive\MFTs\$MFT_FROM_CAPUANO";
         public static string Vanko = @"D:\Egnyte\Private\ezimmerman\MFTs\vanko\$MFT";
@@ -103,10 +103,56 @@ namespace MFT.Test
         }
 
         [Test]
+        public void PathTest()
+        {
+            var m = MftFile.Load(Xwf);
+
+            // --lf .\Windows\system32\config
+            //find entry for config
+            //if it no exist, done
+            //if exist, look thru all records that have config, check parent refs against next seg, until at
+            //this gets you parent ent-seq
+            //need a map for parent ent-seq and children
+
+            var f = m.GetDirectoryContents("00000005-00000005");
+
+            foreach (var parentMapEntry in f)
+            {
+                 Debug.WriteLine(parentMapEntry);
+            }
+
+            Debug.WriteLine("--------------------------------------");
+
+            f = m.GetDirectoryContents("0000011F-00000003");
+
+            foreach (var parentMapEntry in f)
+            {
+                Debug.WriteLine(parentMapEntry);
+            }
+
+        }
+
+        [Test]
         public void MFTs()
         {
 
-            var m = MftFile.Load(@"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT");
+           var m = MftFile.Load(@"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT");
+
+           var f = m.GetDirectoryContents("00000005-00000005");
+
+           foreach (var parentMapEntry in f)
+           {
+               Debug.WriteLine(parentMapEntry);
+           }
+
+           Debug.WriteLine("--------------------------------------");
+
+           f = m.GetDirectoryContents("000001E4-00000019");
+
+           foreach (var parentMapEntry in f)
+           {
+               Debug.WriteLine(parentMapEntry);
+           }
 
 
             //ss..Count.Should().Be(41);
