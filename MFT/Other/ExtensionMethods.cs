@@ -78,13 +78,29 @@ namespace MFT.Other
             return (FileName) fi;
         }
 
-        public static string GetKey(this MftEntryInfo mftInfo)
+        public static string GetKey(this MftEntryInfo mftInfo, bool asDecimal = false)
         {
+            if (asDecimal)
+            {
+                return $"{mftInfo.MftEntryNumber}-{mftInfo.MftSequenceNumber}";
+            }
             return $"{mftInfo.MftEntryNumber:X8}-{mftInfo.MftSequenceNumber:X8}";
+            
         }
 
-        public static string GetKey(this FileRecord record)
+        public static string GetKey(this FileRecord record, bool asDecimal = false)
         {
+            if (asDecimal)
+            {
+                if (record.IsDeleted())
+                {
+                    return $"{record.EntryNumber}-{record.SequenceNumber - 1}";
+                }
+
+                return $"{record.EntryNumber}-{record.SequenceNumber}";
+            }
+
+
             if (record.IsDeleted())
             {
                 return $"{record.EntryNumber:X8}-{record.SequenceNumber - 1:X8}";

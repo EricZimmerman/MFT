@@ -163,8 +163,7 @@ namespace MFT
                                     fileRecord.Value.IsDeleted()));
                         }
                     }
-                    else
-                    {
+                    
                         var key = fileRecord.Value.GetKey();
                         var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
 
@@ -175,10 +174,9 @@ namespace MFT
 
                         if (fna.FileInfo.FileName.Equals(".") == false)
                         {
-                            _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName, key,
+                            _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName, fileRecord.Value.GetKey(true),
                                 fileRecord.Value.IsDirectory()));
                         }
-                    }
                 }
             }
         }
