@@ -112,7 +112,7 @@ namespace MFT.Attributes
 
                     default:
                         var log = LogManager.GetLogger("EA");
-                        log.Debug($"Unknown EA with name: {name}, Length: 0x{(bytese.Length - index):X}");
+                        log.Warn($"Unknown EA with name: {name}, Length: 0x{(bytese.Length - index):X}");
                         //var defBuff = new byte[bytese.Length - index];
                        // Buffer.BlockCopy(bytese,index,defBuff,0,defBuff.Length);
                     //    File.WriteAllBytes($"C:\\temp\\{name}_{Guid.NewGuid().ToString()}.bin",defBuff);
