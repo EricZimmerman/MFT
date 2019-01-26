@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace MFT.Attributes
@@ -10,6 +11,65 @@ namespace MFT.Attributes
             Content = new byte[AttributeContentLength];
 
             Buffer.BlockCopy(rawBytes, ContentOffset, Content, 0, AttributeContentLength);
+
+            ProcessContent();
+        }
+
+        private void ProcessContent()
+        {
+            if (Content.Length == 0)
+            {
+                return;
+            }
+
+            var index = 0;
+
+            while (index < Content.Length)
+            {
+                var nextOffset = BitConverter.ToUInt32(Content, index);
+                if (nextOffset == 0)
+                {
+                    break;
+                }
+                index += 4;
+                var flags = Content[index];
+                index += 1;
+                var nameLen = Content[index];
+                index += 1;
+                var eaLen = BitConverter.ToUInt16(Content, index);
+                index += 2;
+
+                var name = Encoding.GetEncoding(1252).GetString(Content, index, nameLen);
+
+                Debug.WriteLine($"name: {name}");
+
+                index += nameLen;
+                index += 1; //null char
+
+                while (index % 8 != 0)
+                {
+                    index += 1; //get to next 8 byte b oundary
+                }
+
+                if (name.Equals("LXATTRB"))
+                {
+                    index += 56;
+                }
+
+                if (name.Equals("LXXATTR"))
+                {
+                    index += 56;
+                }
+
+            }
+
+//            ULONG  NextEntryOffset;
+//            UCHAR  Flags;
+//            UCHAR  EaNameLength;
+//            USHORT EaValueLength;
+//            CHAR   EaName[1];
+
+            Debug.WriteLine(1);
         }
 
         public byte[] Content { get; }
