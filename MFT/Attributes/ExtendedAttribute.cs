@@ -231,11 +231,13 @@ namespace MFT.Attributes
             Version = BitConverter.ToInt16(rawBytes,index);
             index += 2;
          
-            index += 1; //unknown
+            //index += 1; //unknown
 
             while (index < rawBytes.Length)
             {
-                index += 3; //unknown
+                var offsetToNextRecord = BitConverter.ToInt32(rawBytes, index);
+                index += 4;
+                //index += 3; //unknown
                 var valueSize = BitConverter.ToInt16(rawBytes, index);
                 index += 2;
                 var keySize =rawBytes[index];
@@ -246,12 +248,19 @@ namespace MFT.Attributes
                 var valueData = Encoding.GetEncoding(1252).GetString(rawBytes, index, valueSize);
                 index += valueSize;
 
+                index += 1;//null terminator
+
                 KeyValues.Add(keyName,valueData);
 
-                while (index % 8 != 0)
+                if (offsetToNextRecord == 0)
                 {
-                    index += 1; //get to next 8 byte boundary
+                    break;
                 }
+
+//                while (index % 8 != 0)
+//                {
+//                    index += 1; //get to next 8 byte boundary
+//                }
             }
         }
 

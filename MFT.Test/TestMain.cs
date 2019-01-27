@@ -170,6 +170,20 @@ namespace MFT.Test
         }
 
         [Test]
+        public void LXXATTR_Solo()
+        {
+            var lf = File.ReadAllBytes(@"D:\Temp\Maxim_EA)STUFF_MFT_wsl2\ea-2.bin");
+
+            var ea = new Lxattrr(lf);
+
+            Debug.WriteLine(ea);
+
+            //ss..Count.Should().Be(41);
+
+
+        }
+
+        [Test]
         public void LXXATTR_LXATTRB()
         {
             var lf = File.ReadAllBytes(@"D:\SynologyDrive\temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xABD9C00.bin");
