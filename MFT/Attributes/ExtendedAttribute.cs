@@ -231,8 +231,6 @@ namespace MFT.Attributes
             Version = BitConverter.ToInt16(rawBytes,index);
             index += 2;
          
-            //index += 1; //unknown
-
             while (index < rawBytes.Length)
             {
                 var offsetToNextRecord = BitConverter.ToInt32(rawBytes, index);
@@ -254,13 +252,10 @@ namespace MFT.Attributes
 
                 if (offsetToNextRecord == 0)
                 {
+                    //we are out of data
                     break;
                 }
 
-//                while (index % 8 != 0)
-//                {
-//                    index += 1; //get to next 8 byte boundary
-//                }
             }
         }
 

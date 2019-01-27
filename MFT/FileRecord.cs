@@ -204,7 +204,7 @@ namespace MFT
                             var rp = new ReparsePoint(rawAttr);
                             Attributes.Add(rp);
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             var l = LogManager.GetLogger("ReparsePoint");
 
