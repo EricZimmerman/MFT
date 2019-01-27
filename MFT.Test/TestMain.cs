@@ -24,10 +24,10 @@ namespace MFT.Test
         public static string Mft4 = @"D:\Code\MFT\MFT.Test\TestFiles\NIST\DFR-16\$MFT";
         public static string Tdungan = @"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT";
         public static string Nromanoff = @"D:\Egnyte\Private\ezimmerman\MFTs\nromanoff\$MFT";
-        public static string Nfury = @"D:\SynologyDrive\MFTs\nfury\$MFT";
-        public static string Capuano = @"D:\SynologyDrive\MFTs\$MFT_FROM_CAPUANO";
+        public static string Nfury = @"D:\Egnyte\Private\ezimmerman\MFTs\nfury\$MFT";
+        public static string Capuano = @"D:\Egnyte\Private\ezimmerman\MFTs\$MFT_FROM_CAPUANO";
         public static string Vanko = @"D:\Egnyte\Private\ezimmerman\MFTs\vanko\$MFT";
-        public static string Test = @"D:\SynologyDrive\MFTs\20180615_MFTECmd_Bad_MFT_AMJH";
+        public static string Test = @"D:\Egnyte\Private\ezimmerman\MFTs\20180615_MFTECmd_Bad_MFT_AMJH";
         public static string Test4K = @"D:\Egnyte\Private\ezimmerman\MFTs\mft_4k_mftf.dat";
         public static string OneOff = @"D:\Egnyte\Private\ezimmerman\MFTs\MFT_SymLink";
 
@@ -89,6 +89,15 @@ namespace MFT.Test
 
 
             Debug.WriteLine($"$Boot.SectorSignature: {bb.GetSectorSignature()}");
+        }
+
+        [Test]
+        public void Rando()
+        {
+            var lf = MftFile.Load(OneOff);
+            //ss..Count.Should().Be(41);
+
+        
         }
 
         [Test]
@@ -163,10 +172,15 @@ namespace MFT.Test
         [Test]
         public void LXXATTR_LXATTRB()
         {
-            var lf = File.ReadAllBytes(@"C:\Temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xABD9C00.bin");
+            var lf = File.ReadAllBytes(@"D:\SynologyDrive\temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xABD9C00.bin");
 
 
             var ea = new FileRecord(lf,0xABD9C00);
+
+            foreach (var eaAttribute in ea.Attributes)
+            {
+                Debug.WriteLine(eaAttribute);
+            }
 
             //ss..Count.Should().Be(41);
 
@@ -176,11 +190,14 @@ namespace MFT.Test
         [Test]
         public void LXATTRB()
         {
-            var lf =  File.ReadAllBytes(@"C:\Temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xD99C800.bin");
+            var lf =  File.ReadAllBytes(@"D:\SynologyDrive\temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xD99C800.bin");
             //ss..Count.Should().Be(41);
 
             var ea = new FileRecord(lf,0xD99C800);
-
+            foreach (var eaAttribute in ea.Attributes)
+            {
+                Debug.WriteLine(eaAttribute);
+            }
           
         }
 

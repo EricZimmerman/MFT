@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -15,6 +16,8 @@ namespace MFT.Attributes
             Content = new byte[AttributeContentLength];
 
             Buffer.BlockCopy(rawBytes, ContentOffset, Content, 0, AttributeContentLength);
+
+            SubItems = new List<object>();
 
             ProcessContent();
         }
@@ -38,17 +41,6 @@ namespace MFT.Attributes
                 Buffer.BlockCopy(Content,index,buff,0,size);
                 chunks.Add(buff);
                 index += size;
-
-//
-//                if (name.Equals("LXATTRB"))
-//                {
-//                    index += 56;
-//                }
-//
-//                if (name.Equals("LXXATTR"))
-//                {
-//                    index += 56;
-//                }
             }
 
             foreach (var bytese in chunks)
@@ -70,15 +62,12 @@ namespace MFT.Attributes
 
                 var name = Encoding.GetEncoding(1252).GetString(bytese, index, nameLen);
 
-                Debug.WriteLine($"name: {name} 0x{bytese.Length:X}");
-
                 index += nameLen;
                 index += 1; //null char
 
-                while (index % 8 != 0)
-                {
-                    index += 1; //get to next 8 byte boundary
-                }
+//                var defBuff = new byte[bytese.Length - index];
+//                 Buffer.BlockCopy(bytese,index,defBuff,0,defBuff.Length);
+//                    File.WriteAllBytes($"D:\\Temp\\Maxim_EA)STUFF_MFT_wsl2\\EASAmples\\{name}_{Guid.NewGuid().ToString()}.bin",defBuff);
 
                 switch (name)
                 {
@@ -86,45 +75,52 @@ namespace MFT.Attributes
                         var lbBuff = new byte[bytese.Length - index];
                         Buffer.BlockCopy(bytese,index,lbBuff,0,lbBuff.Length);
                         var lb = new Lxattrb(lbBuff);
-                        Debug.WriteLine(lb);
+                        SubItems.Add(lb);
+                        //Debug.WriteLine(lb);
                         break;
                     case "LXXATTR":
                         var lrBuff = new byte[bytese.Length - index];
                         Buffer.BlockCopy(bytese,index,lrBuff,0,lrBuff.Length);
                         var lr = new Lxattrr(lrBuff);
-                        Debug.WriteLine(lr);
+                        SubItems.Add(lr);
+                        //Debug.WriteLine(lr);
                         break;
                     case "$KERNEL.PURGE.ESBCACHE":
                         var kpEs = new byte[bytese.Length - index];
                          Buffer.BlockCopy(bytese,index,kpEs,0,kpEs.Length);
+                        var esbCache = new PurgeEsbCache(kpEs);
+                        SubItems.Add(esbCache);
+                        //Debug.WriteLine(esbCache);
                         //TODO FINISH
                         break;
                     case "$CI.CATALOGHINT":
                         var ciCat = new byte[bytese.Length - index];
                         Buffer.BlockCopy(bytese,index,ciCat,0,ciCat.Length);
-                        //TODO FINISH
+                        var catHint = new CatHint(ciCat);
+                        SubItems.Add(catHint);
                         break;
                     case "$KERNEL.PURGE.APPXFICACHE":
                         var kpAppXFi = new byte[bytese.Length - index];
                         Buffer.BlockCopy(bytese,index,kpAppXFi,0,kpAppXFi.Length);
-                        //TODO FINISH
+                        var appFix = new AppFixCache(kpAppXFi);
+                        SubItems.Add(appFix);
                         break;
 
                     default:
                         var log = LogManager.GetLogger("EA");
                         log.Warn($"Unknown EA with name: {name}, Length: 0x{(bytese.Length - index):X}");
+                        Debug.WriteLine($"name: {name} 0x{bytese.Length:X}");
                         //var defBuff = new byte[bytese.Length - index];
                        // Buffer.BlockCopy(bytese,index,defBuff,0,defBuff.Length);
-                    //    File.WriteAllBytes($"C:\\temp\\{name}_{Guid.NewGuid().ToString()}.bin",defBuff);
+                    //    File.WriteAllBytes($"D:\\Temp\\Maxim_EA)STUFF_MFT_wsl2\\EASAmples\\{name}_{Guid.NewGuid().ToString()}.bin",defBuff);
                         break;
                 }
             }
-
-
-           
         }
 
         public byte[] Content { get; }
+
+        public List<object> SubItems { get; }
 
         public override string ToString()
         {
@@ -137,12 +133,87 @@ namespace MFT.Attributes
             var asAscii = Encoding.GetEncoding(1252).GetString(Content);
             var asUnicode = Encoding.Unicode.GetString(Content);
 
-
             sb.AppendLine();
             sb.AppendLine(
                 $"Extended Attribute:: {BitConverter.ToString(Content)}\r\n\r\nASCII: {asAscii}\r\nUnicode: {asUnicode}");
 
+            if (SubItems.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("Sub items");
+            }
+
+            foreach (var subItem in SubItems)
+            {
+                sb.AppendLine(subItem.ToString());
+            }
+
             return sb.ToString();
+        }
+    }
+
+    public class CatHint
+    {
+        public CatHint(byte[] rawBytes)
+        {
+            var index = 0;
+
+            Format = BitConverter.ToInt16(rawBytes,index);
+            index += 2;
+
+            var size = BitConverter.ToInt16(rawBytes, index);
+            index += 2;
+
+            Hint = Encoding.GetEncoding(1252).GetString(rawBytes, index, size);
+        }
+
+        public short Format { get; }
+
+        public string Hint { get; }
+
+        public override string ToString()
+        {
+            return $"$CI.CATALOGHINT | Hint: {Hint}";
+        }
+    }
+
+    public class AppFixCache
+    {
+        public AppFixCache(byte[] rawBytes)
+        {
+            Timestamp = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0)).ToUniversalTime();
+            
+            RemainingBytes = new byte[rawBytes.Length-8];
+            Buffer.BlockCopy(rawBytes,8,RemainingBytes,0,RemainingBytes.Length);
+        }
+
+        public DateTimeOffset Timestamp { get; }
+        public byte[] RemainingBytes { get; }
+
+        public override string ToString()
+        {
+            return $"$KERNEL.PURGE.APPXFICACHE | Timestamp: {Timestamp:yyyy-MM-dd HH:mm:ss.fffffff} Remaining bytes: {BitConverter.ToString(RemainingBytes)}";
+        }
+    }
+
+    public class PurgeEsbCache
+    {
+        public PurgeEsbCache(byte[] rawBytes)
+        {
+            var index = 8;
+            Timestamp = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
+            index += 8;
+            Timestamp2 = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
+            index += 8;
+        }
+
+
+        public DateTimeOffset Timestamp { get; }
+        public DateTimeOffset Timestamp2 { get; }
+
+        public override string ToString()
+        {
+            return $"$KERNEL.PURGE.ESBCACHE | Timestamp: {Timestamp:yyyy-MM-dd HH:mm:ss.fffffff} Timestamp2: {Timestamp2:yyyy-MM-dd HH:mm:ss.fffffff}";
         }
     }
 
@@ -159,7 +230,6 @@ namespace MFT.Attributes
             index += 2;
             Version = BitConverter.ToInt16(rawBytes,index);
             index += 2;
-
          
             index += 1; //unknown
 
@@ -191,6 +261,8 @@ namespace MFT.Attributes
         public override string ToString()
         {
             var sb = new StringBuilder();
+
+            sb.AppendLine("LXXATTR");
 
             foreach (var keyValue in KeyValues)
             {
@@ -225,31 +297,35 @@ namespace MFT.Attributes
             InodeChangedNanoSeconds = BitConverter.ToInt32(rawBytes,index);
             index += 4;
 
-            LastAccessTime = BitConverter.ToInt64(rawBytes,index);
+            LastAccessTime = DateTimeOffset.FromUnixTimeSeconds(BitConverter.ToInt64(rawBytes,index)).ToUniversalTime();
             index += 8;
-            ModifiedTime = BitConverter.ToInt64(rawBytes,index);
+            ModifiedTime = DateTimeOffset.FromUnixTimeSeconds(BitConverter.ToInt64(rawBytes,index)).ToUniversalTime();
             index += 8;
-            InodeChanged = BitConverter.ToInt64(rawBytes,index);
+            InodeChanged = DateTimeOffset.FromUnixTimeSeconds(BitConverter.ToInt64(rawBytes,index)).ToUniversalTime();
             index += 8;
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
+
+            sb.AppendLine("LXATTRB");
             
             sb.AppendLine($"Format: 0x{Format:X}");
             sb.AppendLine($"Version: 0x{Version:X}");
             sb.AppendLine($"Mode: 0x{Mode:X}");
             sb.AppendLine($"Uid/Gid: 0x{Uid:X}/0x{Gid:X}");
-            sb.AppendLine($"DeviceId: 0x{DeviceId:X}");
+            sb.AppendLine($"Device Id: 0x{DeviceId:X}");
 
-            sb.AppendLine($"LastAccessNanoSeconds: 0x{LastAccessNanoSeconds:X}");
-            sb.AppendLine($"ModifiedNanoSeconds: 0x{ModifiedNanoSeconds:X}");
-            sb.AppendLine($"InodeChangedNanoSeconds: 0x{InodeChangedNanoSeconds:X}");
+            //convert to seconds so we can use it later.
+            //.net has no API for adding nanoseconds that works, so this is what we get
+            var lastAccessSubSec = (LastAccessNanoSeconds / 1e+9).ToString(CultureInfo.InvariantCulture);
+            var modifiedSubsec = (ModifiedNanoSeconds / 1e+9).ToString(CultureInfo.InvariantCulture);
+            var inodeChangeSubsec = (InodeChangedNanoSeconds / 1e+9).ToString(CultureInfo.InvariantCulture);
 
-            sb.AppendLine($"LastAccessTime: 0x{LastAccessTime:X}");
-            sb.AppendLine($"ModifiedTime: 0x{ModifiedTime:X}");
-            sb.AppendLine($"InodeChanged: 0x{InodeChanged:X}");
+            sb.AppendLine($"Last Access Time: {LastAccessTime.ToUniversalTime():yyyy-MM-dd HH:mm:ss}.{(lastAccessSubSec.Length>2 ? lastAccessSubSec.Substring(2) : "0000000")}");
+            sb.AppendLine($"Modified Time: {ModifiedTime.ToUniversalTime():yyyy-MM-dd HH:mm:ss}.{modifiedSubsec.Substring(2)}");
+            sb.AppendLine($"Inode Changed: {InodeChanged.ToUniversalTime():yyyy-MM-dd HH:mm:ss}.{inodeChangeSubsec.Substring(2)}");
 
             return sb.ToString();
         }
@@ -265,8 +341,8 @@ namespace MFT.Attributes
         public int ModifiedNanoSeconds { get; }
         public int InodeChangedNanoSeconds { get; }
 
-        public long LastAccessTime { get; }
-        public long ModifiedTime { get; }
-        public long InodeChanged { get; }
+        public DateTimeOffset LastAccessTime { get; }
+        public DateTimeOffset ModifiedTime { get; }
+        public DateTimeOffset InodeChanged { get; }
     }
 }

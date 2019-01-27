@@ -9,6 +9,7 @@ namespace MFT.Attributes
         [Flags]
         public enum Flag
         {
+            None = 0x00,
             ReadOnly = 0x01,
             Hidden = 0x02,
             System = 0x04,
@@ -30,6 +31,13 @@ namespace MFT.Attributes
             HasEa = 0x040000,
             IsDirectory = 0x10000000,
             IsIndexView = 0x20000000
+        }
+
+        [Flags]
+        public enum Flag2
+        {
+            None = 0x00,
+            IsCaseSensitive = 0x01,
         }
 
         public StandardInfo(byte[] rawBytes) : base(rawBytes)
@@ -71,7 +79,7 @@ namespace MFT.Attributes
             Flags = (Flag) BitConverter.ToInt32(rawBytes, 0x38);
 
             MaxVersion = BitConverter.ToInt32(rawBytes, 0x3C);
-            VersionNumber = BitConverter.ToInt32(rawBytes, 0x40);
+            Flags2 = (Flag2) BitConverter.ToInt32(rawBytes, 0x40);
             ClassId = BitConverter.ToInt32(rawBytes, 0x44);
 
             if (rawBytes.Length <= 0x48)
@@ -86,7 +94,7 @@ namespace MFT.Attributes
         }
 
         public int MaxVersion { get; }
-        public int VersionNumber { get; }
+        public Flag2 Flags2 { get; }
         public int ClassId { get; }
         public int OwnerId { get; }
         public int SecurityId { get; }
@@ -111,7 +119,7 @@ namespace MFT.Attributes
             sb.AppendLine();
 
             sb.AppendLine(
-                $"Flags: {Flags.ToString().Replace(", ", "|")}, Max Version: 0x{MaxVersion:X}, Version #: 0x{VersionNumber:X}, Class Id: 0x{ClassId:X}, " +
+                $"Flags: {Flags.ToString().Replace(", ", "|")}, Max Version: 0x{MaxVersion:X}, Flags 2: {Flags2.ToString().Replace(", ", "|")}, Class Id: 0x{ClassId:X}, " +
                 $"Owner Id: 0x{OwnerId:X}, Security Id: 0x{SecurityId:X}, Quota Charged: 0x{QuotaCharged:X} " +
                 $"\r\nUpdate Sequence #: 0x{UpdateSequenceNumber:X}" +
                 $"\r\n\r\nCreated On:\t\t{CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
