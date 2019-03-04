@@ -94,7 +94,7 @@ namespace MFT.Test
         [Test]
         public void Rando()
         {
-            var lf = MftFile.Load(OneOff);
+            var lf = MftFile.Load(@"C:\Users\e\Desktop\MFT_Rodriguez\MFT_Rodriguez");
             //ss..Count.Should().Be(41);
 
         

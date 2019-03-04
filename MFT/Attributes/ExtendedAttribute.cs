@@ -181,7 +181,13 @@ namespace MFT.Attributes
     {
         public AppFixCache(byte[] rawBytes)
         {
-            Timestamp = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0)).ToUniversalTime();
+            var tsraw = BitConverter.ToInt64(rawBytes, 0);
+            if (tsraw < 0)
+            {
+                tsraw = 0;
+            }
+
+            Timestamp = DateTimeOffset.FromFileTime(tsraw).ToUniversalTime();
             
             RemainingBytes = new byte[rawBytes.Length-8];
             Buffer.BlockCopy(rawBytes,8,RemainingBytes,0,RemainingBytes.Length);
