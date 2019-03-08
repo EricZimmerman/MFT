@@ -13,11 +13,10 @@ namespace MFT
                 throw new FileNotFoundException($"'{mftPath}' not found");
             }
 
-            using (var br = new BinaryReader(new FileStream(mftPath, FileMode.Open, FileAccess.Read)))
+            using (var fs = new FileStream(mftPath, FileMode.Open, FileAccess.Read))
             {
-                var bytes = ReadAllBytes(br);
                 
-                return new Mft(bytes);
+                return new Mft(fs);
             }
         }
 

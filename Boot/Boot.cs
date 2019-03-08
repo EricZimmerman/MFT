@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using NLog;
 
@@ -8,9 +9,12 @@ namespace Boot
     {
         private readonly Logger _logger = LogManager.GetLogger("Boot");
 
-        public Boot(byte[] rawBytes)
+        public Boot(Stream fileStream)
         {
             const int expectedSectorSig = 0xaa55;
+
+            var rawBytes = new byte[512];
+            fileStream.Read(rawBytes, 0, 512);
 
             SectorSignature = BitConverter.ToUInt16(rawBytes, 510);
 

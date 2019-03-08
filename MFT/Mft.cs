@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using MFT.Attributes;
 using MFT.Other;
@@ -13,7 +14,7 @@ namespace MFT
         private readonly Logger _logger = LogManager.GetLogger("MFT");
         private readonly Dictionary<string, HashSet<ParentMapEntry>> _parentDirectoryNameMap;
 
-        public Mft(byte[] rawBytes)
+        public Mft(Stream fileStream)
         {
             FileRecords = new Dictionary<string, FileRecord>();
             FreeFileRecords = new Dictionary<string, FileRecord>();
@@ -21,21 +22,35 @@ namespace MFT
             BadRecords = new List<FileRecord>();
             UninitializedRecords = new List<FileRecord>();
 
-            var sig = BitConverter.ToInt32(rawBytes, 0);
+            var headerBytes = new byte[4];
+
+            fileStream.Read(headerBytes, 0, 4);
+
+            var sig = BitConverter.ToInt32(headerBytes, 0);
             if (sig != 0x454c4946) //Does not match FILE
             {
                 throw new Exception("Invalid header! Expected 'FILE' Signature.");
             }
 
-            var blockSize = BitConverter.ToInt32(rawBytes, 0x1c);
+            var blockSizeBytes = new byte[4];
+            
+            
+            fileStream.Seek(0x1c, SeekOrigin.Begin); //go where data is
+
+            fileStream.Read(blockSizeBytes, 0,4);
+            fileStream.Seek(0, SeekOrigin.Begin); //reset to beginning
+
+            var blockSize = BitConverter.ToInt32(blockSizeBytes, 0);
 
             var fileBytes = new byte[blockSize];
 
             var index = 0;
 
-            while (index < rawBytes.Length)
+            while (fileStream.Position<fileStream.Length)
             {
-                Buffer.BlockCopy(rawBytes, index, fileBytes, 0, blockSize);
+                fileStream.Read(fileBytes, 0, blockSize);
+
+              //  Buffer.BlockCopy(rawBytes, index, fileBytes, 0, blockSize);
 
                 CurrentOffset = index;
 

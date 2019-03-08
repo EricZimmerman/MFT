@@ -147,22 +147,23 @@ namespace MFT.Test
 
            var m = MftFile.Load(@"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT");
 
-           var f = m.GetDirectoryContents("00000005-00000005");
+//           var f = m.GetDirectoryContents("00000005-00000005");
+//
+//           foreach (var parentMapEntry in f)
+//           {
+//               Debug.WriteLine(parentMapEntry);
+//           }
+//
+//           Debug.WriteLine("--------------------------------------");
+//
+//           f = m.GetDirectoryContents("000001E4-00000019");
+//
+//           foreach (var parentMapEntry in f)
+//           {
+//               Debug.WriteLine(parentMapEntry);
+//           }
 
-           foreach (var parentMapEntry in f)
-           {
-               Debug.WriteLine(parentMapEntry);
-           }
-
-           Debug.WriteLine("--------------------------------------");
-
-           f = m.GetDirectoryContents("000001E4-00000019");
-
-           foreach (var parentMapEntry in f)
-           {
-               Debug.WriteLine(parentMapEntry);
-           }
-
+Debug.WriteLine(1);
 
             //ss..Count.Should().Be(41);
 
@@ -262,6 +263,23 @@ namespace MFT.Test
         [Test]
         public void Sds1_ntfs_sds2_SDS()
         {
+            var config = new LoggingConfiguration();
+            var loglevel = LogLevel.Debug;
+
+            var layout = @"${message}";
+
+            var consoleTarget = new ColoredConsoleTarget();
+
+            config.AddTarget("console", consoleTarget);
+
+            consoleTarget.Layout = layout;
+
+            var rule1 = new LoggingRule("*", loglevel, consoleTarget);
+            config.LoggingRules.Add(rule1);
+
+         //   LogManager.Configuration = config;
+
+
             var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds2\$SDS");
             ss.SdsEntries.Count.Should().Be(1696);
 //
@@ -287,7 +305,7 @@ namespace MFT.Test
 
             var start = DateTimeOffset.Now;
 
-            var m2 = MftFile.Load(Xwf);
+            var m2 = MftFile.Load(Nromanoff);
 
             var logger = LogManager.GetCurrentClassLogger();
 
@@ -335,9 +353,23 @@ namespace MFT.Test
         [Test]
         public void Usn()
         {
+            var config = new LoggingConfiguration();
+            var loglevel = LogLevel.Trace;
 
+            var layout = @"${message}";
 
-            var usn4 = UsnFile.Load(@"D:\!downloads\J-stream-testing\noname.bin");
+            var consoleTarget = new ColoredConsoleTarget();
+
+            config.AddTarget("console", consoleTarget);
+
+            consoleTarget.Layout = layout;
+
+            var rule1 = new LoggingRule("*", loglevel, consoleTarget);
+            config.LoggingRules.Add(rule1);
+
+           //   LogManager.Configuration = config;
+
+            var usn4 = UsnFile.Load(@"D:\SynologyDrive\ntfs\Troy\J-stream-testing\noname.bin");
            // var usn4 = UsnFile.Load(@"D:\!downloads\J-stream-testing\$J");
             usn4.UsnEntries.Count.Should().Be(328539);
         }
@@ -345,13 +377,16 @@ namespace MFT.Test
         public void Usn2()
         {
 
-            var usn4 = UsnFile.Load(@"D:\SynologyDrive\ntfs\Troy\J.bin");
+           var usn4 = UsnFile.Load(@"D:\SynologyDrive\ntfs\Troy\J.bin");
             
-            var bb = File.ReadAllBytes(@"D:\SynologyDrive\ntfs\Troy\$J");
+          //  var bb = File.ReadAllBytes(@"D:\SynologyDrive\ntfs\Troy\$J");
 
-            var foo = UsnFile.FindStartingOffset(new MemoryStream(bb));
+            var foo = UsnFile.FindStartingOffset(new FileStream(@"D:\SynologyDrive\ntfs\Troy\$J",FileMode.Open,FileAccess.Read));
+            Debug.WriteLine(foo);
 
-            //   usn4.UsnEntries.Count.Should().Be(38948);
+            Debug.WriteLine(usn4.UsnEntries.Last());
+
+             usn4.UsnEntries.Count.Should().Be(142);
         }
 
 

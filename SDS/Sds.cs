@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using MFT.Attributes;
 using NLog;
 
@@ -9,13 +10,17 @@ namespace Secure
     {
         public static uint LastOffset = 0;
 
-        public Sds(byte[] rawBytes)
+        public Sds(Stream fileStream)
         {
             uint index = 0x0;
 
             var logger = LogManager.GetLogger("SDS");
 
             SdsEntries = new List<SdsEntry>();
+
+
+            var rawBytes = new byte[fileStream.Length];
+            fileStream.Read(rawBytes, 0, (int) fileStream.Length);
 
             while (index < rawBytes.Length)
             {
