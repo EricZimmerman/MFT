@@ -17,8 +17,6 @@ namespace Usn
 
         public Usn(Stream fileStream, long startingOffset)
         {
-         //   long index = 0;
-
             UsnEntries = new List<UsnEntry>();
 
             fileStream.Seek(startingOffset, SeekOrigin.Begin);
@@ -30,11 +28,6 @@ namespace Usn
             while (fileStream.Position<fileStream.Length)
             {
                 _logger.Trace($"Starting fileStream.Position 0x {fileStream.Position:X8}.");
-
-                if (fileStream.Position == 0x025ADCF0)
-                {
-                    Debug.WriteLine(1);
-                }
 
                 LastOffset = (uint) fileStream.Position;
 
@@ -48,8 +41,6 @@ namespace Usn
                 if (size == 0)
                 {
                     _logger.Trace($"Size is zero. Increasing index by 0x{PageSize:X}");
-
-              //      index = (uint) (lastGoodPageOffset + PageSize);
 
                     fileStream.Seek((lastGoodPageOffset + PageSize), SeekOrigin.Begin);
                     
@@ -74,8 +65,6 @@ namespace Usn
                 {
                     _logger.Trace($"Strange size or ver # incorrect at 0x {(fileStream.Position):X8}. Increasing index by 0x{PageSize:X}. Size: 0x{size:X} version: {majorVer}");
                     
-                //    index = (uint) (lastGoodPageOffset + PageSize);
-
                     fileStream.Seek((lastGoodPageOffset + PageSize), SeekOrigin.Begin);
 
                     lastGoodPageOffset += PageSize;
@@ -96,12 +85,8 @@ namespace Usn
 
                 fileStream.Read(buff, 0, (int) size);
 
-                //Buffer.BlockCopy(rawBytes, (int) index, buff, 0, (int) size);
-
                 var ue = new UsnEntry(buff, LastOffset);
                 UsnEntries.Add(ue);
-
-            //    index += fileStream.Position;
             }
 
             _logger.Debug($"Found {UsnEntries.Count:N0} records");
