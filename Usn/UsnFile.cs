@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using NLog;
 
 namespace Usn
@@ -53,7 +54,7 @@ namespace Usn
 
           long startIndex = 0;
             
-          using (var br = new BinaryReader(usnBytes))
+          using (var br = new BinaryReader(usnBytes,Encoding.ASCII))
           {
               logger.Trace("Binary reader open");
 
