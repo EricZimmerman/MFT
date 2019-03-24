@@ -14,6 +14,8 @@ namespace MFT
         private readonly Logger _logger = LogManager.GetLogger("MFT");
         private readonly Dictionary<string, HashSet<ParentMapEntry>> _parentDirectoryNameMap;
 
+        public long FileSize { get; }
+
         public Mft(Stream fileStream)
         {
             FileRecords = new Dictionary<string, FileRecord>();
@@ -21,6 +23,8 @@ namespace MFT
             ExtensionFileRecords = new Dictionary<string, List<FileRecord>>();
             BadRecords = new List<FileRecord>();
             UninitializedRecords = new List<FileRecord>();
+
+            FileSize = fileStream.Length;
 
             var headerBytes = new byte[4];
 
