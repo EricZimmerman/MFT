@@ -16,11 +16,10 @@ namespace LogFile
                 throw new FileNotFoundException($"'{logFile}' not found");
             }
 
-            using (var br = new BinaryReader(new FileStream(logFile, FileMode.Open, FileAccess.Read)))
+            using (var fs = new FileStream(logFile, FileMode.Open, FileAccess.Read))
             {
-                var bytes = ReadAllBytes(br);
                 
-                return new LogFile(bytes);
+                return new LogFile(fs);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using NLog;
 
 namespace LogFile
@@ -15,13 +16,15 @@ namespace LogFile
         private  const int RcrdSig = 0x44524352;
         private const int ChkdSig = 0x52545351;
 
-        public LogFile(byte[] rawBytes)
+        public LogFile(Stream fileStream)
         {
             //preliminary sig check to get us started
             const int sig = 0x52545352;
 
+            var br = new BinaryReader(fileStream);
+
             var index = 0x0;
-            var sigCheck = BitConverter.ToInt32(rawBytes, index);
+            var sigCheck = br.ReadInt32();// BitConverter.ToInt32(rawBytes, index);
 
             if (sig != sigCheck)
             {
@@ -30,19 +33,19 @@ namespace LogFile
                 }
             }
 
+            br.BaseStream.Seek(0, SeekOrigin.Begin); //reset
+
             NormalPageArea = new List<LogPageRcrd>();
 
-            while (index < rawBytes.Length)
+            while (fileStream.Position<fileStream.Length)
             {
                 LastOffset = (uint) index;
 
-                var buff = new byte[PageSize];
-                Buffer.BlockCopy(rawBytes, index, buff, 0, PageSize);
+               var buff = br.ReadBytes(PageSize);
 
                 _logger.Debug($"Processing log page at offset 0x{index:X}");
 
-
-                var sigActual = BitConverter.ToInt32(rawBytes, index);
+                var sigActual = BitConverter.ToInt32(buff, 0);
 
                 switch (sigActual)
                 {
@@ -79,7 +82,7 @@ namespace LogFile
 //                    PageType = PageTypes.Chkd;
 //                    break;
                     default: 
-                        throw new Exception($"Invalid signature at offset 0x{index:X}! Expected 'RCRD|RSTR|SHKD' signature.");
+                        throw new Exception($"Invalid signature at offset 0x{index:X}! Expected 'RCRD|RSTR|CHKD' signature.");
                 }
 
 

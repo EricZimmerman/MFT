@@ -103,6 +103,23 @@ namespace MFT.Test
         [Test]
         public void LogFile()
         {
+            var config = new LoggingConfiguration();
+            var loglevel = LogLevel.Debug;
+
+            var layout = @"${message}";
+
+            var consoleTarget = new ColoredConsoleTarget();
+
+            config.AddTarget("console", consoleTarget);
+
+            consoleTarget.Layout = layout;
+
+            var rule1 = new LoggingRule("*", loglevel, consoleTarget);
+            config.LoggingRules.Add(rule1);
+
+            LogManager.Configuration = config;
+            var l = LogManager.GetLogger("foo");
+
             var lf = Log_File.Load(@"D:\SynologyDrive\ntfs\$LogFile");
             //ss..Count.Should().Be(41);
 

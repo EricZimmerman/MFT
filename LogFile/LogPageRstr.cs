@@ -23,7 +23,7 @@ namespace LogFile
 
             var sigCheck = BitConverter.ToInt32(rawBytes, index);
 
-            if (sigCheck != RstrSig || sigCheck != ChkdSig)
+            if (sigCheck != RstrSig && sigCheck != ChkdSig)
             {
                 {
                     throw new Exception("Invalid signature! Expected 'RSTR|CHKD' signature.");
