@@ -1,5 +1,55 @@
 ﻿<ProjectConfiguration>
   <Settings>
     <HiddenComponentWarnings />
+    <IgnoredTests>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.Usn2</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.Boot</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.LXATTRB</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.LXXATTR_LXATTRB</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.LXXATTR_Solo</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.MFTs</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.PathTest</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.Rando</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.Sds</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.Sds_sds1_Secure_SDS</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.Sds1_ntfs_sds2_SDS</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.sds3</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.sds4</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.Sii</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.Something</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.Usn</TestName>
+      </NamedTestSelector>
+    </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

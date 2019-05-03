@@ -1,17 +1,41 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Security.Policy;
+using System.IO;
+using System.ServiceModel;
 using System.Text;
-using System.Threading.Tasks;
-using NLog;
 
 namespace LogFile
 {
-  public  class LogPageRstr
+    public enum RestartFlag
+    {
+        None=0x0,
+        OneByOne=0x1,
+        NewArea = 0x2
+        
+    }
+    public  class LogPageRstr
     {
         private readonly Logger _logger = LogManager.GetLogger("LogFile");
+        public long CheckDiskLsn;
+        public int SystemPageSize;
+        public int LogPageSize;
+        public short RestartOffset;
+        public short MinorFormatVersion;
+        public short MajorFormatVersion;
+        public long CurrentLsn;
+        public short LogClientCount;
+        public short ClientFreeList;
+        public RestartFlag Flags;
+        public short ClientInUseList;
+        public int SeqNumBits;
+        public short RestartAreaLen;
+        public short ClientArrayOffset;
+        public long LogFileSize;
+        public int LastLsnDataLen;
+        public short RecordHeaderLen;
+        public short LogPageDataOffset;
+        public int RevisionNumber;
         private const int RstrSig = 0x52545352;
         private const int ChkdSig = 0x52545351;
 
@@ -39,22 +63,23 @@ namespace LogFile
             var numFixupPairs = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
-            var checkDiskLsn = BitConverter.ToInt64(rawBytes, index);
+            CheckDiskLsn = BitConverter.ToInt64(rawBytes, index);
             index += 8;
-            var systemPageSize = BitConverter.ToInt32(rawBytes, index);
+            SystemPageSize = BitConverter.ToInt32(rawBytes, index);
             index += 4;
             
-            var logPageSize = BitConverter.ToInt32(rawBytes, index);
+            LogPageSize = BitConverter.ToInt32(rawBytes, index);
             index += 4;
 
-            var restartOffset = BitConverter.ToInt16(rawBytes, index);
+            RestartOffset = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
-            var minorFormatVersion = BitConverter.ToInt16(rawBytes, index);
+            MinorFormatVersion = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
-            var majorFormatVersion = BitConverter.ToInt16(rawBytes, index);
+            MajorFormatVersion = BitConverter.ToInt16(rawBytes, index);
             index += 2;
+
             
 
             var fixupTotalLength = numFixupPairs * 2;
@@ -93,17 +118,114 @@ namespace LogFile
                 index += 1;
             }
 
-            var currentLsn = BitConverter.ToInt64(rawBytes, index);
+            CurrentLsn = BitConverter.ToInt64(rawBytes, index);
             index += 8;
-            var logClient = BitConverter.ToInt16(rawBytes, index);
+            LogClientCount = BitConverter.ToInt16(rawBytes, index);
             index += 2;
-            var clientList = BitConverter.ToInt16(rawBytes, index);
+            ClientFreeList = BitConverter.ToInt16(rawBytes, index);
             index += 2;
-            var flags = BitConverter.ToInt32(rawBytes, index);
+            ClientInUseList = BitConverter.ToInt16(rawBytes, index);
+            index += 2;
+            Flags =(RestartFlag) BitConverter.ToInt16(rawBytes, index);
+            index += 2;
+            SeqNumBits = BitConverter.ToInt32(rawBytes, index);
             index += 4;
-            
+            RestartAreaLen = BitConverter.ToInt16(rawBytes, index);
+            index += 2;
+            ClientArrayOffset = BitConverter.ToInt16(rawBytes, index);
+            index += 2;
+            LogFileSize = BitConverter.ToInt64(rawBytes, index);
+            index += 8;
+            LastLsnDataLen = BitConverter.ToInt32(rawBytes, index);
+            index += 4;
+            RecordHeaderLen = BitConverter.ToInt16(rawBytes, index);
+            index += 2;
+            LogPageDataOffset = BitConverter.ToInt16(rawBytes, index);
+            index += 2;
+            RevisionNumber = BitConverter.ToInt32(rawBytes, index);
 
-            Debug.WriteLine($"at abs offset: 0x{(offset+index):X}, restartOffset: 0x{restartOffset:X}");
+            index = 0x30 + ClientArrayOffset;
+            ClientRecords = new List<ClientRecord>();
+           
+            for (var i = 0; i < LogClientCount; i++)
+            {
+                var buff = new byte[160]; //len of clientRecord
+
+                Buffer.BlockCopy(rawBytes,index,buff,0,160);
+
+                var cr = new ClientRecord(buff);
+                ClientRecords.Add(cr);
+                index += 160;
+            }
+        
+        }
+
+        public List<ClientRecord> ClientRecords { get; }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            
+            sb.Append($"checkDiskLsn: 0x{CheckDiskLsn:X} ");
+            sb.Append($"systemPageSize: 0x{SystemPageSize:X} ");
+            sb.Append($"logPageSize: 0x{LogPageSize:X} ");
+            sb.Append($"restartOffset: 0x{RestartOffset:X} ");
+            sb.Append($"majorFormatVersion: 0x{MajorFormatVersion:X} ");
+            sb.Append($"minorFormatVersion: 0x{MinorFormatVersion:X} ");
+            sb.Append($"currentLsn: 0x{CurrentLsn:X} ");
+            sb.Append($"logClient: 0x{LogClientCount:X} ");
+            sb.Append($"ClientFreeList: 0x{ClientFreeList:X} ");
+            sb.Append($"ClientInUseList: 0x{ClientInUseList:X} ");
+            sb.Append($"flags: {Flags} ");
+            sb.Append($"SeqNumBits: 0x{SeqNumBits:X} ");
+            sb.Append($"RestartAreaLen: 0x{RestartAreaLen:X} ");
+            sb.Append($"ClientArrayOffset: 0x{ClientArrayOffset:X} ");
+            sb.Append($"LogFileSize: 0x{LogFileSize:X} ");
+            sb.Append($"lastLsnDataLen: 0x{LastLsnDataLen:X} ");
+            sb.Append($"recordHeaderLen: 0x{RecordHeaderLen:X} ");
+            sb.Append($"LogPageDataOffset: 0x{LogPageDataOffset:X} ");
+            sb.Append($"revisionNumber: 0x{RevisionNumber:X} ");
+            sb.AppendLine();
+
+            sb.AppendLine($"Client Records ({ClientRecords.Count:N0})");
+            foreach (var clientRecord in ClientRecords)
+            {
+                sb.AppendLine(clientRecord.ToString());
+            }
+
+            sb.AppendLine();
+
+            return sb.ToString();
         }
     }
+
+  public class ClientRecord
+  {
+      public long OldestLsn { get; }
+      public long ClientRestartLsn { get; }
+      public short PrevClient { get; }
+      public short NextClient { get; }
+      public short SeqNumber { get; }
+      public string ClientName { get; }
+
+      public ClientRecord(byte[] rawBytes)
+      {
+          var br = new BinaryReader(new MemoryStream(rawBytes));
+
+          OldestLsn = br.ReadInt64();
+          ClientRestartLsn = br.ReadInt64();
+          PrevClient = br.ReadInt16();
+          NextClient = br.ReadInt16();
+          SeqNumber = br.ReadInt16();
+          br.ReadBytes(6);//skip
+          var clientNameLen = br.ReadInt32();
+
+          ClientName = Encoding.Unicode.GetString(br.ReadBytes(clientNameLen));
+      }
+
+      public override string ToString()
+      {
+          return $"  oldestLsn: 0x{OldestLsn:X} clientRestartLsn: 0x{ClientRestartLsn:X} prevClient: 0x{PrevClient:X} nextClient: 0x{NextClient:X} seqNumber: 0x{SeqNumber:X} ClientName: {ClientName}";
+      }
+  }
 }

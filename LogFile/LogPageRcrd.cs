@@ -1,19 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using NLog;
+using NLog.LayoutRenderers;
 
 namespace LogFile
 {
+    public enum PageRecordFlag
+    {
+        MultiplePages = 0x1,
+        NoRedo = 0x2,
+        NoUndo = 0x4
+    }
+
   public  class LogPageRcrd
     {
         private readonly Logger _logger = LogManager.GetLogger("LogFile");
-        private  const int RcrdSig = 0x44524352;
-   
+
+        public long LastLogFileSequenceNumber { get; }
+        public int Flags{ get; }
+        public short PageCount{ get; }
+        public short PagePosition{ get; }
+        public short NextRecordOffset{ get; }
+        public long LastEndLogFileSequenceNumber{ get; }
+
+        private const int RcrdSig = 0x44524352;
 
         public int Offset { get; }
 
@@ -31,8 +47,6 @@ namespace LogFile
 
             Offset = offset;
 
-            Offset = offset;
-
             index += 4;
 
             var fixupOffset = BitConverter.ToInt16(rawBytes, index);
@@ -40,18 +54,18 @@ namespace LogFile
             var numFixupPairs = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
-            var lastLogFileSequenceNumber = BitConverter.ToInt64(rawBytes, index);
+            LastLogFileSequenceNumber = BitConverter.ToInt64(rawBytes, index);
             index += 8;
-            var flags = BitConverter.ToInt32(rawBytes, index);
+            Flags = BitConverter.ToInt32(rawBytes, index);
             index += 4;
             
-            var pageCount = BitConverter.ToInt16(rawBytes, index);
+            PageCount = BitConverter.ToInt16(rawBytes, index);
             index +=2;
 
-            var pagePosition = BitConverter.ToInt16(rawBytes, index);
+            PagePosition = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
-            var nextRecordOffset = BitConverter.ToInt16(rawBytes, index);
+            NextRecordOffset = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
             var wordAlign = BitConverter.ToInt16(rawBytes, index);
@@ -60,9 +74,8 @@ namespace LogFile
             var dwordAlign = BitConverter.ToInt32(rawBytes, index);
             index += 4;
 
-            var lastEndLogFileSequenceNumber = BitConverter.ToInt64(rawBytes, index);
+            LastEndLogFileSequenceNumber = BitConverter.ToInt64(rawBytes, index);
             index += 8;
-            
 
             var fixupTotalLength = numFixupPairs * 2;
 
@@ -100,9 +113,211 @@ namespace LogFile
                 index += 1;
             }
 
+            //header is 0x58 bytes, so go past it
+
+            index = 0x58;
+
+            _logger.Info($"   LastLogFileSequenceNumber: 0x{LastLogFileSequenceNumber:X} Flags: {Flags} PageCount: 0x{PageCount:X} PagePosition: 0x{PagePosition:X} NextRecordOffset: 0x{NextRecordOffset:X} LastEndLogFileSequenceNumber: 0x{LastEndLogFileSequenceNumber:X} LastLogFileSequenceNumber==LastEndLogFileSequenceNumber: {LastEndLogFileSequenceNumber==LastLogFileSequenceNumber}");
+
+            //record is 0x30 + clientDatalen long
+
+            return;
+
+            Records = new List<Record>();
+
+            while (index<rawBytes.Length)
+            {
+                var so = index;
+                var thisLsn = BitConverter.ToInt64(rawBytes, index);
+                var prevLsn = BitConverter.ToInt64(rawBytes, index+8);
+                var clientUndoLsn = BitConverter.ToInt64(rawBytes, index+16);
+                
+                _logger.Info($"     this: {thisLsn:X} prev: {prevLsn:X} undo: {clientUndoLsn:X}");
+
+
+                var clientDataLen = BitConverter.ToInt32(rawBytes, index + 24);
+                var buff = new byte[clientDataLen+ 0x30];
+                Buffer.BlockCopy(rawBytes,index,buff,0,buff.Length);
+
+                var rec = new Record(buff);
+
+                Records.Add(rec);
+
+                index += buff.Length;
+
+                _logger.Info($"     Found record of size 0x{buff.Length:X}, new index = 0x{index:X} this: {thisLsn:X} prev: {prevLsn:X} undo: {clientUndoLsn:X}");
+
+                if (thisLsn == LastEndLogFileSequenceNumber)
+                {
+                    _logger.Warn($"At last LSN in this page (0x{thisLsn:X}). found it at offset 0x{so:X}\r\n");
+                    break;
+                }
+            }
+            
             
 
-         //   Debug.WriteLine($"at abs offset: 0x{(offset+index):X}, restartOffset: 0x{restartOffset:X}");
+            
+
+            //Debug.WriteLine($"at abs offset: 0x{(offset+index):X}, RCRD Offset: 0x{Offset:X}");
         }
+
+        public List<Record> Records { get; }
     }
+
+
+
+  public enum RecTypeFlag
+  {
+      RestRecord = 0x1,
+      CheckPointRecord = 0x02
+  }
+
+public enum RecordHeaderFlag
+{
+    ClientRecord = 0x1,
+   ClientRestartArea = 0x2,
+        
+}
+
+public enum OpCode
+{
+    Noop =0x00,
+    CompensationlogRecord =0x01,
+    InitializeFileRecordSegment =0x02,
+    DeallocateFileRecordSegment =0x03,
+    WriteEndofFileRecordSegement =0x04,
+    CreateAttribute= 0x05,
+    DeleteAttribute =0x06,
+    UpdateResidentValue= 0x07,
+    UpdataeNonResidentValue= 0x08,
+    UpdateMappingPairs= 0x09,
+    DeleteDirtyClusters =0x0A,
+    SetNewAttributeSizes= 0x0B,
+    AddIndexEntryRoot = 0x0C,
+    DeleteIndexEntryRoot = 0x0D,
+    AddIndexEntryAllocation = 0x0E,
+    DeleteIndexEntryAllocation = 0x0F,
+    WriteEndOfIndexBuffer = 0x10,
+    SetIndexEntryVcnRoot = 0x11,
+    SetIndexEntryVcnAllocation = 0x12 ,
+    UpdateFileNameRoot = 0x13,
+    UpdateFileNameAllocation = 0x14 ,
+    SetBitsInNonresidentBitMap = 0x15,
+    ClearBitsInNonresidentBitMap = 0x16,
+    HotFix = 0x17,
+    EndTopLevelAction = 0x18,
+    PrepareTransaction = 0x19,
+    CommitTransaction = 0x1A,
+    ForgetTransaction = 0x1B,
+    OpenNonresidentAttribute = 0x1C,
+    OpenAttributeTableDump = 0x1D,
+    AttributeNamesDump = 0x1E,
+    DirtyPageTableDump = 0x1F,
+    TransactionTableDump = 0x20,
+    UpdateRecordDataRoot = 0x21,
+    UpdateRecordDataAllocation = 0x22 ,
+    UpdateRelativeDataIndex = 0x23,
+    UpdateRelativeDataAllocation = 0x24 ,
+    ZeroEndOfFileRecord = 0x25,
+}
+
+  public class Record
+  {
+      public long ThisLsn { get; }
+      public long PreviousLsn { get; }
+      public long UndoLsn { get; }
+
+      public int DataLength { get; }
+      public int ClientId { get; }
+      public RecTypeFlag RecordType { get; }
+      public int TransactionId { get; }
+      public RecordHeaderFlag Flags { get; }
+      public OpCode RedoOpCode { get; }
+      public OpCode UndoOpCode { get; }
+      public short RedoOffset { get; }
+      public short RedoLength { get; }
+      public short UndoOffset { get; }
+      public short UndoLength { get; }
+      public short TargetAtrribute { get; }
+      public short LcnToFollow { get; }
+      public short RecordOffset { get; }
+      public short AttributeOffset { get; }
+      public short ClusterBlockOffset { get; }
+      public short TargetblockSize { get; }
+        public long TargetVcn { get; }
+        
+
+
+      public Record(byte[] rawBytes)
+      {
+          var br = new BinaryReader(new MemoryStream(rawBytes));
+
+          ThisLsn = br.ReadInt64();
+          PreviousLsn = br.ReadInt64();
+          UndoLsn = br.ReadInt64();
+
+          DataLength = br.ReadInt32();
+          ClientId = br.ReadInt32();
+          RecordType = (RecTypeFlag) br.ReadInt32();
+          TransactionId = br.ReadInt32();
+
+          Flags = (RecordHeaderFlag) br.ReadInt16();
+          RedoOpCode = (OpCode) br.ReadInt16();
+          UndoOpCode = (OpCode)br.ReadInt16();
+          RedoOffset = br.ReadInt16();
+          RedoLength = br.ReadInt16();
+          UndoOffset = br.ReadInt16();
+          UndoLength = br.ReadInt16();
+          TargetAtrribute = br.ReadInt16();
+          LcnToFollow = br.ReadInt16();
+          RecordOffset = br.ReadInt16();
+          AttributeOffset = br.ReadInt16();
+          ClusterBlockOffset = br.ReadInt16();
+          TargetblockSize = br.ReadInt16();
+
+          TargetVcn = br.ReadInt64();
+
+//          var l = LogManager.GetCurrentClassLogger();
+//              l.Info($"This LSN: 0x{br.ReadInt64():X}"); //this
+//              l.Info($"prev LSN: 0x{br.ReadInt64():X}"); //this
+//              l.Info($"undo LSN: 0x{br.ReadInt64():X}"); //this
+//              
+//              l.Info($"data len: 0x{br.ReadInt32():X}"); //this
+//              l.Info($"clientid: 0x{br.ReadInt32():X}"); //this
+//              l.Info($"rec type: 0x{br.ReadInt32():X}"); //this
+//              l.Info($"trans id: 0x{br.ReadInt32():X}"); //this
+//
+//              l.Info($"flags: 0x{br.ReadInt16():X}"); //this
+//
+//              br.ReadBytes(6); //reserved
+//
+//              l.Info($"redo op: 0x{br.ReadInt16():X}"); //this
+//              l.Info($"undo op: 0x{br.ReadInt16():X}"); //this
+//              l.Info($"redo offset: 0x{br.ReadInt16():X}"); //this
+//              l.Info($"redo len:0x {br.ReadInt16():X}"); //this
+//              l.Info($"undo offset: 0x{br.ReadInt16():X}"); //this
+//              l.Info($"undo len: 0x{br.ReadInt16():X}"); //this
+//              l.Info($"target attr: 0x{br.ReadInt16():X}"); //this
+//              l.Info($"LCN to follow: 0x{br.ReadInt16():X}"); //this
+//              l.Info($"record offset: 0x{br.ReadInt16():X}"); //this
+//              l.Info($"attr offset: 0x{br.ReadInt16():X}"); //this
+//              l.Info($"clusterblockOffset 0x{br.ReadInt16():X}"); //this
+//              l.Info($"TargetblockSize 0x{br.ReadInt16():X}"); //this
+//            
+//            
+//              l.Info($"target vcn: 0x{br.ReadInt64():X}"); //this
+
+            //lcns are here
+
+            var ClusterNums = new List<long>();
+
+            for (int i = 0; i < LcnToFollow; i++)
+            {
+                var lc = br.ReadInt64();
+                ClusterNums.Add(lc);
+            }
+              
+              
+      }
+  }
 }

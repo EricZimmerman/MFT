@@ -52,6 +52,8 @@ namespace LogFile
                     case RstrSig:
                         var lprstr = new LogPageRstr(buff, index);
 
+                        _logger.Info(lprstr);
+
                         if (index == 0)
                         {
                             PrimaryRstrPage = lprstr;
@@ -63,7 +65,23 @@ namespace LogFile
                         
                         break;
                     case RcrdSig:
-                        var lprcrd = new LogPageRcrd(buff, index);
+//
+                        LogPageRcrd lprcrd = null;
+
+                        //loop thru all pages, then walk thru again, grouping into chunks based on PageCount
+                        //then process each chunk with each page inside
+
+                        try
+                        {
+                            lprcrd= new LogPageRcrd(buff, index);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            
+                        }
+                            
+                        
                         if (index == 0x2000)
                         {
                             BufferPrimary = lprcrd;
@@ -76,6 +94,10 @@ namespace LogFile
                         {
                             NormalPageArea.Add(lprcrd);    
                         }
+
+
+
+                            
                         
                         break;
 //                case chkd_sig: //havent seen one of these to test

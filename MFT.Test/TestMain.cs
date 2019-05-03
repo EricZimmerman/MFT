@@ -120,12 +120,12 @@ namespace MFT.Test
             LogManager.Configuration = config;
             var l = LogManager.GetLogger("foo");
 
-            var lf = Log_File.Load(@"D:\SynologyDrive\ntfs\$LogFile");
+            var lf = Log_File.Load(@"D:\SynologyDrive\ntfs\RomanoffFileSystem\$LogFile");
             //ss..Count.Should().Be(41);
 
-            Debug.WriteLine($"{lf.PrimaryRstrPage}");
-            Debug.WriteLine($"{lf.SecondaryRstrPage}");
-            Debug.WriteLine($"{lf.NormalPageArea.Count:N0}");
+//            Debug.WriteLine($"{lf.PrimaryRstrPage}");
+//            Debug.WriteLine($"{lf.SecondaryRstrPage}");
+//            Debug.WriteLine($"{lf.NormalPageArea.Count:N0}");
         }
 
         [Test]
