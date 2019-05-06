@@ -26,7 +26,7 @@ namespace LogFile
         public int Flags{ get; }
         public short PageCount{ get; }
         public short PagePosition{ get; }
-        public short NextRecordOffset{ get; }
+        public short FreeSpaceOffset{ get; }
         public long LastEndLogFileSequenceNumber{ get; }
 
         private const int RcrdSig = 0x44524352;
@@ -40,9 +40,7 @@ namespace LogFile
 
             if (sigCheck != RcrdSig)
             {
-                {
                     throw new Exception("Invalid signature! Expected 'RCRD' signature.");
-                }
             }
 
             Offset = offset;
@@ -65,7 +63,7 @@ namespace LogFile
             PagePosition = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
-            NextRecordOffset = BitConverter.ToInt16(rawBytes, index);
+            FreeSpaceOffset = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
             var wordAlign = BitConverter.ToInt16(rawBytes, index);
@@ -115,13 +113,13 @@ namespace LogFile
 
             //header is 0x58 bytes, so go past it
 
-            index = 0x58;
+           // index = 0x58;
 
-            _logger.Info($"   LastLogFileSequenceNumber: 0x{LastLogFileSequenceNumber:X} Flags: {Flags} PageCount: 0x{PageCount:X} PagePosition: 0x{PagePosition:X} NextRecordOffset: 0x{NextRecordOffset:X} LastEndLogFileSequenceNumber: 0x{LastEndLogFileSequenceNumber:X} LastLogFileSequenceNumber==LastEndLogFileSequenceNumber: {LastEndLogFileSequenceNumber==LastLogFileSequenceNumber}");
+            _logger.Info($"   LastLogFileSequenceNumber: 0x{LastLogFileSequenceNumber:X} Flags: {Flags} PageCount: 0x{PageCount:X} PagePosition: 0x{PagePosition:X} Free space offset: 0x{FreeSpaceOffset:X} LastEndLogFileSequenceNumber: 0x{LastEndLogFileSequenceNumber:X} LastLogFileSequenceNumber==LastEndLogFileSequenceNumber: {LastEndLogFileSequenceNumber==LastLogFileSequenceNumber}");
 
             //record is 0x30 + clientDatalen long
 
-            return;
+           
 
             Records = new List<Record>();
 
@@ -132,9 +130,7 @@ namespace LogFile
                 var prevLsn = BitConverter.ToInt64(rawBytes, index+8);
                 var clientUndoLsn = BitConverter.ToInt64(rawBytes, index+16);
                 
-                _logger.Info($"     this: {thisLsn:X} prev: {prevLsn:X} undo: {clientUndoLsn:X}");
-
-
+           //     _logger.Info($"     this: {thisLsn:X} prev: {prevLsn:X} undo: {clientUndoLsn:X}");
                 var clientDataLen = BitConverter.ToInt32(rawBytes, index + 24);
                 var buff = new byte[clientDataLen+ 0x30];
                 Buffer.BlockCopy(rawBytes,index,buff,0,buff.Length);
@@ -145,7 +141,7 @@ namespace LogFile
 
                 index += buff.Length;
 
-                _logger.Info($"     Found record of size 0x{buff.Length:X}, new index = 0x{index:X} this: {thisLsn:X} prev: {prevLsn:X} undo: {clientUndoLsn:X}");
+                _logger.Info($"     Record: {rec}");
 
                 if (thisLsn == LastEndLogFileSequenceNumber)
                 {
@@ -309,6 +305,8 @@ public enum OpCode
 
             //lcns are here
 
+            return;
+
             var ClusterNums = new List<long>();
 
             for (int i = 0; i < LcnToFollow; i++)
@@ -318,6 +316,12 @@ public enum OpCode
             }
               
               
+      }
+
+      public override string ToString()
+      {
+          return
+              $"ThisLsn: 0x{ThisLsn:X} PrevLsn: 0x{PreviousLsn:X} UndoLsn: 0x{UndoLsn:X} size: 0x{DataLength:X} Client id: 0x{ClientId:X} Rec type: {RecordType} TransId: 0x{TransactionId:X} Flags: {Flags} Redo code: {RedoOpCode} Undo code: {UndoOpCode} redo offset: 0x{RedoOffset:X} redo len: 0x{RedoLength:X} undo offset: 0x{UndoOffset:X} undo len: 0x{UndoLength:X} target attr: 0x{TargetAtrribute:X} LsnToFollow: 0x{LcnToFollow:X} RecordOffset: 0x{RecordOffset:X} attr offset: 0x{AttributeOffset:X} cluster block offset: 0x{ClusterBlockOffset:X} target block size: 0x{TargetblockSize:X} target vcn: 0x{TargetVcn:X}";
       }
   }
 }
