@@ -54,7 +54,7 @@ namespace Usn
 
           long startIndex = 0;
             
-          using (var br = new BinaryReader(usnBytes,Encoding.ASCII))
+          using (var br = new BinaryReader(usnBytes,Encoding.ASCII,true))
           {
               logger.Trace("Binary reader open");
 
@@ -122,7 +122,7 @@ namespace Usn
               startIndex = br.BaseStream.Position;
           }
 
-
+          br.BaseStream.Seek(0, SeekOrigin.Begin);
           return startIndex;
         }
 
