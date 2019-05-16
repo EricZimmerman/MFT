@@ -122,7 +122,7 @@ namespace Usn
               startIndex = br.BaseStream.Position;
           }
 
-          br.BaseStream.Seek(0, SeekOrigin.Begin);
+          usnBytes.Seek(0, SeekOrigin.Begin);
           return startIndex;
         }
 

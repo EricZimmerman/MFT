@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.106
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.452
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MFT", "MFT\MFT.csproj", "{DDA9E417-B536-4730-B578-AA45F8B130C7}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Secure", "SDS\Secure.csproj", "{21E6B751-CA17-4612-9806-9B52D3031FCF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogFile", "LogFile\LogFile.csproj", "{CCC2144C-33A7-41B9-8355-C240307A9611}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O", "O\O.csproj", "{9B30002D-B041-41E6-9EDD-34CF16EFCFCF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{CCC2144C-33A7-41B9-8355-C240307A9611}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCC2144C-33A7-41B9-8355-C240307A9611}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCC2144C-33A7-41B9-8355-C240307A9611}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B30002D-B041-41E6-9EDD-34CF16EFCFCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B30002D-B041-41E6-9EDD-34CF16EFCFCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B30002D-B041-41E6-9EDD-34CF16EFCFCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B30002D-B041-41E6-9EDD-34CF16EFCFCF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

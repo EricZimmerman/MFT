@@ -50,6 +50,9 @@
       <NamedTestSelector>
         <TestName>MFT.Test.TestMain.Usn</TestName>
       </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>MFT.Test.TestMain.LogFile</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

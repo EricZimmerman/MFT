@@ -188,6 +188,29 @@ Debug.WriteLine(1);
         }
 
         [Test]
+        public void DollarO()
+        {
+            //@"D:\SynologyDrive\ntfs\$O\$O"
+
+            using (var fs = new FileStream(@"C:\Temp\ooo",FileMode.Open))
+            {
+                var ea = new O.O(fs);
+
+                foreach (var eaEntry in ea.Entries)
+                {
+                    Debug.WriteLine(eaEntry);
+                }
+            }
+
+            ;
+
+            //ss..Count.Should().Be(41);
+
+
+        }
+
+
+        [Test]
         public void LXXATTR_Solo()
         {
             var lf = File.ReadAllBytes(@"D:\Temp\Maxim_EA)STUFF_MFT_wsl2\ea-2.bin");

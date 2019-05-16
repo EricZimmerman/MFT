@@ -174,7 +174,7 @@ namespace MFT
                         break;
 
                     case AttributeType.VolumeVersionObjectId:
-                        var oi = new ObjectId(rawAttr);
+                        var oi = new ObjectId_(rawAttr);
                         Attributes.Add(oi);
                         break;
 
