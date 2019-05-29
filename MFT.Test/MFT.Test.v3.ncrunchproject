@@ -39,9 +39,6 @@
         <TestName>MFT.Test.TestMain.sds3</TestName>
       </NamedTestSelector>
       <NamedTestSelector>
-        <TestName>MFT.Test.TestMain.sds4</TestName>
-      </NamedTestSelector>
-      <NamedTestSelector>
         <TestName>MFT.Test.TestMain.Sii</TestName>
       </NamedTestSelector>
       <NamedTestSelector>

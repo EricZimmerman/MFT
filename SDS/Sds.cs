@@ -71,6 +71,11 @@ namespace Secure
                     SdsEntries.Add(sde);
                 }
 
+                if (size == 0)
+                {
+                    size = 16;
+                }
+
                 index += size;
 
                 //padding calculation

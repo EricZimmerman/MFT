@@ -291,8 +291,23 @@ Debug.WriteLine(1);
         [Test]
         public void sds4()
         {
-            var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds4\Win7_$SDS");
-            //ss.SdsEntries.Count.Should().Be(1391);
+            var config = new LoggingConfiguration();
+            var loglevel = LogLevel.Debug;
+
+            var layout = @"${message}";
+
+            var consoleTarget = new ColoredConsoleTarget();
+
+            config.AddTarget("console", consoleTarget);
+
+            consoleTarget.Layout = layout;
+
+            var rule1 = new LoggingRule("*", loglevel, consoleTarget);
+            config.LoggingRules.Add(rule1);
+
+            //var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds4\Win7_$SDS");
+            var ss = SdsFile.Load(@"C:\Temp\$SDS");
+            ss.SdsEntries.Count.Should().Be(5672);
 //
 //            foreach (var ssSdsEntry in ss.SdsEntries)
 //            {
