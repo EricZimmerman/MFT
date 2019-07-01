@@ -46,7 +46,7 @@ namespace MFT.Attributes
                 catch (Exception e)
                 {
                     var l = LogManager.GetLogger("FileInfo");
-                    l.Warn($"Invalid RecordModifiedOn timestamp!");
+                    l.Warn($"Invalid RecordModifiedOn timestamp! Enable --debug for record information");
                 }
                 
             }

@@ -14,6 +14,7 @@ namespace MFT
         [Flags]
         public enum EntryFlag
         {
+            IsFree = 0x0,
             InUse = 0x1,
             IsDirectory = 0x2,
             IsMetaDataRecord = 0x4,
@@ -108,6 +109,8 @@ namespace MFT
             FirstAvailablAttribueId = BitConverter.ToInt16(rawBytes, 0x28);
 
             EntryNumber = BitConverter.ToUInt32(rawBytes, 0x2c);
+
+            _logger.Debug($"FILE record entry/seq #: 0x{EntryNumber:X}/{SequenceNumber:X}");
 
             //start attribute processing at FirstAttributeOffset
 
