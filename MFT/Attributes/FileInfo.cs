@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using MFT.Other;
+using NLog;
 
 namespace MFT.Attributes
 {
@@ -38,9 +39,18 @@ namespace MFT.Attributes
             var recordModRaw = BitConverter.ToInt64(rawBytes, 0x18);
             if (recordModRaw > 0)
             {
-                RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
+                try
+                {
+                    RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
+                }
+                catch (Exception e)
+                {
+                    var l = LogManager.GetLogger("FileInfo");
+                    l.Warn($"Invalid RecordModifiedOn timestamp!");
+                }
+                
             }
-
+             
             var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x20);
             if (lastAccessRaw > 0)
             {

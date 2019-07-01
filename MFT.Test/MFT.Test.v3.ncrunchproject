@@ -24,9 +24,6 @@
         <TestName>MFT.Test.TestMain.PathTest</TestName>
       </NamedTestSelector>
       <NamedTestSelector>
-        <TestName>MFT.Test.TestMain.Rando</TestName>
-      </NamedTestSelector>
-      <NamedTestSelector>
         <TestName>MFT.Test.TestMain.Sds</TestName>
       </NamedTestSelector>
       <NamedTestSelector>

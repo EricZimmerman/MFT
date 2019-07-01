@@ -32,6 +32,7 @@ namespace MFT.Test
         public static string OneOff = @"D:\Egnyte\Private\ezimmerman\MFTs\MFT_SymLink";
 
         public static string OneOff2 = @"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT";
+    
         //public static string oneOff4 = @"C:\Users\eric\Desktop\$MFT\$MFT";
 
 
@@ -94,7 +95,8 @@ namespace MFT.Test
         [Test]
         public void Rando()
         {
-            var lf = MftFile.Load(@"C:\Users\e\Desktop\MFT_Rodriguez\MFT_Rodriguez");
+            var lf = MftFile.Load(@"C:\Users\eric\Desktop\mft_time_issue");
+
             //ss..Count.Should().Be(41);
 
         
