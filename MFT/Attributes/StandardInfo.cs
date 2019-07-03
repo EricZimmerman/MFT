@@ -45,13 +45,29 @@ namespace MFT.Attributes
             var createdRaw = BitConverter.ToInt64(rawBytes, 0x18);
             if (createdRaw > 0)
             {
-                CreatedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x18)).ToUniversalTime();
+                try
+                {
+                    CreatedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x18)).ToUniversalTime();
+                }
+                catch (Exception e)
+                {
+                    var l = LogManager.GetLogger("StandardInfo");
+                    l.Warn($"Invalid CreatedOn timestamp! Enable --debug for record information");
+                }
             }
 
             var contentModRaw = BitConverter.ToInt64(rawBytes, 0x20);
             if (contentModRaw > 0)
             {
-                ContentModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x20)).ToUniversalTime();
+                try
+                {
+                    ContentModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x20)).ToUniversalTime();
+                }
+                catch (Exception e)
+                {
+                    var l = LogManager.GetLogger("StandardInfo");
+                    l.Warn($"Invalid ContentModifiedOn timestamp! Enable --debug for record information");
+                }
             }
 
             var recordModRaw = BitConverter.ToInt64(rawBytes, 0x28);
@@ -64,16 +80,24 @@ namespace MFT.Attributes
                 }
                 catch (Exception e)
                 {
-                    var l = LogManager.GetLogger("SI");
-                    l.Debug(
-                        $"Error parsing SI Record Modified timestamp in FILE record at offset 0x{Mft.CurrentOffset:X}: {e.Message}");
+                    var l = LogManager.GetLogger("StandardInfo");
+                    l.Warn($"Invalid RecordModifiedOn timestamp! Enable --debug for record information");
                 }
+
             }
 
             var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x30);
             if (lastAccessRaw > 0)
             {
-                LastAccessedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x30)).ToUniversalTime();
+                try
+                {
+                    LastAccessedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x30)).ToUniversalTime();
+                }
+                catch (Exception e)
+                {
+                    var l = LogManager.GetLogger("StandardInfo");
+                    l.Warn($"Invalid LastAccessedOn timestamp! Enable --debug for record information");
+                }
             }
 
             Flags = (Flag) BitConverter.ToInt32(rawBytes, 0x38);

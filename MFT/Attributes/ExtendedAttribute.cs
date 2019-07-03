@@ -71,6 +71,12 @@ namespace MFT.Attributes
 
                 switch (name)
                 {
+                    case ".LONGNAME":
+                        var lnBuff = new byte[bytese.Length - index];
+                        Buffer.BlockCopy(bytese,index,lnBuff,0,lnBuff.Length);
+                        var ln = new LongName(lnBuff);
+                        SubItems.Add(ln);
+                        break;
                     case "LXATTRB":
                         var lbBuff = new byte[bytese.Length - index];
                         Buffer.BlockCopy(bytese,index,lbBuff,0,lbBuff.Length);
@@ -105,11 +111,16 @@ namespace MFT.Attributes
                         var appFix = new AppFixCache(kpAppXFi);
                         SubItems.Add(appFix);
                         break;
+                    case ".CLASSINFO":
+                        var clInfo = new byte[bytese.Length - index];
+                        Buffer.BlockCopy(bytese,index,clInfo,0,clInfo.Length);
+                        var clI = new ClassInfo(clInfo);
+                        SubItems.Add(clI);
+                        break;
 
                     default:
                         var log = LogManager.GetLogger("EA");
                         log.Warn($"Unknown EA with name: {name}, Length: 0x{(bytese.Length - index):X}");
-                        Debug.WriteLine($"name: {name} 0x{bytese.Length:X}");
                         //var defBuff = new byte[bytese.Length - index];
                        // Buffer.BlockCopy(bytese,index,defBuff,0,defBuff.Length);
                     //    File.WriteAllBytes($"D:\\Temp\\Maxim_EA)STUFF_MFT_wsl2\\EASAmples\\{name}_{Guid.NewGuid().ToString()}.bin",defBuff);
@@ -149,6 +160,52 @@ namespace MFT.Attributes
             }
 
             return sb.ToString();
+        }
+    }
+
+    public class LongName
+    {
+        public LongName(byte[] rawBytes)
+        {
+            var index = 0;
+
+            index += 2; // unknown
+
+            var size = BitConverter.ToInt16(rawBytes, index);
+            index += 2;
+
+            Name = Encoding.GetEncoding(1252).GetString(rawBytes, index, size);
+        }
+
+
+        public string Name { get; }
+
+        public override string ToString()
+        {
+            return $".LONGNAME: {Name}";
+        }
+    }
+
+    public class ClassInfo
+    {
+        public ClassInfo(byte[] rawBytes)
+        {
+//            var index = 0;
+//
+//            index += 2; // unknown
+//
+//            var size = BitConverter.ToInt16(rawBytes, index);
+//            index += 2;
+//
+//            Name = Encoding.GetEncoding(1252).GetString(rawBytes, index, size);
+        }
+
+
+        public string Name { get; }
+
+        public override string ToString()
+        {
+            return $".ClassInfo: Not decoded";
         }
     }
 

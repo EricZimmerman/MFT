@@ -27,13 +27,29 @@ namespace MFT.Attributes
             var createdRaw = BitConverter.ToInt64(rawBytes, 0x8);
             if (createdRaw > 0)
             {
-                CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
+                try
+                {
+                    CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
+                }
+                catch (Exception e)
+                {
+                    var l = LogManager.GetLogger("FileInfo");
+                    l.Warn($"Invalid ConCreatedOntentModifiedOn timestamp! Enable --debug for record information");
+                }
             }
 
             var contentModRaw = BitConverter.ToInt64(rawBytes, 0x10);
             if (contentModRaw > 0)
             {
-                ContentModifiedOn = DateTimeOffset.FromFileTime(contentModRaw).ToUniversalTime();
+                try
+                {
+                    ContentModifiedOn = DateTimeOffset.FromFileTime(contentModRaw).ToUniversalTime();
+                }
+                catch (Exception e)
+                {
+                    var l = LogManager.GetLogger("FileInfo");
+                    l.Warn($"Invalid ContentModifiedOn timestamp! Enable --debug for record information");
+                }
             }
 
             var recordModRaw = BitConverter.ToInt64(rawBytes, 0x18);
@@ -48,13 +64,20 @@ namespace MFT.Attributes
                     var l = LogManager.GetLogger("FileInfo");
                     l.Warn($"Invalid RecordModifiedOn timestamp! Enable --debug for record information");
                 }
-                
             }
              
             var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x20);
             if (lastAccessRaw > 0)
             {
-                LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
+                try
+                {
+                    LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
+                }
+                catch (Exception e)
+                {
+                    var l = LogManager.GetLogger("FileInfo");
+                    l.Warn($"Invalid LastAccessedOn timestamp! Enable --debug for record information");
+                }
             }
 
             PhysicalSize = BitConverter.ToUInt64(rawBytes, 0x28);
