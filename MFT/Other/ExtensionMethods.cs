@@ -162,7 +162,7 @@ namespace MFT.Other
                     size = da.NonResidentData.ActualSize;
                 }
 
-                var adsi = new AdsInfo(da.Name, size, da.ResidentData, da.NonResidentData);
+                var adsi = new AdsInfo(da.Name, size, da.ResidentData, da.NonResidentData,da.AttributeNumber);
 
                 l.Add(adsi);
             }
