@@ -22,6 +22,8 @@ namespace Secure
             var rawBytes = new byte[fileStream.Length];
             fileStream.Read(rawBytes, 0, (int) fileStream.Length);
 
+            var loopCatch = 0;
+
             while (index < rawBytes.Length)
             {
                 if (index + 16 > rawBytes.Length)
@@ -30,12 +32,21 @@ namespace Secure
                     break;
                 }
 
-                LastOffset = index;
-
                 var hash = BitConverter.ToUInt32(rawBytes, (int) index);
                 var id = BitConverter.ToUInt32(rawBytes,(int) index + 4);
                 var offset = BitConverter.ToUInt64(rawBytes, (int) index + 4 + 4);
                 var size = BitConverter.ToUInt32(rawBytes,(int)  index + 4 + 4 + 8);
+
+                if (index == LastOffset && hash == 0x0 && id == 0x0 && offset == 0x0 && size == 0x0)
+                {
+                    //nothing here, go to next page
+                    index += 0x40000;
+                    continue;
+                }
+
+                LastOffset = index;
+
+                logger.Debug($"LastOffset is 0x{LastOffset}");
 
                 if ((offset == 0 && size == 0) || offset>(ulong) rawBytes.Length)
                 {
@@ -44,7 +55,7 @@ namespace Secure
                     {
                         index += 1;
                     }
-
+                    
                     continue;
                 }
 

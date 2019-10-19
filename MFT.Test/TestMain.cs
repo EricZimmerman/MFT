@@ -309,12 +309,12 @@ Debug.WriteLine(1);
 
             //var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds4\Win7_$SDS");
             var ss = SdsFile.Load(@"C:\Temp\$SDS");
-            ss.SdsEntries.Count.Should().Be(5672);
-//
-//            foreach (var ssSdsEntry in ss.SdsEntries)
-//            {
-//                Debug.WriteLine(ssSdsEntry.SecurityDescriptor);
-//            }
+            ss.SdsEntries.Count.Should().Be(5716);
+
+            foreach (var ssSdsEntry in ss.SdsEntries)
+            {
+                Debug.WriteLine(ssSdsEntry.SecurityDescriptor);
+            }
         }
 
         [Test]

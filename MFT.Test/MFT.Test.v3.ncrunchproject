@@ -24,18 +24,6 @@
         <TestName>MFT.Test.TestMain.PathTest</TestName>
       </NamedTestSelector>
       <NamedTestSelector>
-        <TestName>MFT.Test.TestMain.Sds</TestName>
-      </NamedTestSelector>
-      <NamedTestSelector>
-        <TestName>MFT.Test.TestMain.Sds_sds1_Secure_SDS</TestName>
-      </NamedTestSelector>
-      <NamedTestSelector>
-        <TestName>MFT.Test.TestMain.Sds1_ntfs_sds2_SDS</TestName>
-      </NamedTestSelector>
-      <NamedTestSelector>
-        <TestName>MFT.Test.TestMain.sds3</TestName>
-      </NamedTestSelector>
-      <NamedTestSelector>
         <TestName>MFT.Test.TestMain.Sii</TestName>
       </NamedTestSelector>
       <NamedTestSelector>
