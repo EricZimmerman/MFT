@@ -133,6 +133,11 @@ namespace MFT.Attributes
                 var rawSacl = new byte[_sizeSacl];
                 Buffer.BlockCopy(RawBytes, (int) SaclOffset, rawSacl, 0, (int) _sizeSacl);
 
+                if (rawSacl.Length == 0)
+                {
+                    return null;
+                }
+
                 return new XAclRecord(rawSacl, XAclRecord.AclTypeEnum.Security);
 
             }

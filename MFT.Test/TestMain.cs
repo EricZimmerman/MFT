@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -308,13 +309,39 @@ Debug.WriteLine(1);
             config.LoggingRules.Add(rule1);
 
             //var ss = SdsFile.Load(@"D:\SynologyDrive\ntfs\sds4\Win7_$SDS");
-            var ss = SdsFile.Load(@"C:\Temp\$SDS");
-            ss.SdsEntries.Count.Should().Be(5716);
+            var ss = SdsFile.Load(@"C:\Temp\sds.vss313.bin");
+            ss.SdsEntries.Count.Should().Be(6868);
 
             foreach (var ssSdsEntry in ss.SdsEntries)
             {
                 Debug.WriteLine(ssSdsEntry.SecurityDescriptor);
+
+                if (ssSdsEntry.SecurityDescriptor.Sacl != null)
+                {
+                    var SaclAceCount = ssSdsEntry.SecurityDescriptor.Sacl.AceCount;
+                    var uniqueAce = new HashSet<string>();
+                    foreach (var saclAceRecord in ssSdsEntry.SecurityDescriptor.Sacl.AceRecords)
+                    {
+                        uniqueAce.Add(saclAceRecord.AceType.ToString());
+                    }
+
+                    var UniqueSaclAceTypes = string.Join("|", uniqueAce);
+                }
+
+                if (ssSdsEntry.SecurityDescriptor.Dacl != null)
+                {
+                    var DaclAceCount = ssSdsEntry.SecurityDescriptor.Dacl.AceCount;
+                    var uniqueAce = new HashSet<string>();
+                    foreach (var daclAceRecord in ssSdsEntry.SecurityDescriptor.Dacl.AceRecords)
+                    {
+                        uniqueAce.Add(daclAceRecord.AceType.ToString());
+                    }
+
+                    var UniqueDaclAceTypes = string.Join("|", uniqueAce);
+                }
             }
+
+         
         }
 
         [Test]

@@ -28,7 +28,17 @@ namespace MFT.Attributes
         }
 
         // public properties...
-        public ushort AceCount => BitConverter.ToUInt16(RawBytes, 0x4);
+        public ushort AceCount
+        {
+            get
+            {
+                if (RawBytes.Length == 0)
+                {
+                    return 0;
+                }
+                return BitConverter.ToUInt16(RawBytes, 0x4);
+            }
+        }
 
         public List<AceRecord> AceRecords
         {
@@ -89,6 +99,11 @@ namespace MFT.Attributes
         // public methods...
         public override string ToString()
         {
+            if (RawBytes.Length == 0)
+            {
+                return string.Empty;
+            }
+
             var sb = new StringBuilder();
 
             sb.AppendLine($"ACL Revision: 0x{AclRevision:X}");
