@@ -54,6 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="TestFiles\%24I30\FirstDelete\%24I30" />
+    <None Include="TestFiles\%24I30\SecondDelete\%24I30" />
+    <None Include="TestFiles\%24I30\Start\%24I30" />
     <None Include="TestFiles\Boot\%24Boot" />
     <None Include="TestFiles\NIST\DFR-16\%24MFT" />
     <None Include="TestFiles\tdungan\%24MFT" />
@@ -82,6 +85,10 @@
       <Project>{ba9c6030-ec7d-4c1d-a6bc-0d86824e1111}</Project>
       <Name>Boot</Name>
     </ProjectReference>
+    <ProjectReference Include="..\I30\I30.csproj">
+      <Project>{7d1bae41-7e23-42ec-aa25-7f54716655ad}</Project>
+      <Name>I30</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LogFile\LogFile.csproj">
       <Project>{ccc2144c-33a7-41b9-8355-c240307a9611}</Project>
       <Name>LogFile</Name>
@@ -102,6 +109,12 @@
       <Project>{23d6fa96-d020-4cb6-8ed8-82d3f49317a2}</Project>
       <Name>Usn</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="TestFiles\%24I30\FirstDelete\2020-02-07_11-47-16.jpg" />
+    <Content Include="TestFiles\%24I30\SecondDelete\2020-02-07_11-48-54.jpg" />
+    <Content Include="TestFiles\%24I30\Start\2020-02-07_11-45-38.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Boot;
 using FluentAssertions;
+using I30;
 using LogFile;
 using MFT.Attributes;
 using MFT.Other;
@@ -43,7 +44,7 @@ namespace MFT.Test
             LogManager.Configuration = null;
 
             var config = new LoggingConfiguration();
-            var loglevel = LogLevel.Info;
+            var loglevel = LogLevel.Debug;
 
             var layout = @"${message}";
 
@@ -58,6 +59,18 @@ namespace MFT.Test
 
             LogManager.Configuration = config;
         }
+
+
+        [Test]
+        public void I30Start()
+        {
+            var bb = I30File.Load(@"..\..\TestFiles\$I30\Start\$I30");
+
+            Debug.WriteLine($"$Entry count: {bb.Entries.Count}");
+
+           
+        }
+
 
 
         [Test]
