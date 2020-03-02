@@ -9,7 +9,7 @@ namespace MFT.Other
         public IndexEntry(byte[] rawBytes)
         {
             var index = 0;
-            var size = BitConverter.ToInt16(rawBytes, index);
+           // var size = BitConverter.ToInt16(rawBytes, index);
             index += 2;
 
             var indexKeyDataSize = BitConverter.ToInt16(rawBytes, index);
@@ -126,7 +126,7 @@ namespace MFT.Other
                 $"\r\nCreated On:\t\t{CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
                 $"\r\nContent Modified On:\t{ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
                 $"\r\nRecord Modified On:\t{RecordModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
-                $"\r\nLast Accessed On:\t\t{LastAccessedOn?.ToString(MftFile.DateTimeFormat)}");
+                $"\r\nLast Accessed On:\t{LastAccessedOn?.ToString(MftFile.DateTimeFormat)}");
 
             return sb.ToString();
         }

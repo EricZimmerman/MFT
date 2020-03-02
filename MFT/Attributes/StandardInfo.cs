@@ -49,7 +49,7 @@ namespace MFT.Attributes
                 {
                     CreatedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x18)).ToUniversalTime();
                 }
-                catch (Exception e)
+                catch (Exception )
                 {
                     var l = LogManager.GetLogger("StandardInfo");
                     l.Warn($"Invalid CreatedOn timestamp! Enable --debug for record information");
@@ -63,7 +63,7 @@ namespace MFT.Attributes
                 {
                     ContentModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x20)).ToUniversalTime();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     var l = LogManager.GetLogger("StandardInfo");
                     l.Warn($"Invalid ContentModifiedOn timestamp! Enable --debug for record information");
@@ -78,7 +78,7 @@ namespace MFT.Attributes
                     RecordModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x28))
                         .ToUniversalTime();
                 }
-                catch (Exception e)
+                catch (Exception )
                 {
                     var l = LogManager.GetLogger("StandardInfo");
                     l.Warn($"Invalid RecordModifiedOn timestamp! Enable --debug for record information");
@@ -93,7 +93,7 @@ namespace MFT.Attributes
                 {
                     LastAccessedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x30)).ToUniversalTime();
                 }
-                catch (Exception e)
+                catch (Exception )
                 {
                     var l = LogManager.GetLogger("StandardInfo");
                     l.Warn($"Invalid LastAccessedOn timestamp! Enable --debug for record information");
@@ -149,7 +149,7 @@ namespace MFT.Attributes
                 $"\r\n\r\nCreated On:\t\t{CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
                 $"\r\nContent Modified On:\t{ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
                 $"\r\nRecord Modified On:\t{RecordModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
-                $"\r\nLast Accessed On:\t\t{LastAccessedOn?.ToString(MftFile.DateTimeFormat)}");
+                $"\r\nLast Accessed On:\t{LastAccessedOn?.ToString(MftFile.DateTimeFormat)}");
 
             return sb.ToString();
         }
