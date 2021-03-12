@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace MFT.Attributes
@@ -185,6 +186,18 @@ namespace MFT.Attributes
                 return;
             }
 
+            if (Tag == ReparsePointTag.SymbolicLink)
+            {
+                var symFlags = BitConverter.ToInt32(content, 16);
+
+                if (symFlags == 0x1)
+                {
+                    SymlinkFlagRelative = true;
+                }
+
+                subNameOffset += 4;
+            }
+
             if (subNameSize > 0)
             {
                 if (subNameOffset == 0)
@@ -218,6 +231,8 @@ namespace MFT.Attributes
         public string SubstituteName { get; }
         public string PrintName { get; }
         public ReparsePointTag Tag { get; }
+
+        public bool SymlinkFlagRelative { get; }
 
         public override string ToString()
         {

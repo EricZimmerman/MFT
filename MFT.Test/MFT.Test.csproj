@@ -68,13 +68,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentAssertions">
-      <Version>5.10.0</Version>
+      <Version>5.10.3</Version>
     </PackageReference>
     <PackageReference Include="NLog">
-      <Version>4.6.8</Version>
+      <Version>4.7.8</Version>
     </PackageReference>
     <PackageReference Include="NUnit">
-      <Version>3.12.0</Version>
+      <Version>3.13.1</Version>
     </PackageReference>
     <PackageReference Include="System.ValueTuple">
       <Version>4.5.0</Version>
@@ -84,10 +84,6 @@
     <ProjectReference Include="..\Boot\Boot.csproj">
       <Project>{ba9c6030-ec7d-4c1d-a6bc-0d86824e1111}</Project>
       <Name>Boot</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\I30\I30.csproj">
-      <Project>{7d1bae41-7e23-42ec-aa25-7f54716655ad}</Project>
-      <Name>I30</Name>
     </ProjectReference>
     <ProjectReference Include="..\LogFile\LogFile.csproj">
       <Project>{ccc2144c-33a7-41b9-8355-c240307a9611}</Project>

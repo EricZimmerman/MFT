@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using Boot;
 using FluentAssertions;
-using I30;
+
 using LogFile;
 using MFT.Attributes;
 using MFT.Other;
@@ -61,15 +61,15 @@ namespace MFT.Test
         }
 
 
-        [Test]
-        public void I30Start()
-        {
-            var bb = I30File.Load(@"..\..\TestFiles\$I30\Start\$I30");
-
-            Debug.WriteLine($"$Entry count: {bb.Entries.Count}");
-
-           
-        }
+        // [Test]
+        // public void I30Start()
+        // {
+        //     var bb = I30File.Load(@"..\..\TestFiles\$I30\Start\$I30");
+        //
+        //     Debug.WriteLine($"$Entry count: {bb.Entries.Count}");
+        //
+        //    
+        // }
 
 
 
@@ -109,7 +109,7 @@ namespace MFT.Test
         [Test]
         public void Rando()
         {
-            var lf = MftFile.Load(@"C:\Users\eric\Desktop\mft\$MFT");
+            var lf = MftFile.Load(@"C:\Temp\$MFT");
 
             //ss..Count.Should().Be(41);
 
