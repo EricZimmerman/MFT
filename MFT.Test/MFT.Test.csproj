@@ -1,57 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6DDDB050-A947-4B94-8E1C-70326008C65B}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MFT.Test</RootNamespace>
-    <AssemblyName>MFT.Test</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+	<TargetFrameworks>net461;net5.0</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="TestMain.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="TestFiles\%24I30\FirstDelete\%24I30" />
@@ -71,7 +21,7 @@
       <Version>5.10.3</Version>
     </PackageReference>
     <PackageReference Include="NLog">
-      <Version>4.7.8</Version>
+      <Version>4.7.9</Version>
     </PackageReference>
     <PackageReference Include="NUnit">
       <Version>3.13.1</Version>
@@ -81,43 +31,19 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Boot\Boot.csproj">
-      <Project>{ba9c6030-ec7d-4c1d-a6bc-0d86824e1111}</Project>
-      <Name>Boot</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LogFile\LogFile.csproj">
-      <Project>{ccc2144c-33a7-41b9-8355-c240307a9611}</Project>
-      <Name>LogFile</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MFT\MFT.csproj">
-      <Project>{dda9e417-b536-4730-b578-aa45f8b130c7}</Project>
-      <Name>MFT</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\O\O.csproj">
-      <Project>{9b30002d-b041-41e6-9edd-34cf16efcfcf}</Project>
-      <Name>O</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SDS\Secure.csproj">
-      <Project>{21e6b751-ca17-4612-9806-9b52d3031fcf}</Project>
-      <Name>Secure</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Usn\Usn.csproj">
-      <Project>{23d6fa96-d020-4cb6-8ed8-82d3f49317a2}</Project>
-      <Name>Usn</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Boot\Boot.csproj" />
+    <ProjectReference Include="..\LogFile\LogFile.csproj" />
+    <ProjectReference Include="..\MFT\MFT.csproj" />
+    <ProjectReference Include="..\O\O.csproj" />
+    <ProjectReference Include="..\SDS\Secure.csproj" />
+    <ProjectReference Include="..\Usn\Usn.csproj" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="TestFiles\%24I30\FirstDelete\2020-02-07_11-47-16.jpg" />
     <Content Include="TestFiles\%24I30\SecondDelete\2020-02-07_11-48-54.jpg" />
     <Content Include="TestFiles\%24I30\Start\2020-02-07_11-45-38.jpg" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

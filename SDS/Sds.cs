@@ -22,8 +22,6 @@ namespace Secure
             var rawBytes = new byte[fileStream.Length];
             fileStream.Read(rawBytes, 0, (int) fileStream.Length);
 
-            var loopCatch = 0;
-
             while (index < rawBytes.Length)
             {
                 if (index + 16 > rawBytes.Length)
