@@ -84,8 +84,6 @@ namespace I30
 
                     var fixupData = new FixupData(fixupBuffer);
 
-                    var fixupOk = true;
-
                     //fixup verification
                     var counter = 512 - dataStartOffset - 0x18; //datastartOffset is relative, so we need to account for where it begins, at 0x18
                     foreach (var bytese in fixupData.FixupActual)
@@ -96,7 +94,6 @@ namespace I30
                         var expected = BitConverter.ToInt16(rawBytes, fixupOffset1);
                         if (expected != fixupData.FixupExpected)
                         {
-                            fixupOk = false;
                             logger.Warn(
                                 $"Fixup values do not match at 0x{fixupOffset1:X}. Expected: 0x{fixupData.FixupExpected:X2}, actual: 0x{expected:X2}");
                         }
@@ -150,8 +147,6 @@ namespace I30
                     using (var binaryReader = new BinaryReader(new MemoryStream(slackSpace)))
                     {
 
-                        var startOffset = 0;
-
                         while (binaryReader.BaseStream.Position<binaryReader.BaseStream.Length)
                         {
                             var absoluteOffset = pageNumber * 0x1000 + 0x18 + dataStartOffset + binaryReader.BaseStream.Position + activeSpace.Length;
@@ -161,8 +156,7 @@ namespace I30
                             //in slack
                             //read mft
                             //then dates start
-                            //so have to read into the structure far enough to know where the filename ends, then pad it out
-                            ?
+                            //so have to read into the structure far enough to know where the filename ends, then pad it out?
                             
 
                             binaryReader.ReadInt64();//mft info
