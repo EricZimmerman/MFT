@@ -41,6 +41,13 @@ namespace MFT.Attributes
 
                 //copy in what we have
                 Buffer.BlockCopy(rawBytes, index, clusterBytes, 0, offsetLength);
+                
+                //negative offsets
+			    if (clusterBytes[offsetLength - 1] >= 0x80)
+			    {
+				    for (int i = offsetLength; i < clusterBytes.Length; i++)
+    					clusterBytes[i] = 0xFF;
+	    		}      
 
                 //we can safely get our cluster #
                 var clusterNumber = BitConverter.ToInt64(clusterBytes, 0);
