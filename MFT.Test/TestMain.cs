@@ -37,6 +37,28 @@ namespace MFT.Test
     
         //public static string oneOff4 = @"C:\Users\eric\Desktop\$MFT\$MFT";
 
+        [Test]
+        public void OneOff3()
+        {
+            var config = new LoggingConfiguration();
+            var loglevel = LogLevel.Trace;
+
+            var layout = @"${message}";
+
+            var consoleTarget = new ColoredConsoleTarget();
+
+            config.AddTarget("console", consoleTarget);
+
+            consoleTarget.Layout = layout;
+
+            var rule1 = new LoggingRule("*", loglevel, consoleTarget);
+            config.LoggingRules.Add(rule1);
+
+            //   LogManager.Configuration = config;
+
+            var f = new FileRecord(File.ReadAllBytes(@"C:\temp\filerecord"), 0);
+
+        }
 
         [OneTimeSetUp]
         public void SetupNLog()
@@ -109,7 +131,7 @@ namespace MFT.Test
         [Test]
         public void Rando()
         {
-            var lf = MftFile.Load(@"C:\Temp\$MFT");
+            var lf = MftFile.Load(@"C:\temp\F\$MFT");
 
             //ss..Count.Should().Be(41);
 
@@ -446,6 +468,9 @@ Debug.WriteLine(1);
             Debug.WriteLine(dif);
         }
 
+        
+
+     
 
         [Test]
         public void Usn()

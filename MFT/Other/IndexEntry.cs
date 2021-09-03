@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using MFT.Attributes;
+using NLog;
 
 namespace MFT.Other
 {
@@ -46,7 +47,16 @@ namespace MFT.Other
                 var createdRaw = BitConverter.ToInt64(rawBytes, index);
                 if (createdRaw > 0)
                 {
-                    CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
+                    try
+                    {
+                        CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
+                    }
+                    catch (Exception e)
+                    {
+                        var l = LogManager.GetLogger("IndexEntry");
+                        l.Warn($"Invalid CreatedOn timestamp. Enable --debug for more details");
+                    }
+                    
                 }
 
                 index += 8;
@@ -54,7 +64,16 @@ namespace MFT.Other
                 var contentModRaw = BitConverter.ToInt64(rawBytes, index);
                 if (contentModRaw > 0)
                 {
-                    ContentModifiedOn = DateTimeOffset.FromFileTime(contentModRaw).ToUniversalTime();
+                    try
+                    {
+                        ContentModifiedOn = DateTimeOffset.FromFileTime(contentModRaw).ToUniversalTime();
+                    }
+                    catch (Exception e)
+                    {
+                        var l = LogManager.GetLogger("IndexEntry");
+                        l.Warn($"Invalid ContentModifiedOn timestamp. Enable --debug for more details");
+                    }
+                   
                 }
 
                 index += 8;
@@ -62,7 +81,16 @@ namespace MFT.Other
                 var recordModRaw = BitConverter.ToInt64(rawBytes, index);
                 if (recordModRaw > 0)
                 {
-                    RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
+                    try
+                    {
+                        RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
+                    }
+                    catch (Exception e)
+                    {
+                        var l = LogManager.GetLogger("IndexEntry");
+                        l.Warn($"Invalid RecordModifiedOn timestamp. Enable --debug for more details");
+                    }
+                   
                 }
 
                 index += 8;
@@ -70,7 +98,16 @@ namespace MFT.Other
                 var lastAccessRaw = BitConverter.ToInt64(rawBytes, index);
                 if (lastAccessRaw > 0)
                 {
-                    LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
+                    try
+                    {
+                        LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
+                    }
+                    catch (Exception e)
+                    {
+                        var l = LogManager.GetLogger("IndexEntry");
+                        l.Warn($"Invalid LastAccessedOn timestamp. Enable --debug for more details");
+                    }
+                   
                 }
 
                 index += 8;
