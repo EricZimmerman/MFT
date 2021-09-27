@@ -21,6 +21,7 @@ namespace MFT
             FileRecords = new Dictionary<string, FileRecord>();
             FreeFileRecords = new Dictionary<string, FileRecord>();
             ExtensionFileRecords = new Dictionary<string, List<FileRecord>>();
+            UnAssociatedExtensionFileRecords = new Dictionary<string, List<FileRecord>>();
             BadRecords = new List<FileRecord>();
             UninitializedRecords = new List<FileRecord>();
 
@@ -126,13 +127,15 @@ namespace MFT
 
           
             BuildMaps(FileRecords);
-            BuildMaps(FreeFileRecords);
+            BuildMaps(FreeFileRecords,false);
         }
 
 
         public Dictionary<string, FileRecord> FileRecords { get; }
         private Dictionary<string, List<FileRecord>> ExtensionFileRecords { get; }
+        private Dictionary<string, List<FileRecord>> UnAssociatedExtensionFileRecords { get; }
         public Dictionary<string, FileRecord> FreeFileRecords { get; }
+        
 
         public List<FileRecord> BadRecords { get; }
         public List<FileRecord> UninitializedRecords { get; }
@@ -143,7 +146,7 @@ namespace MFT
         /// </summary>
         public static int CurrentOffset { get; private set; }
 
-        private void BuildMaps(Dictionary<string, FileRecord> fileRecords)
+        private void BuildMaps(Dictionary<string, FileRecord> fileRecords, bool skipUnassociated = true)
         {
             foreach (var fileRecord in fileRecords)
             {
@@ -198,6 +201,79 @@ namespace MFT
                         }
                 }
             }
+
+            if (skipUnassociated)
+            {
+                return;
+            }
+
+            foreach (var unAssociatedExtensionFileRecord in UnAssociatedExtensionFileRecords)
+            {
+                // if (unAssociatedExtensionFileRecord.Value.Attributes.Count == 0)
+                // {
+                //     _logger.Debug($"Skipping file record with entry/seq #{unAssociatedExtensionFileRecord.Key} since it has no attributes");
+                //     continue;
+                // }
+
+
+                foreach (var fileRecord in unAssociatedExtensionFileRecord.Value)
+                {
+                    
+                    var fileNameRecords = fileRecord.Attributes.Where(t => t.AttributeType == AttributeType.FileName)
+                        .ToList();
+            
+                    foreach (var fileNameRecord in fileNameRecords)
+                    {
+                        var fna = (FileName) fileNameRecord;
+                        if (fna.FileInfo.NameType == NameTypes.Dos)
+                        {
+                            continue;
+                        }
+            
+
+                        if (fileRecord.IsDirectory())
+                        {
+                            //override this with the base record info
+                            var keyDir =                             $"{fileRecord.MftRecordToBaseRecord.MftEntryNumber:X8}-{fileRecord.MftRecordToBaseRecord.MftSequenceNumber:X8}";// fileRecord.GetKey();
+
+                            // if (fileRecord.IsDeleted())
+                            // {
+                            //     keyDir=    $"{fileRecord.EntryNumber:X8}-{fileRecord.SequenceNumber - 1:X8}";
+                            // }
+
+
+
+                            if (_directoryNameMap.ContainsKey(keyDir) == false)
+                            {
+                                _directoryNameMap.Add(keyDir,
+                                    new DirectoryNameMapValue(fna.FileInfo.FileName, $"{fna.FileInfo.ParentMftRecord.GetKey()}",
+                                        fileRecord.IsDeleted()));
+                            }
+                        }
+                    
+                        var key = fileRecord.GetKey();
+                        var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
+
+                        if (_parentDirectoryNameMap.ContainsKey(parentKey) == false)
+                        {
+                            _parentDirectoryNameMap.Add(parentKey, new HashSet<ParentMapEntry>());
+                        }
+
+                        if (fna.FileInfo.FileName.Equals(".") == false)
+                        {
+                            _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName, fileRecord.GetKey(true),
+                                fileRecord.IsDirectory()));
+                        }
+                    
+
+
+
+
+
+
+                    }
+                }
+            }
         }
 
         public List<ParentMapEntry> GetDirectoryContents(string key)
@@ -228,6 +304,12 @@ namespace MFT
 
                 if (baseRecord == null)
                 {
+                    //we could not associate this record to its base record, so treat it as such
+                    //later we will check these when rebuilding parent paths.
+                    UnAssociatedExtensionFileRecords.Add(fileRecord.Key,new List<FileRecord>());
+
+                    UnAssociatedExtensionFileRecords[fileRecord.Key].AddRange(fileRecord.Value);
+                    
                     continue;
                 }
 
@@ -317,6 +399,42 @@ namespace MFT
                     }
                 }
             }
+
+            foreach (var unAssociatedExtensionFileRecord in UnAssociatedExtensionFileRecords)
+            {
+                // if (unAssociatedExtensionFileRecord.Value.Attributes.Count == 0)
+                // {
+                //     _logger.Debug($"Skipping file record with entry/seq #{unAssociatedExtensionFileRecord.Key} since it has no attributes");
+                //     continue;
+                // }
+
+
+                foreach (var fileRecord in unAssociatedExtensionFileRecord.Value)
+                {
+                    
+                    var fileNameRecords = fileRecord.Attributes.Where(t => t.AttributeType == AttributeType.FileName)
+                        .ToList();
+            
+                    foreach (var fileNameRecord in fileNameRecords)
+                    {
+                        var fna = (FileName) fileNameRecord;
+                        if (fna.FileInfo.NameType == NameTypes.Dos)
+                        {
+                            continue;
+                        }
+            
+                        var key = fileRecord.GetKey();
+            
+                        if (_directoryNameMap.ContainsKey(key) == false)
+                        {
+                            _directoryNameMap.Add(key,
+                                new DirectoryNameMapValue(fna.FileInfo.FileName, $"{fna.FileInfo.ParentMftRecord.GetKey()}",
+                                    fileRecord.IsDeleted()));
+                        }
+                    }
+                }
+            }
+
         }
     }
 }

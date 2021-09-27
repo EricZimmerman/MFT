@@ -41,7 +41,7 @@ namespace MFT.Test
         public void OneOff3()
         {
             var config = new LoggingConfiguration();
-            var loglevel = LogLevel.Trace;
+            var loglevel = LogLevel.Info;
 
             var layout = @"${message}";
 
@@ -56,7 +56,35 @@ namespace MFT.Test
 
             //   LogManager.Configuration = config;
 
-            var f = new FileRecord(File.ReadAllBytes(@"C:\temp\filerecord"), 0);
+            var f = MftFile.Load(@"C:\temp\$MFT");
+            Debug.WriteLine(1);
+
+            var ff = f.GetDirectoryContents("00000005-00000005");
+
+            foreach (var parentMapEntry in ff)
+            {
+                Debug.WriteLine(parentMapEntry);
+            }
+
+           Debug.WriteLine(f.GetFullParentPath("00000026-00000001"));
+
+           foreach (var m2FileRecord in f.FreeFileRecords)
+           {
+               foreach (var attribute in m2FileRecord.Value.Attributes.Where(t =>
+                   t.AttributeType == AttributeType.FileName))
+               {
+                   var fn = (FileName) attribute;
+                   if (fn.FileInfo.NameType == NameTypes.Dos)
+                   {
+                   }
+
+                   Debug.WriteLine(
+                       $"{m2FileRecord.Value.EntryNumber},{m2FileRecord.Value.SequenceNumber},\"{f.GetFullParentPath(fn.FileInfo.ParentMftRecord.GetKey())}\\{fn.FileInfo.FileName}\",Free,{m2FileRecord.Value.IsDirectory()}");
+               }
+           }
+
+
+            //var f = new FileRecord(File.ReadAllBytes(@"C:\temp\filerecord"), 0);
 
         }
 
