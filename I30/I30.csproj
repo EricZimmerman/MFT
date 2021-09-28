@@ -1,6 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	<TargetFrameworks>net461;net5.0</TargetFrameworks>
+	<PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
+	<Description>$I30 parser</Description>
+	<Copyright>Eric R. Zimmerman</Copyright>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<Version>0.3.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Properties\**" />

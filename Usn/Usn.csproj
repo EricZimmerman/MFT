@@ -3,6 +3,11 @@
 	<TargetFrameworks>net461;net5.0</TargetFrameworks>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
+	<Copyright>Eric R. Zimmerman</Copyright>
+	<Description>USN $J parser</Description>
+	<RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
+	<Version>1.0.0.1</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Properties\**" />
