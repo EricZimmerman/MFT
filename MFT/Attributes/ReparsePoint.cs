@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using NLog;
 
 namespace MFT.Attributes
 {
@@ -173,13 +174,24 @@ namespace MFT.Attributes
                     break;
             }
 
-            var subNameOffset = BitConverter.ToInt16(content, 8);
-            var subNameSize = BitConverter.ToInt16(content, 10);
-            var printNameOffset = BitConverter.ToInt16(content, 12);
-            var printNameSize = BitConverter.ToInt16(content, 14);
-
             SubstituteName = string.Empty;
             PrintName = string.Empty;
+
+            var subNameOffset = BitConverter.ToInt16(content, 8);
+            var subNameSize = BitConverter.ToInt16(content, 10);
+            
+            if (subNameSize == 0)
+            {
+                var l = LogManager.GetLogger("ReparsePoint");
+                l.Debug($"SubstituteName length is 0! Determining PrintName");
+                
+                PrintName = Encoding.ASCII.GetString(content, 0xc, content.Length - 0xc).Trim('\0');
+
+                 return;
+            }
+
+            var printNameOffset = BitConverter.ToInt16(content, 12);
+            var printNameSize = BitConverter.ToInt16(content, 14);
 
             if (Tag != ReparsePointTag.SymbolicLink && Tag != ReparsePointTag.MountPoint)
             {

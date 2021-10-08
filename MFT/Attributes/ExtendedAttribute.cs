@@ -62,6 +62,11 @@ namespace MFT.Attributes
 
                 var name = Encoding.Unicode.GetString(bytese, index, nameLen);
 
+                if (bytese[index + 1] != 0)
+                {
+                    name = Encoding.ASCII.GetString(bytese, index, nameLen);
+                }
+
                 index += nameLen;
                 index += 1; //null char
 
@@ -71,6 +76,15 @@ namespace MFT.Attributes
 
                 switch (name)
                 {
+                    case "$LXUID":
+                    case "$LXGID":
+                    case "$LXMOD":
+                        var lxuid = new byte[bytese.Length - index];
+                        Buffer.BlockCopy(bytese,index,lxuid,0,lxuid.Length);
+
+                        var lux = new LxXXX(lxuid,name);
+                        SubItems.Add(lux);
+                        break;
                     case ".LONGNAME":
                         var lnBuff = new byte[bytese.Length - index];
                         Buffer.BlockCopy(bytese,index,lnBuff,0,lnBuff.Length);
@@ -146,7 +160,7 @@ namespace MFT.Attributes
 
             sb.AppendLine();
             sb.AppendLine(
-                $"Extended Attribute:: {BitConverter.ToString(Content)}\r\n\r\nASCII: {asAscii}\r\nUnicode: {asUnicode}");
+                $"Extended Attribute: {BitConverter.ToString(Content)}\r\n\r\nASCII: {asAscii}\r\nUnicode: {asUnicode}");
 
             if (SubItems.Count > 0)
             {
@@ -183,6 +197,21 @@ namespace MFT.Attributes
         public override string ToString()
         {
             return $".LONGNAME: {Name}";
+        }
+    }
+
+    public class LxXXX
+    {
+        public LxXXX(byte[] rawBytes,string name)
+        {
+            Name = $"{name}: {BitConverter.ToString(rawBytes)}";
+        }
+
+        public string Name { get; }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 

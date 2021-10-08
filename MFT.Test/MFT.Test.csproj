@@ -3,6 +3,11 @@
 	<TargetFrameworks>net461;net5.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Properties\**" />
+    <EmbeddedResource Remove="Properties\**" />
+    <None Remove="Properties\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="app.config" />
     <None Include="TestFiles\%24I30\FirstDelete\%24I30" />
     <None Include="TestFiles\%24I30\SecondDelete\%24I30" />
@@ -37,9 +42,6 @@
     <ProjectReference Include="..\O\O.csproj" />
     <ProjectReference Include="..\SDS\Secure.csproj" />
     <ProjectReference Include="..\Usn\Usn.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TestFiles\%24I30\FirstDelete\2020-02-07_11-47-16.jpg" />

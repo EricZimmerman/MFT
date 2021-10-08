@@ -56,7 +56,7 @@ namespace MFT.Test
 
             //   LogManager.Configuration = config;
 
-            var f = MftFile.Load(@"C:\temp\$MFT");
+            /*var f = MftFile.Load(@"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT");
             Debug.WriteLine(1);
 
             var ff = f.GetDirectoryContents("00000005-00000005");
@@ -81,10 +81,16 @@ namespace MFT.Test
                    Debug.WriteLine(
                        $"{m2FileRecord.Value.EntryNumber},{m2FileRecord.Value.SequenceNumber},\"{f.GetFullParentPath(fn.FileInfo.ParentMftRecord.GetKey())}\\{fn.FileInfo.FileName}\",Free,{m2FileRecord.Value.IsDirectory()}");
                }
-           }
+           }*/
 
 
-            //var f = new FileRecord(File.ReadAllBytes(@"C:\temp\filerecord"), 0);
+            var f1 = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0x1627D800.bin"), 0);
+            var f2 = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0x16277400.bin"), 0);
+            var f3 = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0xB8A1400.bin"), 0);
+
+            Console.WriteLine(f1);
+            Console.WriteLine(f2);
+            Console.WriteLine(f3);
 
         }
 
