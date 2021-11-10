@@ -51,17 +51,25 @@ namespace MFT.Attributes
         [Flags]
         public enum MasksEnum
         {
-            CreateLink = 0x00000020,
-            CreateSubkey = 0x00000004,
+            FilEExecute = 0x00000020,
+            CreateSubDir = 0x00000004,
+            ReadAttrs = 0x00000080,
+            WriteAttrs = 0x00000100,
+            WriteOwnProp = 0x00000200,
+            DeleteOwnProp = 0x00000400,
+            ViewOwnProp = 0x00000800,
             Delete = 0x00010000,
-            EnumerateSubkeys = 0x00000008,
+            ReadEa = 0x00000008,
             FullControl = 0x000F003F,
-            Notify = 0x00000010,
-            QueryValue = 0x00000001,
+            WriteEa = 0x00000010,
+            FileReadDirList = 0x00000001,
             ReadControl = 0x00020000,
-            SetValue = 0x00000002,
+            FileWriteFileAdd = 0x00000002,
             WriteDac = 0x00040000,
-            WriteOwner = 0x00080000
+            WriteOwner = 0x00080000,
+            Synchronize = 0x000100000,
+            TrusteeOwn = 0x00004000,
+            UserAsContact = 0x00008000
         }
 
         // public constructors...

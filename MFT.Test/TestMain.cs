@@ -165,7 +165,12 @@ namespace MFT.Test
         [Test]
         public void Rando()
         {
-            var lf = MftFile.Load(@"C:\temp\F\$MFT");
+            var lf = SdsFile.Load(@"C:\Users\eric\OneDrive\ntfs\sds3\$SDS");
+
+            foreach (var lfSdsEntry in lf.SdsEntries)
+            {
+                Console.WriteLine(lfSdsEntry);
+            }
 
             //ss..Count.Should().Be(41);
 
