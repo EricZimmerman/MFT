@@ -132,7 +132,7 @@ namespace MFT.Test
         [Test]
         public void Boot()
         {
-            var bb = BootFile.Load(@"..\..\TestFiles\Boot\$Boot");
+            var bb = BootFile.Load(@"D:\Code\MFT\MFT.Test\TestFiles\Boot\$Boot");
 
             Debug.WriteLine($"$Boot.BootEntryPoint: {bb.BootEntryPoint}");
             Debug.WriteLine($"$Boot.FileSystemSignature: {bb.FileSystemSignature}");
