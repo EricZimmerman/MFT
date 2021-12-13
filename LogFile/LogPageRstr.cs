@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.ServiceModel;
+
 using System.Text;
 
 namespace LogFile

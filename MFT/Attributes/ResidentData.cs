@@ -14,7 +14,7 @@ namespace MFT.Attributes
 
         public override string ToString()
         {
-            var asAscii = Encoding.Unicode.GetString(Data);
+            var asAscii = Encoding.ASCII.GetString(Data);
             var asUnicode = Encoding.Unicode.GetString(Data);
             return $"Data: {BitConverter.ToString(Data)}\r\n\r\nASCII: {asAscii}\r\nUnicode: {asUnicode}";
         }

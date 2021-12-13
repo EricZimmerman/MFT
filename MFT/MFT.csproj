@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net5.0;net6.0</TargetFrameworks>
     <Authors>Eric R. Zimmerman</Authors>
     <Description>$MFT Parser</Description>
-    <AssemblyVersion></AssemblyVersion>
-    <FileVersion></FileVersion>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.1.0.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.0.3</Version>
+    <LangVersion>10</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Eric R. Zimmerman</Copyright>
     <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
@@ -20,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NLog" Version="4.7.11" />
+    <PackageReference Include="NLog" Version="4.7.13" />
   </ItemGroup>
 
 

@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-	<TargetFrameworks>net461;net5.0;net6.0</TargetFrameworks>
+	<TargetFrameworks>netstandard2.0;net5.0;net6.0</TargetFrameworks>
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <LangVersion>10</LangVersion>  
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
 	<Description>$SDS parser</Description>
 	<Copyright>Eric R. Zimmerman</Copyright>
 	<RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
-	<Version>1.0.0.3</Version>
+	<Version>1.1.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Properties\**" />
@@ -16,7 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NLog">
-      <Version>4.7.11</Version>
+      <Version>4.7.13</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

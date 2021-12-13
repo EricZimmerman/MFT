@@ -51,7 +51,7 @@ namespace MFT.Other
                     {
                         CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
                     }
-                    catch (Exception e)
+                    catch (Exception )
                     {
                         var l = LogManager.GetLogger("IndexEntry");
                         l.Warn($"Invalid CreatedOn timestamp. Enable --debug for more details");
@@ -68,7 +68,7 @@ namespace MFT.Other
                     {
                         ContentModifiedOn = DateTimeOffset.FromFileTime(contentModRaw).ToUniversalTime();
                     }
-                    catch (Exception e)
+                    catch (Exception )
                     {
                         var l = LogManager.GetLogger("IndexEntry");
                         l.Warn($"Invalid ContentModifiedOn timestamp. Enable --debug for more details");
@@ -85,7 +85,7 @@ namespace MFT.Other
                     {
                         RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
                     }
-                    catch (Exception e)
+                    catch (Exception )
                     {
                         var l = LogManager.GetLogger("IndexEntry");
                         l.Warn($"Invalid RecordModifiedOn timestamp. Enable --debug for more details");
@@ -102,7 +102,7 @@ namespace MFT.Other
                     {
                         LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
                     }
-                    catch (Exception e)
+                    catch (Exception )
                     {
                         var l = LogManager.GetLogger("IndexEntry");
                         l.Warn($"Invalid LastAccessedOn timestamp. Enable --debug for more details");
