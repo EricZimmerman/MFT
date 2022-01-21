@@ -1,22 +1,16 @@
 ﻿using System.IO;
 
-namespace Secure
+namespace Secure;
+
+public static class SdhFile
 {
-    public static class SdhFile
+    public static Sdh Load(string sdhFile)
     {
-        public static Sdh Load(string sdhFile)
+        if (File.Exists(sdhFile) == false) throw new FileNotFoundException($"'{sdhFile}' not found");
+
+        using (var fs = new FileStream(sdhFile, FileMode.Open, FileAccess.Read))
         {
-            if (File.Exists(sdhFile) == false)
-            {
-                throw new FileNotFoundException($"'{sdhFile}' not found");
-            }
-
-            using (var fs = new FileStream(sdhFile, FileMode.Open, FileAccess.Read))
-            {
-                return new Sdh(fs);
-            }
+            return new Sdh(fs);
         }
-
-     
     }
 }

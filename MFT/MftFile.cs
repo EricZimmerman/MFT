@@ -1,26 +1,18 @@
 ﻿using System.IO;
 
-namespace MFT
+namespace MFT;
+
+public static class MftFile
 {
-    public static class MftFile
+    public static string DateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
+
+    public static Mft Load(string mftPath)
     {
-        public static string DateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
+        if (File.Exists(mftPath) == false) throw new FileNotFoundException($"'{mftPath}' not found");
 
-        public static Mft Load(string mftPath)
+        using (var fs = new FileStream(mftPath, FileMode.Open, FileAccess.Read))
         {
-            if (File.Exists(mftPath) == false)
-            {
-                throw new FileNotFoundException($"'{mftPath}' not found");
-            }
-
-            using (var fs = new FileStream(mftPath, FileMode.Open, FileAccess.Read))
-            {
-                return new Mft(fs);
-            }
+            return new Mft(fs);
         }
-
-       
     }
-
-
 }

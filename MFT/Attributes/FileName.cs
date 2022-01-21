@@ -1,35 +1,34 @@
 ﻿using System;
 using System.Text;
 
-namespace MFT.Attributes
+namespace MFT.Attributes;
+
+public class FileName : Attribute
 {
-    public class FileName : Attribute
+    public FileName(byte[] rawBytes) : base(rawBytes)
     {
-        public FileName(byte[] rawBytes) : base(rawBytes)
-        {
-            var content = new byte[rawBytes.Length - ContentOffset];
+        var content = new byte[rawBytes.Length - ContentOffset];
 
-            Buffer.BlockCopy(rawBytes, ContentOffset, content, 0, rawBytes.Length - ContentOffset);
+        Buffer.BlockCopy(rawBytes, ContentOffset, content, 0, rawBytes.Length - ContentOffset);
 
-            FileInfo = new FileInfo(content);
-        }
+        FileInfo = new FileInfo(content);
+    }
 
-        public FileInfo FileInfo { get; }
+    public FileInfo FileInfo { get; }
 
 
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
 
-            sb.AppendLine("**** FILE NAME ****");
+        sb.AppendLine("**** FILE NAME ****");
 
-            sb.AppendLine(base.ToString());
+        sb.AppendLine(base.ToString());
 
-            //sb.AppendLine();
+        //sb.AppendLine();
 
-            sb.AppendLine(FileInfo.ToString());
+        sb.AppendLine(FileInfo.ToString());
 
-            return sb.ToString();
-        }
+        return sb.ToString();
     }
 }

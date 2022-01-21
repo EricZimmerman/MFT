@@ -1,97 +1,95 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using NLog;
+using Serilog;
 
-namespace Usn
+namespace Usn;
+
+public class Usn
 {
-    public class Usn
+    private const int PageSize = 0x1000;
+
+    public static uint LastOffset;
+
+    public Usn(Stream fileStream, long startingOffset)
     {
-        private const int PageSize = 0x1000;
-        private readonly Logger _logger = LogManager.GetLogger("Usn");
+        UsnEntries = new List<UsnEntry>();
 
-        public static uint LastOffset = 0;
+        fileStream.Seek(startingOffset, SeekOrigin.Begin);
 
-        
+        var lastGoodPageOffset = startingOffset;
 
-        public Usn(Stream fileStream, long startingOffset)
+        Log.Verbose("Beginning processing");
+
+        while (fileStream.Position < fileStream.Length)
         {
-            UsnEntries = new List<UsnEntry>();
+            Log.Verbose("Starting fileStream.Position 0x{Position:X8}", fileStream.Position);
 
-            fileStream.Seek(startingOffset, SeekOrigin.Begin);
+            LastOffset = (uint) fileStream.Position;
 
-            var lastGoodPageOffset = startingOffset;
+            var calcBuff = new byte[8];
+            fileStream.Read(calcBuff, 0, 8);
+            fileStream.Seek(-8, SeekOrigin.Current); //reverse to where we were
 
-            _logger.Trace("Beginning processing");
+            var size = BitConverter.ToUInt32(calcBuff, 0);
+            var majorVer = BitConverter.ToInt16(calcBuff, 4); //used for error checking
 
-            while (fileStream.Position<fileStream.Length)
+            if (size == 0)
             {
-                _logger.Trace($"Starting fileStream.Position 0x {fileStream.Position:X8}.");
+                Log.Verbose("Size is zero. Increasing index by 0x{PageSize:X}", PageSize);
 
-                LastOffset = (uint) fileStream.Position;
+                fileStream.Seek(lastGoodPageOffset + PageSize, SeekOrigin.Begin);
 
-                var calcBuff = new byte[8];
-                fileStream.Read(calcBuff,0,8);
-                fileStream.Seek(-8, SeekOrigin.Current); //reverse to where we were
+                lastGoodPageOffset += PageSize;
 
-                var size = BitConverter.ToUInt32(calcBuff, 0);
-                var majorVer = BitConverter.ToInt16(calcBuff,  4); //used for error checking
-
-                if (size == 0)
-                {
-                    _logger.Trace($"Size is zero. Increasing index by 0x{PageSize:X}");
-
-                    fileStream.Seek((lastGoodPageOffset + PageSize), SeekOrigin.Begin);
-                    
-                    lastGoodPageOffset += PageSize;
-
-                    continue;
-                }
-
-                if (size > PageSize)
-                {
-                    _logger.Trace($"Junk data found at 0x {(fileStream.Position):X8}. Increasing index by 0x{PageSize:X}");
-
-                    lastGoodPageOffset += PageSize;
-
-                    fileStream.Seek((lastGoodPageOffset), SeekOrigin.Begin);
-
-                    continue;
-                }
-
-                if (size < 0x38 || size > 0x250 || majorVer != 2
-                ) //~ minimum length, so jump to next page || max defined as max filename length (0xFF) + min length (it should not be bigger than this)
-                {
-                    _logger.Trace($"Strange size or ver # incorrect at 0x {(fileStream.Position):X8}. Increasing index by 0x{PageSize:X}. Size: 0x{size:X} version: {majorVer}");
-                    
-                    fileStream.Seek((lastGoodPageOffset + PageSize), SeekOrigin.Begin);
-
-                    lastGoodPageOffset += PageSize;
-
-                    continue;
-                }
-
-                if (fileStream.Position % PageSize == 0)
-                {
-                    _logger.Debug($"Setting lastGoodPageOffset to 0x {fileStream.Position:X8}");
-
-                    lastGoodPageOffset = fileStream.Position;
-                }
-
-                _logger.Trace($"Processing UsnEntry at 0x{startingOffset + fileStream.Position:X}");
-
-                var buff = new byte[size];
-
-                fileStream.Read(buff, 0, (int) size);
-
-                var ue = new UsnEntry(buff, LastOffset);
-                UsnEntries.Add(ue);
+                continue;
             }
 
-            _logger.Debug($"Found {UsnEntries.Count:N0} records");
+            if (size > PageSize)
+            {
+                Log.Verbose("Junk data found at 0x{Position:X8}. Increasing index by 0x{PageSize:X}",
+                    fileStream.Position, PageSize);
+
+                lastGoodPageOffset += PageSize;
+
+                fileStream.Seek(lastGoodPageOffset, SeekOrigin.Begin);
+
+                continue;
+            }
+
+            if (size < 0x38 || size > 0x250 || majorVer != 2
+               ) //~ minimum length, so jump to next page || max defined as max filename length (0xFF) + min length (it should not be bigger than this)
+            {
+                Log.Verbose(
+                    "Strange size or ver # incorrect at 0x{Position:X8}. Increasing index by 0x{PageSize:X}. Size: 0x{Size:X} version: {MajorVer}",
+                    fileStream.Position, PageSize, size, majorVer);
+
+                fileStream.Seek(lastGoodPageOffset + PageSize, SeekOrigin.Begin);
+
+                lastGoodPageOffset += PageSize;
+
+                continue;
+            }
+
+            if (fileStream.Position % PageSize == 0)
+            {
+                Log.Debug("Setting lastGoodPageOffset to 0x{Position:X8}", fileStream.Position);
+
+                lastGoodPageOffset = fileStream.Position;
+            }
+
+            Log.Verbose("Processing UsnEntry at 0x{Position:X}", startingOffset + fileStream.Position);
+
+            var buff = new byte[size];
+
+            fileStream.Read(buff, 0, (int) size);
+
+            var ue = new UsnEntry(buff, LastOffset);
+            UsnEntries.Add(ue);
         }
 
-        public List<UsnEntry> UsnEntries { get; }
+        Log.Debug("Found {Count:N0} records", UsnEntries.Count);
     }
+
+    public List<UsnEntry> UsnEntries { get; }
 }

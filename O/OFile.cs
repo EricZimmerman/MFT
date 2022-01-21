@@ -1,26 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
-namespace O
+namespace O;
+
+public static class OFile
 {
-   public static class OFile
+    public static O Load(string siiFile)
     {
-        public static O Load(string siiFile)
+        if (File.Exists(siiFile) == false) throw new FileNotFoundException($"'{siiFile}' not found");
+
+        using (var fs = new FileStream(siiFile, FileMode.Open, FileAccess.Read))
         {
-            if (File.Exists(siiFile) == false)
-            {
-                throw new FileNotFoundException($"'{siiFile}' not found");
-            }
-
-            using (var fs = new  FileStream(siiFile, FileMode.Open, FileAccess.Read))
-            {
-                return new O(fs);
-            }
+            return new O(fs);
         }
-
     }
 }

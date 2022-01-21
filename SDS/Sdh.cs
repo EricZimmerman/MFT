@@ -1,14 +1,11 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using NLog;
+﻿using System.IO;
 
-namespace Secure
+namespace Secure;
+
+public class Sdh
 {
-    public class Sdh
+    public Sdh(Stream fileStream)
     {
-        public Sdh(Stream fileStream)
-        {
 //            var logger = LogManager.GetLogger("SDH");
 //
 //            var sig = 0x58444E49;
@@ -122,6 +119,5 @@ namespace Secure
 //                Debug.WriteLine(
 //                    $"startIndex 0x {startIndex:X} OffsetToData: 0x {offsetToData:X} dataSize: 0x {dataSize:X} ");
 //            }
-        }
     }
 }

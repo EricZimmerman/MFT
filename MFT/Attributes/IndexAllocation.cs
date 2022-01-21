@@ -1,30 +1,29 @@
 ﻿using System.Text;
 
-namespace MFT.Attributes
+namespace MFT.Attributes;
+
+public class IndexAllocation : Attribute
 {
-    public class IndexAllocation : Attribute
+    public IndexAllocation(byte[] rawBytes) : base(rawBytes)
     {
-        public IndexAllocation(byte[] rawBytes) : base(rawBytes)
-        {
-            NonResidentData = new NonResidentData(rawBytes);
-        }
+        NonResidentData = new NonResidentData(rawBytes);
+    }
 
-        public NonResidentData NonResidentData { get; }
+    public NonResidentData NonResidentData { get; }
 
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
 
-            sb.AppendLine("**** INDEX ALLOCATION ****");
+        sb.AppendLine("**** INDEX ALLOCATION ****");
 
-            sb.AppendLine(base.ToString());
+        sb.AppendLine(base.ToString());
 
-            sb.AppendLine();
+        sb.AppendLine();
 
-            sb.AppendLine(
-                $"Non Resident Data: {NonResidentData}");
+        sb.AppendLine(
+            $"Non Resident Data: {NonResidentData}");
 
-            return sb.ToString();
-        }
+        return sb.ToString();
     }
 }

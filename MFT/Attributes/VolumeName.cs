@@ -1,38 +1,35 @@
 ﻿using System.Text;
 
-namespace MFT.Attributes
+namespace MFT.Attributes;
+
+public class VolumeName : Attribute
 {
-    public class VolumeName : Attribute
+    public VolumeName(byte[] rawBytes) : base(rawBytes)
     {
-        public VolumeName(byte[] rawBytes) : base(rawBytes)
-        {
-            var residentData = new ResidentData(rawBytes);
+        var residentData = new ResidentData(rawBytes);
 
-            VolName = string.Empty;
+        VolName = string.Empty;
 
-            if (residentData.Data.Length > 0)
-            {
-                VolName = Encoding.Unicode
-                    .GetString(residentData.Data, ContentOffset, residentData.Data.Length - ContentOffset)
-                    .TrimEnd('\0');
-            }
-        }
+        if (residentData.Data.Length > 0)
+            VolName = Encoding.Unicode
+                .GetString(residentData.Data, ContentOffset, residentData.Data.Length - ContentOffset)
+                .TrimEnd('\0');
+    }
 
-        public string VolName { get; }
+    public string VolName { get; }
 
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
 
-            sb.AppendLine("**** VOLUME NAME ****");
+        sb.AppendLine("**** VOLUME NAME ****");
 
-            sb.AppendLine(base.ToString());
+        sb.AppendLine(base.ToString());
 
-            sb.AppendLine();
+        sb.AppendLine();
 
-            sb.AppendLine($"Volume Name: {VolName}");
+        sb.AppendLine($"Volume Name: {VolName}");
 
-            return sb.ToString();
-        }
+        return sb.ToString();
     }
 }
