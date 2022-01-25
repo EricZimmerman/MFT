@@ -11,11 +11,6 @@
         <Version>1.1.1.0</Version>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Remove="Properties\**"/>
-        <EmbeddedResource Remove="Properties\**"/>
-        <None Remove="Properties\**"/>
-    </ItemGroup>
-    <ItemGroup>
         <PackageReference Include="Serilog" Version="2.10.0"/>
     </ItemGroup>
     <ItemGroup>
