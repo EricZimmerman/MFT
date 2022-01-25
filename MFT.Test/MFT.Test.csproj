@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>net462;;net6.0</TargetFrameworks>
+        <TargetFrameworks>net462;net6.0</TargetFrameworks>
         <LangVersion>10</LangVersion>
     </PropertyGroup>
     <ItemGroup>
@@ -18,9 +18,7 @@
         <None Include="TestFiles\Usn\record.usn"/>
         <None Include="TestFiles\xw\%24MFT"/>
     </ItemGroup>
-    <ItemGroup>
-        <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}"/>
-    </ItemGroup>
+    
     <ItemGroup>
         <PackageReference Include="FluentAssertions">
             <Version>6.2.0</Version>
