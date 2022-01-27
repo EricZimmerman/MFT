@@ -248,7 +248,7 @@ public class TestMain
     {
         var lf = File.ReadAllBytes(@"D:\Temp\Maxim_EA)STUFF_MFT_wsl2\ea-2.bin");
 
-        var ea = new Lxattrr(lf);
+        var ea = new Lxattrr(lf, "LXXATTR");
 
         Debug.WriteLine(ea);
 

@@ -74,33 +74,33 @@ public class ExtendedAttribute : Attribute
                     var lxuid = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, lxuid, 0, lxuid.Length);
 
-                    var lux = new LxXXX(lxuid, name);
+                    var lux = new LxXXX(lxuid, name, name);
                     SubItems.Add(lux);
                     break;
                 case ".LONGNAME":
                     var lnBuff = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, lnBuff, 0, lnBuff.Length);
-                    var ln = new LongName(lnBuff);
+                    var ln = new LongName(lnBuff,name);
                     SubItems.Add(ln);
                     break;
                 case "LXATTRB":
                     var lbBuff = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, lbBuff, 0, lbBuff.Length);
-                    var lb = new Lxattrb(lbBuff);
+                    var lb = new Lxattrb(lbBuff,name);
                     SubItems.Add(lb);
                     //Debug.WriteLine(lb);
                     break;
                 case "LXXATTR":
                     var lrBuff = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, lrBuff, 0, lrBuff.Length);
-                    var lr = new Lxattrr(lrBuff);
+                    var lr = new Lxattrr(lrBuff, name);
                     SubItems.Add(lr);
                     //Debug.WriteLine(lr);
                     break;
                 case "$KERNEL.PURGE.ESBCACHE":
                     var kpEs = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, kpEs, 0, kpEs.Length);
-                    var esbCache = new PurgeEsbCache(kpEs);
+                    var esbCache = new PurgeEsbCache(kpEs, name);
                     SubItems.Add(esbCache);
                     //Debug.WriteLine(esbCache);
                     //TODO FINISH
@@ -108,19 +108,19 @@ public class ExtendedAttribute : Attribute
                 case "$CI.CATALOGHINT":
                     var ciCat = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, ciCat, 0, ciCat.Length);
-                    var catHint = new CatHint(ciCat);
+                    var catHint = new CatHint(ciCat, name);
                     SubItems.Add(catHint);
                     break;
                 case "$KERNEL.PURGE.APPXFICACHE":
                     var kpAppXFi = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, kpAppXFi, 0, kpAppXFi.Length);
-                    var appFix = new AppFixCache(kpAppXFi);
+                    var appFix = new AppFixCache(kpAppXFi, name);
                     SubItems.Add(appFix);
                     break;
                 case ".CLASSINFO":
                     var clInfo = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, clInfo, 0, clInfo.Length);
-                    var clI = new ClassInfo(clInfo);
+                    var clI = new ClassInfo(clInfo, name);
                     SubItems.Add(clI);
                     break;
 
@@ -142,7 +142,7 @@ public class ExtendedAttribute : Attribute
 
         sb.AppendLine(base.ToString());
 
-        var asAscii = Encoding.Unicode.GetString(Content);
+        var asAscii = Encoding.ASCII.GetString(Content);
         var asUnicode = Encoding.Unicode.GetString(Content);
 
         sb.AppendLine();
@@ -161,10 +161,17 @@ public class ExtendedAttribute : Attribute
     }
 }
 
-public class LongName
+public interface IEa
 {
-    public LongName(byte[] rawBytes)
+    public string InternalName {get;}
+}
+
+public class LongName:IEa
+{
+    public LongName(byte[] rawBytes, string internalName)
     {
+        InternalName = internalName;
+        
         var index = 0;
 
         index += 2; // unknown
@@ -173,6 +180,8 @@ public class LongName
         index += 2;
 
         Name = Encoding.Unicode.GetString(rawBytes, index, size);
+
+        
     }
 
 
@@ -182,12 +191,15 @@ public class LongName
     {
         return $".LONGNAME: {Name}";
     }
+
+    public string InternalName { get; }
 }
 
-public class LxXXX
+public class LxXXX:IEa
 {
-    public LxXXX(byte[] rawBytes, string name)
+    public LxXXX(byte[] rawBytes, string name, string internalName)
     {
+        InternalName = internalName;
         Name = $"{name}: {BitConverter.ToString(rawBytes)}";
     }
 
@@ -197,12 +209,15 @@ public class LxXXX
     {
         return Name;
     }
+    
+    public string InternalName { get; }
 }
 
-public class ClassInfo
+public class ClassInfo:IEa
 {
-    public ClassInfo(byte[] rawBytes)
+    public ClassInfo(byte[] rawBytes, string internalName)
     {
+        InternalName = internalName;
 //            var index = 0;
 //
 //            index += 2; // unknown
@@ -220,12 +235,15 @@ public class ClassInfo
     {
         return ".ClassInfo: Not decoded";
     }
+    
+    public string InternalName { get; }
 }
 
-public class CatHint
+public class CatHint:IEa
 {
-    public CatHint(byte[] rawBytes)
+    public CatHint(byte[] rawBytes, string internalName)
     {
+        InternalName = internalName;
         var index = 0;
 
         Format = BitConverter.ToInt16(rawBytes, index);
@@ -245,12 +263,15 @@ public class CatHint
     {
         return $"$CI.CATALOGHINT | Hint: {Hint}";
     }
+    
+    public string InternalName { get; }
 }
 
 public class AppFixCache
 {
-    public AppFixCache(byte[] rawBytes)
+    public AppFixCache(byte[] rawBytes, string internalName)
     {
+        InternalName = internalName;
         var tsraw = BitConverter.ToInt64(rawBytes, 0);
         if (tsraw < 0) tsraw = 0;
 
@@ -268,12 +289,15 @@ public class AppFixCache
         return
             $"$KERNEL.PURGE.APPXFICACHE | Timestamp: {Timestamp:yyyy-MM-dd HH:mm:ss.fffffff} Remaining bytes: {BitConverter.ToString(RemainingBytes)}";
     }
+    
+    public string InternalName { get; }
 }
 
 public class PurgeEsbCache
 {
-    public PurgeEsbCache(byte[] rawBytes)
+    public PurgeEsbCache(byte[] rawBytes, string internalName)
     {
+        InternalName = internalName;
         var index = 8;
         Timestamp = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, index)).ToUniversalTime();
         index += 8;
@@ -290,12 +314,15 @@ public class PurgeEsbCache
         return
             $"$KERNEL.PURGE.ESBCACHE | Timestamp: {Timestamp:yyyy-MM-dd HH:mm:ss.fffffff} Timestamp2: {Timestamp2:yyyy-MM-dd HH:mm:ss.fffffff}";
     }
+    
+    public string InternalName { get; }
 }
 
 public class Lxattrr
 {
-    public Lxattrr(byte[] rawBytes)
+    public Lxattrr(byte[] rawBytes, string internalName)
     {
+        InternalName = internalName;
         KeyValues = new Dictionary<string, string>();
 
         var index = 0;
@@ -345,12 +372,16 @@ public class Lxattrr
 
         return sb.ToString();
     }
+    public string InternalName { get; }
+    
 }
 
 public class Lxattrb
 {
-    public Lxattrb(byte[] rawBytes)
+    public Lxattrb(byte[] rawBytes, string internalName)
     {
+        InternalName = internalName;
+        
         var index = 0;
         Format = BitConverter.ToInt16(rawBytes, index);
         index += 2;
@@ -421,4 +452,6 @@ public class Lxattrb
 
         return sb.ToString();
     }
+    
+    public string InternalName { get; }
 }
