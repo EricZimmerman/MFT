@@ -6,6 +6,11 @@ using Serilog;
 
 namespace MFT.Attributes;
 
+public interface IEa
+{
+    public string InternalName {get;}
+}
+
 public class ExtendedAttribute : Attribute
 {
     public ExtendedAttribute(byte[] rawBytes) : base(rawBytes)
@@ -161,10 +166,6 @@ public class ExtendedAttribute : Attribute
     }
 }
 
-public interface IEa
-{
-    public string InternalName {get;}
-}
 
 public class LongName:IEa
 {
@@ -183,7 +184,6 @@ public class LongName:IEa
 
         
     }
-
 
     public string Name { get; }
 
@@ -267,7 +267,7 @@ public class CatHint:IEa
     public string InternalName { get; }
 }
 
-public class AppFixCache
+public class AppFixCache:IEa
 {
     public AppFixCache(byte[] rawBytes, string internalName)
     {
@@ -293,7 +293,7 @@ public class AppFixCache
     public string InternalName { get; }
 }
 
-public class PurgeEsbCache
+public class PurgeEsbCache:IEa
 {
     public PurgeEsbCache(byte[] rawBytes, string internalName)
     {
@@ -318,7 +318,7 @@ public class PurgeEsbCache
     public string InternalName { get; }
 }
 
-public class Lxattrr
+public class Lxattrr:IEa
 {
     public Lxattrr(byte[] rawBytes, string internalName)
     {
@@ -376,7 +376,7 @@ public class Lxattrr
     
 }
 
-public class Lxattrb
+public class Lxattrb:IEa
 {
     public Lxattrb(byte[] rawBytes, string internalName)
     {

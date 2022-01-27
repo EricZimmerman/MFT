@@ -3,7 +3,7 @@
         <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
         <Authors>Eric R. Zimmerman</Authors>
         <Description>$MFT Parser</Description>
-        <Version>1.1.1.1</Version>
+        <Version>1.1.1.2</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>10</LangVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -249,7 +249,7 @@ public class TestMain
         var lf = File.ReadAllBytes(@"D:\Temp\Maxim_EA)STUFF_MFT_wsl2\ea-2.bin");
 
         var ea = new Lxattrr(lf, "LXXATTR");
-
+        
         Debug.WriteLine(ea);
 
         //ss..Count.Should().Be(41);
@@ -260,8 +260,11 @@ public class TestMain
     {
         var lf = File.ReadAllBytes(@"D:\SynologyDrive\temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xABD9C00.bin");
 
+        
 
         var ea = new FileRecord(lf, 0xABD9C00);
+        
+        
 
         foreach (var eaAttribute in ea.Attributes) Debug.WriteLine(eaAttribute);
 
