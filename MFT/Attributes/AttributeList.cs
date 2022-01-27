@@ -5,7 +5,7 @@ using MFT.Other;
 
 namespace MFT.Attributes;
 
-internal class AttributeList : Attribute
+public class AttributeList : Attribute
 {
     public AttributeList(byte[] rawBytes) : base(rawBytes)
     {
