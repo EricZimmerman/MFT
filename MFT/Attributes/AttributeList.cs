@@ -86,7 +86,6 @@ public class AttributeList : Attribute
     public ulong ActualSize { get; }
     public ulong InitializedSize { get; }
 
-
     /// <summary>
     ///     Contains cluster where the actual data lives when it is non-resident
     /// </summary>
