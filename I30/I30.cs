@@ -18,9 +18,6 @@ public class I30
     {
         var pageSize = 0x1000;
 
-        //  var rawBytes2 = new byte[fileStream.Length];
-        //  fileStream.Read(rawBytes2, 0, (int) fileStream.Length);
-
         var sig = 0x58444E49;
 
         Entries = new List<IndexEntry>();
@@ -142,17 +139,14 @@ public class I30
 
                         var ie = new IndexEntry(indxBuffer, absoluteOffset, pageNumber, false);
 
-                        if (ie.Flag == IndexEntry.OEntryFlag.LastEntry)
+                        if (ie.MftReferenceSelf.MftEntryNumber == 0)
                         {
-                            Debug.Write(1);
+                            continue;
                         }
 
-                        if (ie.MftReferenceSelf.MftEntryNumber != 0)
-                        {
-                            //its ok
-                            Log.Debug("{Ie}", ie);
-                            Entries.Add(ie);
-                        }
+                        //its ok
+                        Log.Debug("{Ie}", ie);
+                        Entries.Add(ie);
                     }
                 }
 
@@ -166,7 +160,6 @@ public class I30
                 foreach (var hitInfo in h)
                 {
                     Log.Verbose("Processing offset {O} {H}", hitInfo.Offset, hitInfo.Hit);
-
 
                     //contains offset to start of hit and hit, but we only need start of the string to know where to begin
                     //the start of the record is 0x42 bytes from where the hit is
@@ -198,7 +191,6 @@ public class I30
                     {
                         continue;
                     }
-
 
                     Log.Debug("{Ie}", slackIndex);
                     Entries.Add(slackIndex);

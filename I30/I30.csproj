@@ -5,6 +5,7 @@
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <Description>$I30 parser</Description>
         <LangVersion>10</LangVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Copyright>Eric R. Zimmerman</Copyright>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Version>1.1.1.0</Version>
