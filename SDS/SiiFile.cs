@@ -6,11 +6,12 @@ public static class SiiFile
 {
     public static Sii Load(string siiFile)
     {
-        if (File.Exists(siiFile) == false) throw new FileNotFoundException($"'{siiFile}' not found");
-
-        using (var fs = new FileStream(siiFile, FileMode.Open, FileAccess.Read))
+        if (File.Exists(siiFile) == false)
         {
-            return new Sii(fs);
+            throw new FileNotFoundException($"'{siiFile}' not found");
         }
+
+        using var fs = new FileStream(siiFile, FileMode.Open, FileAccess.Read);
+        return new Sii(fs);
     }
 }

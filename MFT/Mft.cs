@@ -30,7 +30,9 @@ public class Mft
 
         var sig = BitConverter.ToInt32(headerBytes, 0);
         if (sig != 0x454c4946) //Does not match FILE
+        {
             throw new Exception("Invalid header! Expected 'FILE' Signature.");
+        }
 
         var blockSizeBytes = new byte[4];
 
@@ -72,20 +74,28 @@ public class Mft
             else if (f.IsDeleted())
             {
                 if (FreeFileRecords.ContainsKey(key))
+                {
                     Log.Warning(
                         "At offset 0x{Offset:X}, a free FILE record with key '{Key}' already exists! You may want to review this manually. Skipping...",
                         f.Offset, key);
+                }
                 else
+                {
                     FreeFileRecords.Add(key, f);
+                }
             }
             else
             {
                 if (FileRecords.ContainsKey(key))
+                {
                     Log.Warning(
                         "At offset 0x{Offset:X}, a FILE record with key '{Key}' already exists! You may want to review this manually. Skipping...",
                         f.Offset, key);
+                }
                 else
+                {
                     FileRecords.Add(key, f);
+                }
             }
 
             if (f.IsUninitialized == false && f.IsBad == false && f.MftRecordToBaseRecord.MftEntryNumber > 0 &&
@@ -93,7 +103,9 @@ public class Mft
             {
                 //if the attribute list is NON-resident, have a fall back to get associated records
                 if (ExtensionFileRecords.ContainsKey(f.MftRecordToBaseRecord.GetKey()) == false)
+                {
                     ExtensionFileRecords.Add(f.MftRecordToBaseRecord.GetKey(), new List<FileRecord>());
+                }
 
                 ExtensionFileRecords[f.MftRecordToBaseRecord.GetKey()].Add(f);
             }
@@ -142,7 +154,9 @@ public class Mft
             if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
                 fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
                 //will get this record via extensionRecord
+            {
                 continue;
+            }
 
             if (fileRecord.Value.Attributes.Count == 0)
             {
@@ -155,33 +169,45 @@ public class Mft
 
             foreach (var fileNameRecord in fileNameRecords)
             {
-                var fna = (FileName) fileNameRecord;
-                if (fna.FileInfo.NameType == NameTypes.Dos) continue;
+                var fna = (FileName)fileNameRecord;
+                if (fna.FileInfo.NameType == NameTypes.Dos)
+                {
+                    continue;
+                }
 
                 if (fileRecord.Value.IsDirectory())
                 {
                     var keyDir = fileRecord.Value.GetKey();
 
                     if (_directoryNameMap.ContainsKey(keyDir) == false)
+                    {
                         _directoryNameMap.Add(keyDir,
                             new DirectoryNameMapValue(fna.FileInfo.FileName, $"{fna.FileInfo.ParentMftRecord.GetKey()}",
                                 fileRecord.Value.IsDeleted()));
+                    }
                 }
 
                 var key = fileRecord.Value.GetKey();
                 var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
 
                 if (_parentDirectoryNameMap.ContainsKey(parentKey) == false)
+                {
                     _parentDirectoryNameMap.Add(parentKey, new HashSet<ParentMapEntry>());
+                }
 
                 if (fna.FileInfo.FileName.Equals(".") == false)
+                {
                     _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName,
                         fileRecord.Value.GetKey(true),
                         fileRecord.Value.IsDirectory()));
+                }
             }
         }
 
-        if (skipUnassociated) return;
+        if (skipUnassociated)
+        {
+            return;
+        }
 
         foreach (var unAssociatedExtensionFileRecord in UnAssociatedExtensionFileRecords)
             // if (unAssociatedExtensionFileRecord.Value.Attributes.Count == 0)
@@ -198,8 +224,11 @@ public class Mft
 
             foreach (var fileNameRecord in fileNameRecords)
             {
-                var fna = (FileName) fileNameRecord;
-                if (fna.FileInfo.NameType == NameTypes.Dos) continue;
+                var fna = (FileName)fileNameRecord;
+                if (fna.FileInfo.NameType == NameTypes.Dos)
+                {
+                    continue;
+                }
 
 
                 if (fileRecord.IsDirectory())
@@ -215,21 +244,27 @@ public class Mft
 
 
                     if (_directoryNameMap.ContainsKey(keyDir) == false)
+                    {
                         _directoryNameMap.Add(keyDir,
                             new DirectoryNameMapValue(fna.FileInfo.FileName, $"{fna.FileInfo.ParentMftRecord.GetKey()}",
                                 fileRecord.IsDeleted()));
+                    }
                 }
 
                 var key = fileRecord.GetKey();
                 var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
 
                 if (_parentDirectoryNameMap.ContainsKey(parentKey) == false)
+                {
                     _parentDirectoryNameMap.Add(parentKey, new HashSet<ParentMapEntry>());
+                }
 
                 if (fna.FileInfo.FileName.Equals(".") == false)
+                {
                     _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName,
                         fileRecord.GetKey(true),
                         fileRecord.IsDirectory()));
+                }
             }
         }
     }
@@ -237,7 +272,9 @@ public class Mft
     public List<ParentMapEntry> GetDirectoryContents(string key)
     {
         if (_parentDirectoryNameMap.ContainsKey(key))
+        {
             return _parentDirectoryNameMap[key].OrderByDescending(t => t.IsDirectory).ThenBy(t => t.FileName).ToList();
+        }
 
         return new List<ParentMapEntry>();
     }
@@ -250,8 +287,13 @@ public class Mft
         {
             FileRecord baseRecord = null;
             if (FileRecords.ContainsKey(fileRecord.Key))
+            {
                 baseRecord = FileRecords[fileRecord.Key];
-            else if (FreeFileRecords.ContainsKey(fileRecord.Key)) baseRecord = FreeFileRecords[fileRecord.Key];
+            }
+            else if (FreeFileRecords.ContainsKey(fileRecord.Key))
+            {
+                baseRecord = FreeFileRecords[fileRecord.Key];
+            }
 
             if (baseRecord == null)
             {
@@ -269,7 +311,9 @@ public class Mft
 
             //pull in all related attributes from this record for processing later
             foreach (var fileRecordAttribute in fileRecord.Value)
+            {
                 baseRecord.Attributes.AddRange(fileRecordAttribute.Attributes);
+            }
         }
     }
 
@@ -291,14 +335,18 @@ public class Mft
 
             if (tempKey.Equals("00000005-00000005"))
                 //all done since we are at root
+            {
                 break;
+            }
 
             tempKey = dir.ParentRecordKey;
         }
 
         if (tempKey != "00000005-00000005")
             //we dropped out of our map too early, so adjust it
+        {
             stack.Push($".\\PathUnknown\\Directory with ID 0x{tempKey}");
+        }
 
         return string.Join("\\", stack);
     }
@@ -314,7 +362,9 @@ public class Mft
             if (fileRecord.Value.MftRecordToBaseRecord.MftEntryNumber > 0 &&
                 fileRecord.Value.MftRecordToBaseRecord.MftSequenceNumber > 0)
                 //will get this record via extensionRecord
+            {
                 continue;
+            }
 
             if (fileRecord.Value.Attributes.Count == 0)
             {
@@ -327,15 +377,20 @@ public class Mft
 
             foreach (var fileNameRecord in fileNameRecords)
             {
-                var fna = (FileName) fileNameRecord;
-                if (fna.FileInfo.NameType == NameTypes.Dos) continue;
+                var fna = (FileName)fileNameRecord;
+                if (fna.FileInfo.NameType == NameTypes.Dos)
+                {
+                    continue;
+                }
 
                 var key = fileRecord.Value.GetKey();
 
                 if (_directoryNameMap.ContainsKey(key) == false)
+                {
                     _directoryNameMap.Add(key,
                         new DirectoryNameMapValue(fna.FileInfo.FileName, $"{fna.FileInfo.ParentMftRecord.GetKey()}",
                             fileRecord.Value.IsDeleted()));
+                }
             }
         }
 
@@ -354,15 +409,20 @@ public class Mft
 
             foreach (var fileNameRecord in fileNameRecords)
             {
-                var fna = (FileName) fileNameRecord;
-                if (fna.FileInfo.NameType == NameTypes.Dos) continue;
+                var fna = (FileName)fileNameRecord;
+                if (fna.FileInfo.NameType == NameTypes.Dos)
+                {
+                    continue;
+                }
 
                 var key = fileRecord.GetKey();
 
                 if (_directoryNameMap.ContainsKey(key) == false)
+                {
                     _directoryNameMap.Add(key,
                         new DirectoryNameMapValue(fna.FileInfo.FileName, $"{fna.FileInfo.ParentMftRecord.GetKey()}",
                             fileRecord.IsDeleted()));
+                }
             }
         }
     }

@@ -23,7 +23,10 @@ public class ObjectId_ : Attribute
         Buffer.BlockCopy(residentData.Data, 0x00, guidRaw0, 0, 16);
         ObjectId = new Guid(guidRaw0);
 
-        if (residentData.Data.Length == 16) return;
+        if (residentData.Data.Length == 16)
+        {
+            return;
+        }
 
         Buffer.BlockCopy(residentData.Data, 0x0A, guidRaw1, 0, 16);
         Buffer.BlockCopy(residentData.Data, 0x20, guidRaw2, 0, 16);
@@ -99,7 +102,10 @@ public class ObjectId_ : Attribute
 
         var extra =
             $"\tBirth Volume Id MAC: {birthVolumeIdMacAddress}\r\n\tBirth Volume Id Created On: {birthVolumeIdCreatedOn.ToUniversalTime():yyyy-MM-dd HH:mm:ss.fffffff}\r\n";
-        if (BirthObjectId.ToString() == "00000000-0000-0000-0000-000000000000") extra = string.Empty;
+        if (BirthObjectId.ToString() == "00000000-0000-0000-0000-000000000000")
+        {
+            extra = string.Empty;
+        }
 
         sb.AppendLine(
             $"Object Id: {ObjectId}\r\n\tObject Id MAC: {objectIdMacAddress}\r\n\tObject Id Created On: {objectIdCreatedOn.ToUniversalTime():yyyy-MM-dd HH:mm:ss.fffffff}\r\n" +

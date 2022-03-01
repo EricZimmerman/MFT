@@ -56,8 +56,8 @@ public class AttributeList : Attribute
                 var drStart = rawBytes[index];
                 index += 1;
 
-                var clustersToReadAtOffset = (byte) (drStart & 0x0F);
-                var offsetToRun = (byte) ((drStart & 0xF0) >> 4);
+                var clustersToReadAtOffset = (byte)(drStart & 0x0F);
+                var offsetToRun = (byte)((drStart & 0xF0) >> 4);
 
                 var clusterCountRaw = new byte[8];
                 var offsetToRunRaw = new byte[8];

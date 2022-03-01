@@ -20,7 +20,10 @@ public class SecurityDescriptor : Attribute
             NonResidentData = new NonResidentData(rawBytes);
         }
 
-        if (IsResident == false) return;
+        if (IsResident == false)
+        {
+            return;
+        }
 
         SecurityInfo = new SkSecurityDescriptor(ResidentData.Data);
     }

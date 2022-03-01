@@ -25,7 +25,7 @@ public class Usn
         {
             Log.Verbose("Starting fileStream.Position 0x{Position:X8}", fileStream.Position);
 
-            LastOffset = (uint) fileStream.Position;
+            LastOffset = (uint)fileStream.Position;
 
             var calcBuff = new byte[8];
             fileStream.Read(calcBuff, 0, 8);
@@ -82,7 +82,7 @@ public class Usn
 
             var buff = new byte[size];
 
-            fileStream.Read(buff, 0, (int) size);
+            fileStream.Read(buff, 0, (int)size);
 
             var ue = new UsnEntry(buff, LastOffset);
             UsnEntries.Add(ue);

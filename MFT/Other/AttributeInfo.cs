@@ -18,7 +18,10 @@ public class AttributeInfo
         var nameSize = rawBytes[0x6];
         var nameOffset = rawBytes[0x7];
 
-        if (nameSize > 0) Name = Encoding.Unicode.GetString(rawBytes, nameOffset, nameSize * 2);
+        if (nameSize > 0)
+        {
+            Name = Encoding.Unicode.GetString(rawBytes, nameOffset, nameSize * 2);
+        }
     }
 
     public ulong FirstVirtualClusterNumber { get; }
@@ -29,7 +32,10 @@ public class AttributeInfo
     public override string ToString()
     {
         var name = string.Empty;
-        if (Name != null) name = $" Name: {Name}";
+        if (Name != null)
+        {
+            name = $" Name: {Name}";
+        }
 
         return $"Entry info: {EntryInfo}{name} First Vcn: 0x{FirstVirtualClusterNumber:X}";
     }

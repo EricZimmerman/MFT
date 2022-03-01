@@ -19,7 +19,7 @@ public class IndexNodeHeader
         index += 4;
         AllocatedIndexNodeSize = BitConverter.ToInt32(rawBytes, index);
         index += 4;
-        IndexNodeFlags = (IndexNodeFlag) BitConverter.ToInt32(rawBytes, index);
+        IndexNodeFlags = (IndexNodeFlag)BitConverter.ToInt32(rawBytes, index);
     }
 
     public int IndexValuesOffset { get; }

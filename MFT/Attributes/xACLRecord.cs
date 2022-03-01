@@ -32,7 +32,11 @@ public class XAclRecord
     {
         get
         {
-            if (RawBytes.Length == 0) return 0;
+            if (RawBytes.Length == 0)
+            {
+                return 0;
+            }
+
             return BitConverter.ToUInt16(RawBytes, 0x4);
         }
     }
@@ -49,7 +53,9 @@ public class XAclRecord
             {
                 if (index > RawBytes.Length)
                     //ncrunch: no coverage
+                {
                     break; //ncrunch: no coverage
+                }
 
                 var aceSize = RawBytes[index + 2];
                 //  var rawAce = RawBytes.Skip(index).Take(aceSize).ToArray();
@@ -66,7 +72,10 @@ public class XAclRecord
 
             foreach (var chunk in chunks)
             {
-                if (chunk.Length <= 0) continue;
+                if (chunk.Length <= 0)
+                {
+                    continue;
+                }
 
                 var ace = new AceRecord(chunk);
 
@@ -91,7 +100,10 @@ public class XAclRecord
     // public methods...
     public override string ToString()
     {
-        if (RawBytes.Length == 0) return string.Empty;
+        if (RawBytes.Length == 0)
+        {
+            return string.Empty;
+        }
 
         var sb = new StringBuilder();
 

@@ -27,12 +27,12 @@ public class IndexRoot : Attribute
 
     public IndexRoot(byte[] rawBytes) : base(rawBytes)
     {
-        var index = (int) ContentOffset;
+        var index = (int)ContentOffset;
 
-        IndexedAttributeType = (AttributeType) BitConverter.ToInt32(rawBytes, index);
+        IndexedAttributeType = (AttributeType)BitConverter.ToInt32(rawBytes, index);
         index += 4;
 
-        CollationType = (CollationTypes) BitConverter.ToInt32(rawBytes, index);
+        CollationType = (CollationTypes)BitConverter.ToInt32(rawBytes, index);
         index += 4;
 
         EntrySize = BitConverter.ToInt32(rawBytes, index);
@@ -48,7 +48,7 @@ public class IndexRoot : Attribute
         AllocatedSizeOfEntries = BitConverter.ToInt32(rawBytes, index);
         index += 4;
 
-        Flags = (IndexFlag) rawBytes[index];
+        Flags = (IndexFlag)rawBytes[index];
         index += 1;
 
 
@@ -70,9 +70,14 @@ public class IndexRoot : Attribute
 
             if (indexValSize == 0x10)
                 //indicates no more index entries
+            {
                 break;
+            }
 
-            if (indexValSize > rawBytes.Length - index) indexValSize = (short) (rawBytes.Length - index);
+            if (indexValSize > rawBytes.Length - index)
+            {
+                indexValSize = (short)(rawBytes.Length - index);
+            }
 
             var buff = new byte[indexValSize];
             Buffer.BlockCopy(rawBytes, index, buff, 0, indexValSize);
@@ -115,7 +120,10 @@ public class IndexRoot : Attribute
         sb.AppendLine();
         sb.AppendLine("FileInfo Records Entries");
 
-        foreach (var ie in IndexEntries) sb.AppendLine(ie.ToString());
+        foreach (var ie in IndexEntries)
+        {
+            sb.AppendLine(ie.ToString());
+        }
 
         return sb.ToString();
     }

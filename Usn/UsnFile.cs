@@ -9,7 +9,10 @@ public class UsnFile
 {
     public static Usn Load(string usnFilePath)
     {
-        if (File.Exists(usnFilePath) == false) throw new FileNotFoundException($"'{usnFilePath}' not found");
+        if (File.Exists(usnFilePath) == false)
+        {
+            throw new FileNotFoundException($"'{usnFilePath}' not found");
+        }
 
         long start = 0;
 
@@ -52,7 +55,10 @@ public class UsnFile
             var firstByte = br.ReadByte();
             br.BaseStream.Seek(0, SeekOrigin.Begin);
 
-            if (firstByte != 0) return 0;
+            if (firstByte != 0)
+            {
+                return 0;
+            }
 
             Log.Verbose("Beginning data appears to be sparse");
             //beginning is sparse, so we have to find the start of the data

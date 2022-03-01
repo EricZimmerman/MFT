@@ -36,7 +36,7 @@ public class LogFile
 
         while (fileStream.Position < fileStream.Length)
         {
-            LastOffset = (uint) index;
+            LastOffset = (uint)index;
 
             var buff = br.ReadBytes(PageSize);
 
@@ -52,9 +52,13 @@ public class LogFile
                     Log.Information("{Lprstr}", lprstr);
 
                     if (index == 0)
+                    {
                         PrimaryRstrPage = lprstr;
+                    }
                     else
+                    {
                         SecondaryRstrPage = lprstr;
+                    }
 
                     break;
                 case RcrdSig:
@@ -75,11 +79,17 @@ public class LogFile
 
 
                     if (index == 0x2000)
+                    {
                         BufferPrimary = lprcrd;
+                    }
                     else if (index == 0x3000)
+                    {
                         BufferSecondary = lprcrd;
+                    }
                     else
+                    {
                         NormalPageArea.Add(lprcrd);
+                    }
 
 
                     break;

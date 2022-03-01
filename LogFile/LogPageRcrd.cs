@@ -21,7 +21,10 @@ public class LogPageRcrd
         var index = 0x0;
         var sigCheck = BitConverter.ToInt32(rawBytes, index);
 
-        if (sigCheck != RcrdSig) throw new Exception("Invalid signature! Expected 'RCRD' signature.");
+        if (sigCheck != RcrdSig)
+        {
+            throw new Exception("Invalid signature! Expected 'RCRD' signature.");
+        }
 
         Offset = offset;
 
@@ -88,7 +91,10 @@ public class LogPageRcrd
 
         index += fixupTotalLength;
 
-        while (index % 8 != 0) index += 1;
+        while (index % 8 != 0)
+        {
+            index += 1;
+        }
 
         //header is 0x58 bytes, so go past it
 
@@ -214,12 +220,12 @@ public class Record
 
         DataLength = br.ReadInt32();
         ClientId = br.ReadInt32();
-        RecordType = (RecTypeFlag) br.ReadInt32();
+        RecordType = (RecTypeFlag)br.ReadInt32();
         TransactionId = br.ReadInt32();
 
-        Flags = (RecordHeaderFlag) br.ReadInt16();
-        RedoOpCode = (OpCode) br.ReadInt16();
-        UndoOpCode = (OpCode) br.ReadInt16();
+        Flags = (RecordHeaderFlag)br.ReadInt16();
+        RedoOpCode = (OpCode)br.ReadInt16();
+        UndoOpCode = (OpCode)br.ReadInt16();
         RedoOffset = br.ReadInt16();
         RedoLength = br.ReadInt16();
         UndoOffset = br.ReadInt16();

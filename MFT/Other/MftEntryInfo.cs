@@ -6,7 +6,10 @@ public class MftEntryInfo
 {
     public MftEntryInfo(byte[] rawEntryBytes)
     {
-        if (rawEntryBytes.Length != 8) throw new ArgumentException("rawEntryBytes must be 8 bytes long!");
+        if (rawEntryBytes.Length != 8)
+        {
+            throw new ArgumentException("rawEntryBytes must be 8 bytes long!");
+        }
 
         var sequenceNumber = BitConverter.ToInt16(rawEntryBytes, 6);
 

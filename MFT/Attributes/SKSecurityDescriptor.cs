@@ -47,14 +47,14 @@ public class SkSecurityDescriptor
         _sizeSacl = DaclOffset - SaclOffset;
         _sizeDacl = OwnerOffset - DaclOffset;
         _sizeOwnerSid = GroupOffset - OwnerOffset;
-        _sizeGroupSid = (uint) (rawBytes.Length - GroupOffset);
+        _sizeGroupSid = (uint)(rawBytes.Length - GroupOffset);
 
 
         Padding = string.Empty; //TODO VERIFY ITS ALWAYS ZEROs
     }
 
     // public properties...
-    public ControlEnum Control => (ControlEnum) BitConverter.ToUInt16(RawBytes, 0x02);
+    public ControlEnum Control => (ControlEnum)BitConverter.ToUInt16(RawBytes, 0x02);
 
     public XAclRecord Dacl
     {
@@ -65,7 +65,7 @@ public class SkSecurityDescriptor
                 //var rawDacla = RawBytes.Skip((int) DaclOffset).Take((int) sizeDacl).ToArray();
 
                 var rawDacl = new byte[_sizeDacl];
-                Buffer.BlockCopy(RawBytes, (int) DaclOffset, rawDacl, 0, (int) _sizeDacl);
+                Buffer.BlockCopy(RawBytes, (int)DaclOffset, rawDacl, 0, (int)_sizeDacl);
 
 
                 return new XAclRecord(rawDacl, XAclRecord.AclTypeEnum.Discretionary);
@@ -86,7 +86,7 @@ public class SkSecurityDescriptor
             // var rawGroup = RawBytes.Skip((int) GroupOffset).Take((int) sizeGroupSid).ToArray();
 
             var rawGroup = new byte[_sizeGroupSid];
-            Buffer.BlockCopy(RawBytes, (int) GroupOffset, rawGroup, 0, (int) _sizeGroupSid);
+            Buffer.BlockCopy(RawBytes, (int)GroupOffset, rawGroup, 0, (int)_sizeGroupSid);
 
             return Helpers.ConvertHexStringToSidString(rawGroup);
         }
@@ -103,7 +103,7 @@ public class SkSecurityDescriptor
             // var rawOwner = RawBytes.Skip((int) OwnerOffset).Take((int) sizeOwnerSid).ToArray();
 
             var rawOwner = new byte[_sizeOwnerSid];
-            Buffer.BlockCopy(RawBytes, (int) OwnerOffset, rawOwner, 0, (int) _sizeOwnerSid);
+            Buffer.BlockCopy(RawBytes, (int)OwnerOffset, rawOwner, 0, (int)_sizeOwnerSid);
 
             return Helpers.ConvertHexStringToSidString(rawOwner);
         }
@@ -120,14 +120,23 @@ public class SkSecurityDescriptor
     {
         get
         {
-            if ((Control & ControlEnum.SeSaclPresent) != ControlEnum.SeSaclPresent) return null;
+            if ((Control & ControlEnum.SeSaclPresent) != ControlEnum.SeSaclPresent)
+            {
+                return null;
+            }
 
-            if (_sizeSacl > 1000) return null;
+            if (_sizeSacl > 1000)
+            {
+                return null;
+            }
 
             var rawSacl = new byte[_sizeSacl];
-            Buffer.BlockCopy(RawBytes, (int) SaclOffset, rawSacl, 0, (int) _sizeSacl);
+            Buffer.BlockCopy(RawBytes, (int)SaclOffset, rawSacl, 0, (int)_sizeSacl);
 
-            if (rawSacl.Length == 0) return null;
+            if (rawSacl.Length == 0)
+            {
+                return null;
+            }
 
             return new XAclRecord(rawSacl, XAclRecord.AclTypeEnum.Security);
         }

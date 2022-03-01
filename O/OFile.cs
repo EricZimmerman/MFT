@@ -6,11 +6,12 @@ public static class OFile
 {
     public static O Load(string siiFile)
     {
-        if (File.Exists(siiFile) == false) throw new FileNotFoundException($"'{siiFile}' not found");
-
-        using (var fs = new FileStream(siiFile, FileMode.Open, FileAccess.Read))
+        if (File.Exists(siiFile) == false)
         {
-            return new O(fs);
+            throw new FileNotFoundException($"'{siiFile}' not found");
         }
+
+        using var fs = new FileStream(siiFile, FileMode.Open, FileAccess.Read);
+        return new O(fs);
     }
 }

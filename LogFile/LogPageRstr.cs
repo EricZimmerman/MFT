@@ -108,7 +108,10 @@ public class LogPageRstr
 
         index += fixupTotalLength;
 
-        while (index % 8 != 0) index += 1;
+        while (index % 8 != 0)
+        {
+            index += 1;
+        }
 
         CurrentLsn = BitConverter.ToInt64(rawBytes, index);
         index += 8;
@@ -118,7 +121,7 @@ public class LogPageRstr
         index += 2;
         ClientInUseList = BitConverter.ToInt16(rawBytes, index);
         index += 2;
-        Flags = (RestartFlag) BitConverter.ToInt16(rawBytes, index);
+        Flags = (RestartFlag)BitConverter.ToInt16(rawBytes, index);
         index += 2;
         SeqNumBits = BitConverter.ToInt32(rawBytes, index);
         index += 4;
@@ -181,7 +184,10 @@ public class LogPageRstr
         sb.AppendLine();
 
         sb.AppendLine($"Client Records ({ClientRecords.Count:N0})");
-        foreach (var clientRecord in ClientRecords) sb.AppendLine(clientRecord.ToString());
+        foreach (var clientRecord in ClientRecords)
+        {
+            sb.AppendLine(clientRecord.ToString());
+        }
 
         sb.AppendLine();
 

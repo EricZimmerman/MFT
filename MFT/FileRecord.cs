@@ -59,7 +59,7 @@ public class FileRecord
         Buffer.BlockCopy(rawBytes, FixupOffset, fixupBuffer, 0, fixupTotalLength);
 
         //pull this early so we can check if its free in our fix up value messages
-        EntryFlags = (EntryFlag) BitConverter.ToInt16(rawBytes, 0x16);
+        EntryFlags = (EntryFlag)BitConverter.ToInt16(rawBytes, 0x16);
 
         FixupData = new FixupData(fixupBuffer);
 
@@ -113,11 +113,11 @@ public class FileRecord
 
         //start attribute processing at FirstAttributeOffset
 
-        var index = (int) FirstAttributeOffset;
+        var index = (int)FirstAttributeOffset;
 
         while (index < ActualRecordSize)
         {
-            var attrType = (AttributeType) BitConverter.ToInt32(rawBytes, index);
+            var attrType = (AttributeType)BitConverter.ToInt32(rawBytes, index);
 
             var attrSize = BitConverter.ToInt32(rawBytes, index + 4);
 
@@ -126,8 +126,10 @@ public class FileRecord
                 index += 8; //skip -1 type and 0 size
 
                 if (index != ActualRecordSize)
+                {
                     Log.Warning("Slack space found in entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X}", EntryNumber,
                         SequenceNumber);
+                }
 
                 //TODO process slack here?
                 break;
@@ -272,7 +274,10 @@ public class FileRecord
         sb.AppendLine(
             $"Entry-seq #: 0x{EntryNumber:X}-0x{SequenceNumber:X}, Offset: 0x{Offset:X}, Flags: {EntryFlags.ToString().Replace(", ", "|")}, Log Sequence #: 0x{LogSequenceNumber:X}, Mft Record To Base Record: {MftRecordToBaseRecord}\r\nReference Count: 0x{ReferenceCount:X}, Fixup Data: {FixupData} (Fixup OK: {FixupOk})\r\n");
 
-        foreach (var attribute in Attributes) sb.AppendLine(attribute.ToString());
+        foreach (var attribute in Attributes)
+        {
+            sb.AppendLine(attribute.ToString());
+        }
 
         return sb.ToString();
     }

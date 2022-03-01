@@ -502,16 +502,19 @@ public static class Helpers
     public static T GetEnumValueFromDescription<T>(string description)
     {
         var type = typeof(T);
-        if (!type.IsEnum) throw new ArgumentException();
+        if (!type.IsEnum)
+        {
+            throw new ArgumentException();
+        }
 
         var fields = type.GetFields();
         var field = fields
             .SelectMany(f => f.GetCustomAttributes(
                 typeof(DescriptionAttribute), false), (
                 f, a) => new
-                {Field = f, Att = a}).SingleOrDefault(a => ((DescriptionAttribute) a.Att)
+                { Field = f, Att = a }).SingleOrDefault(a => ((DescriptionAttribute)a.Att)
                 .Description == description);
-        return field == null ? default : (T) field.Field.GetRawConstantValue();
+        return field == null ? default : (T)field.Field.GetRawConstantValue();
     }
 
     //ncrunch: no coverage start
@@ -836,39 +839,90 @@ public static class Helpers
 
         if (sidType == SidTypeEnum.UnknownOrUserSid)
         {
-            if (sid.StartsWith("S-1-5-5-")) sidType = SidTypeEnum.LogonId;
+            if (sid.StartsWith("S-1-5-5-"))
+            {
+                sidType = SidTypeEnum.LogonId;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-498")) sidType = SidTypeEnum.EnterpriseDomainControllers;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-498"))
+            {
+                sidType = SidTypeEnum.EnterpriseDomainControllers;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-500")) sidType = SidTypeEnum.Administrator;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-500"))
+            {
+                sidType = SidTypeEnum.Administrator;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-501")) sidType = SidTypeEnum.Guest;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-501"))
+            {
+                sidType = SidTypeEnum.Guest;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-512")) sidType = SidTypeEnum.DomainAdmins;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-512"))
+            {
+                sidType = SidTypeEnum.DomainAdmins;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-513")) sidType = SidTypeEnum.DomainUsers;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-513"))
+            {
+                sidType = SidTypeEnum.DomainUsers;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-514")) sidType = SidTypeEnum.DomainGuests;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-514"))
+            {
+                sidType = SidTypeEnum.DomainGuests;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-515")) sidType = SidTypeEnum.DomainComputers;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-515"))
+            {
+                sidType = SidTypeEnum.DomainComputers;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-516")) sidType = SidTypeEnum.DomainDomainControllers;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-516"))
+            {
+                sidType = SidTypeEnum.DomainDomainControllers;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-517")) sidType = SidTypeEnum.CertPublishers;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-517"))
+            {
+                sidType = SidTypeEnum.CertPublishers;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-518")) sidType = SidTypeEnum.SchemaAdministrators;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-518"))
+            {
+                sidType = SidTypeEnum.SchemaAdministrators;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-519")) sidType = SidTypeEnum.EnterpriseAdmins;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-519"))
+            {
+                sidType = SidTypeEnum.EnterpriseAdmins;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-520")) sidType = SidTypeEnum.GroupPolicyCreatorOwners;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-520"))
+            {
+                sidType = SidTypeEnum.GroupPolicyCreatorOwners;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-521")) sidType = SidTypeEnum.ReadonlyDomainControllers;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-521"))
+            {
+                sidType = SidTypeEnum.ReadonlyDomainControllers;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-522")) sidType = SidTypeEnum.CloneableControllers;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-522"))
+            {
+                sidType = SidTypeEnum.CloneableControllers;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-525")) sidType = SidTypeEnum.ProtectedUsers;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-525"))
+            {
+                sidType = SidTypeEnum.ProtectedUsers;
+            }
 
-            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-553")) sidType = SidTypeEnum.RasServers;
+            if (sid.StartsWith("S-1-5-21-") && sid.EndsWith("-553"))
+            {
+                sidType = SidTypeEnum.RasServers;
+            }
         }
 
 

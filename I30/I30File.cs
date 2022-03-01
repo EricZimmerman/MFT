@@ -6,11 +6,12 @@ public static class I30File
 {
     public static I30 Load(string indexFile)
     {
-        if (File.Exists(indexFile) == false) throw new FileNotFoundException($"'{indexFile}' not found");
-
-        using (var fs = new FileStream(indexFile, FileMode.Open, FileAccess.Read))
+        if (File.Exists(indexFile) == false)
         {
-            return new I30(fs);
+            throw new FileNotFoundException($"'{indexFile}' not found");
         }
+
+        using var fs = new FileStream(indexFile, FileMode.Open, FileAccess.Read);
+        return new I30(fs);
     }
 }

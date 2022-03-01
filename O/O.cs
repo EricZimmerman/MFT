@@ -15,7 +15,7 @@ public class O
         var pageSize = 0x1000;
 
         var rawBytes2 = new byte[fileStream.Length];
-        fileStream.Read(rawBytes2, 0, (int) fileStream.Length);
+        fileStream.Read(rawBytes2, 0, (int)fileStream.Length);
 
         var sig = 0x58444E49;
 
@@ -99,7 +99,10 @@ public class O
 
             index += fixupTotalLength;
 
-            while (index % 8 != 0) index += 1;
+            while (index % 8 != 0)
+            {
+                index += 1;
+            }
 
             Log.Verbose("Overall offset: 0x{Index2:X} Starting new INDEX ENTRY AREA at subindex {Index:X}", index2,
                 index);
@@ -112,9 +115,15 @@ public class O
                 //var sizeOfIndexKey = BitConverter.ToUInt16(rawBytes, index+10);
                 var flags = BitConverter.ToUInt16(rawBytes, index + 12);
 
-                if (sizeOfIndexEntry == 0x10) sizeOfIndexEntry = 0x58;
+                if (sizeOfIndexEntry == 0x10)
+                {
+                    sizeOfIndexEntry = 0x58;
+                }
 
-                if (flags == 3 || sizeOfIndexEntry == 0 || index + sizeOfIndexEntry > rawBytes.Length) break;
+                if (flags == 3 || sizeOfIndexEntry == 0 || index + sizeOfIndexEntry > rawBytes.Length)
+                {
+                    break;
+                }
 
                 var buff = new byte[sizeOfIndexEntry];
                 Buffer.BlockCopy(rawBytes, index, buff, 0, 0x58);
@@ -123,7 +132,10 @@ public class O
 
                 index += sizeOfIndexEntry;
 
-                if (oe.MftReference.MftEntryNumber == 0 && oe.MftReference.MftSequenceNumber == 0) continue;
+                if (oe.MftReference.MftEntryNumber == 0 && oe.MftReference.MftSequenceNumber == 0)
+                {
+                    continue;
+                }
 
                 Entries.Add(oe);
             }
@@ -145,31 +157,29 @@ public class OEntry
 
     public OEntry(byte[] rawBytes, int absoluteOffset)
     {
-        using (var br = new BinaryReader(new MemoryStream(rawBytes)))
-        {
-            AbsoluteOffset = absoluteOffset;
-            OffsetToData = br.ReadUInt16();
-            DataSize = br.ReadUInt16();
-            br.ReadInt32(); //padding
-            IndexEntrySize = br.ReadUInt16();
-            IndexKeySize = br.ReadUInt16();
-            Flags = (OEntryFlag) br.ReadInt16();
-            br.ReadInt16(); //padding
-            ObjectId = new Guid(br.ReadBytes(16));
-            MftReference = new MftEntryInfo(br.ReadBytes(8));
-            BirthVolumeId = new Guid(br.ReadBytes(16));
-            BirthObjectId = new Guid(br.ReadBytes(16));
-            DomainId = new Guid(br.ReadBytes(16));
+        using var br = new BinaryReader(new MemoryStream(rawBytes));
+        AbsoluteOffset = absoluteOffset;
+        OffsetToData = br.ReadUInt16();
+        DataSize = br.ReadUInt16();
+        br.ReadInt32(); //padding
+        IndexEntrySize = br.ReadUInt16();
+        IndexKeySize = br.ReadUInt16();
+        Flags = (OEntryFlag)br.ReadInt16();
+        br.ReadInt16(); //padding
+        ObjectId = new Guid(br.ReadBytes(16));
+        MftReference = new MftEntryInfo(br.ReadBytes(8));
+        BirthVolumeId = new Guid(br.ReadBytes(16));
+        BirthObjectId = new Guid(br.ReadBytes(16));
+        DomainId = new Guid(br.ReadBytes(16));
 
-            var tempMac = ObjectId.ToString().Split('-').Last();
-            ObjectIdMacAddress = Regex.Replace(tempMac, ".{2}", "$0:");
+        var tempMac = ObjectId.ToString().Split('-').Last();
+        ObjectIdMacAddress = Regex.Replace(tempMac, ".{2}", "$0:");
 
-            tempMac = BirthObjectId.ToString().Split('-').Last();
-            BirthVolumeIdMacAddress = Regex.Replace(tempMac, ".{2}", "$0:");
+        tempMac = BirthObjectId.ToString().Split('-').Last();
+        BirthVolumeIdMacAddress = Regex.Replace(tempMac, ".{2}", "$0:");
 
-            ObjectIdCreatedOn = GetDateTimeOffsetFromGuid(ObjectId);
-            BirthVolumeIdCreatedOn = GetDateTimeOffsetFromGuid(BirthObjectId);
-        }
+        ObjectIdCreatedOn = GetDateTimeOffsetFromGuid(ObjectId);
+        BirthVolumeIdCreatedOn = GetDateTimeOffsetFromGuid(BirthObjectId);
     }
 
     public int AbsoluteOffset { get; }

@@ -11,9 +11,11 @@ public class VolumeName : Attribute
         VolName = string.Empty;
 
         if (residentData.Data.Length > 0)
+        {
             VolName = Encoding.Unicode
                 .GetString(residentData.Data, ContentOffset, residentData.Data.Length - ContentOffset)
                 .TrimEnd('\0');
+        }
     }
 
     public string VolName { get; }

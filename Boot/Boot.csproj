@@ -9,7 +9,7 @@
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <Version>1.1.1.0</Version>
-        
+
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Serilog" Version="2.10.0"/>

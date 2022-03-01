@@ -26,6 +26,7 @@ public class FileInfo
 
         var createdRaw = BitConverter.ToInt64(rawBytes, 0x8);
         if (createdRaw > 0)
+        {
             try
             {
                 CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
@@ -34,9 +35,11 @@ public class FileInfo
             {
                 Log.Warning("Invalid ConCreatedOntentModifiedOn timestamp! Enable --debug for record information");
             }
+        }
 
         var contentModRaw = BitConverter.ToInt64(rawBytes, 0x10);
         if (contentModRaw > 0)
+        {
             try
             {
                 ContentModifiedOn = DateTimeOffset.FromFileTime(contentModRaw).ToUniversalTime();
@@ -45,9 +48,11 @@ public class FileInfo
             {
                 Log.Warning("Invalid ContentModifiedOn timestamp! Enable --debug for record information");
             }
+        }
 
         var recordModRaw = BitConverter.ToInt64(rawBytes, 0x18);
         if (recordModRaw > 0)
+        {
             try
             {
                 RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
@@ -56,9 +61,11 @@ public class FileInfo
             {
                 Log.Warning("Invalid RecordModifiedOn timestamp! Enable --debug for record information");
             }
+        }
 
         var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x20);
         if (lastAccessRaw > 0)
+        {
             try
             {
                 LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
@@ -67,16 +74,17 @@ public class FileInfo
             {
                 Log.Warning("Invalid LastAccessedOn timestamp! Enable --debug for record information");
             }
+        }
 
         PhysicalSize = BitConverter.ToUInt64(rawBytes, 0x28);
         LogicalSize = BitConverter.ToUInt64(rawBytes, 0x30);
 
-        Flags = (StandardInfo.Flag) BitConverter.ToInt32(rawBytes, 0x38);
+        Flags = (StandardInfo.Flag)BitConverter.ToInt32(rawBytes, 0x38);
 
         ReparseValue = BitConverter.ToInt32(rawBytes, 0x3c);
 
         NameLength = rawBytes[0x40];
-        NameType = (NameTypes) rawBytes[0x41];
+        NameType = (NameTypes)rawBytes[0x41];
 
         FileName = Encoding.Unicode.GetString(rawBytes, 0x42, NameLength * 2);
     }

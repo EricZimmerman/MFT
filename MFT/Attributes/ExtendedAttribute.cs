@@ -8,7 +8,7 @@ namespace MFT.Attributes;
 
 public interface IEa
 {
-    public string InternalName {get;}
+    public string InternalName { get; }
 }
 
 public class ExtendedAttribute : Attribute
@@ -30,7 +30,10 @@ public class ExtendedAttribute : Attribute
 
     private void ProcessContent()
     {
-        if (Content.Length == 0) return;
+        if (Content.Length == 0)
+        {
+            return;
+        }
 
         var index = 0;
 
@@ -51,7 +54,11 @@ public class ExtendedAttribute : Attribute
             index = 0;
 
             var nextOffset = BitConverter.ToUInt32(bytese, index);
-            if (nextOffset == 0) break;
+            if (nextOffset == 0)
+            {
+                break;
+            }
+
             index += 4;
             var flags = bytese[index];
             index += 1;
@@ -62,7 +69,10 @@ public class ExtendedAttribute : Attribute
 
             var name = Encoding.Unicode.GetString(bytese, index, nameLen);
 
-            if (bytese[index + 1] != 0) name = Encoding.ASCII.GetString(bytese, index, nameLen);
+            if (bytese[index + 1] != 0)
+            {
+                name = Encoding.ASCII.GetString(bytese, index, nameLen);
+            }
 
             index += nameLen;
             index += 1; //null char
@@ -85,13 +95,13 @@ public class ExtendedAttribute : Attribute
                 case ".LONGNAME":
                     var lnBuff = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, lnBuff, 0, lnBuff.Length);
-                    var ln = new LongName(lnBuff,name);
+                    var ln = new LongName(lnBuff, name);
                     SubItems.Add(ln);
                     break;
                 case "LXATTRB":
                     var lbBuff = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, lbBuff, 0, lbBuff.Length);
-                    var lb = new Lxattrb(lbBuff,name);
+                    var lb = new Lxattrb(lbBuff, name);
                     SubItems.Add(lb);
                     //Debug.WriteLine(lb);
                     break;
@@ -160,19 +170,21 @@ public class ExtendedAttribute : Attribute
             sb.AppendLine("Sub items");
         }
 
-        foreach (var subItem in SubItems) sb.AppendLine(subItem.ToString());
+        foreach (var subItem in SubItems)
+        {
+            sb.AppendLine(subItem.ToString());
+        }
 
         return sb.ToString();
     }
 }
 
-
-public class LongName:IEa
+public class LongName : IEa
 {
     public LongName(byte[] rawBytes, string internalName)
     {
         InternalName = internalName;
-        
+
         var index = 0;
 
         index += 2; // unknown
@@ -181,21 +193,19 @@ public class LongName:IEa
         index += 2;
 
         Name = Encoding.Unicode.GetString(rawBytes, index, size);
-
-        
     }
 
     public string Name { get; }
+
+    public string InternalName { get; }
 
     public override string ToString()
     {
         return $".LONGNAME: {Name}";
     }
-
-    public string InternalName { get; }
 }
 
-public class LxXXX:IEa
+public class LxXXX : IEa
 {
     public LxXXX(byte[] rawBytes, string name, string internalName)
     {
@@ -205,15 +215,15 @@ public class LxXXX:IEa
 
     public string Name { get; }
 
+    public string InternalName { get; }
+
     public override string ToString()
     {
         return Name;
     }
-    
-    public string InternalName { get; }
 }
 
-public class ClassInfo:IEa
+public class ClassInfo : IEa
 {
     public ClassInfo(byte[] rawBytes, string internalName)
     {
@@ -231,15 +241,15 @@ public class ClassInfo:IEa
 
     public string Name { get; }
 
+    public string InternalName { get; }
+
     public override string ToString()
     {
         return ".ClassInfo: Not decoded";
     }
-    
-    public string InternalName { get; }
 }
 
-public class CatHint:IEa
+public class CatHint : IEa
 {
     public CatHint(byte[] rawBytes, string internalName)
     {
@@ -259,21 +269,24 @@ public class CatHint:IEa
 
     public string Hint { get; }
 
+    public string InternalName { get; }
+
     public override string ToString()
     {
         return $"$CI.CATALOGHINT | Hint: {Hint}";
     }
-    
-    public string InternalName { get; }
 }
 
-public class AppFixCache:IEa
+public class AppFixCache : IEa
 {
     public AppFixCache(byte[] rawBytes, string internalName)
     {
         InternalName = internalName;
         var tsraw = BitConverter.ToInt64(rawBytes, 0);
-        if (tsraw < 0) tsraw = 0;
+        if (tsraw < 0)
+        {
+            tsraw = 0;
+        }
 
         Timestamp = DateTimeOffset.FromFileTime(tsraw).ToUniversalTime();
 
@@ -284,16 +297,16 @@ public class AppFixCache:IEa
     public DateTimeOffset Timestamp { get; }
     public byte[] RemainingBytes { get; }
 
+    public string InternalName { get; }
+
     public override string ToString()
     {
         return
             $"$KERNEL.PURGE.APPXFICACHE | Timestamp: {Timestamp:yyyy-MM-dd HH:mm:ss.fffffff} Remaining bytes: {BitConverter.ToString(RemainingBytes)}";
     }
-    
-    public string InternalName { get; }
 }
 
-public class PurgeEsbCache:IEa
+public class PurgeEsbCache : IEa
 {
     public PurgeEsbCache(byte[] rawBytes, string internalName)
     {
@@ -309,16 +322,16 @@ public class PurgeEsbCache:IEa
     public DateTimeOffset Timestamp { get; }
     public DateTimeOffset Timestamp2 { get; }
 
+    public string InternalName { get; }
+
     public override string ToString()
     {
         return
             $"$KERNEL.PURGE.ESBCACHE | Timestamp: {Timestamp:yyyy-MM-dd HH:mm:ss.fffffff} Timestamp2: {Timestamp2:yyyy-MM-dd HH:mm:ss.fffffff}";
     }
-    
-    public string InternalName { get; }
 }
 
-public class Lxattrr:IEa
+public class Lxattrr : IEa
 {
     public Lxattrr(byte[] rawBytes, string internalName)
     {
@@ -353,7 +366,9 @@ public class Lxattrr:IEa
 
             if (offsetToNextRecord == 0)
                 //we are out of data
+            {
                 break;
+            }
         }
     }
 
@@ -361,6 +376,7 @@ public class Lxattrr:IEa
 
     public short Format { get; }
     public short Version { get; }
+    public string InternalName { get; }
 
     public override string ToString()
     {
@@ -368,20 +384,21 @@ public class Lxattrr:IEa
 
         sb.AppendLine("LXXATTR");
 
-        foreach (var keyValue in KeyValues) sb.AppendLine($"Key: {keyValue.Key} --> {keyValue.Value}");
+        foreach (var keyValue in KeyValues)
+        {
+            sb.AppendLine($"Key: {keyValue.Key} --> {keyValue.Value}");
+        }
 
         return sb.ToString();
     }
-    public string InternalName { get; }
-    
 }
 
-public class Lxattrb:IEa
+public class Lxattrb : IEa
 {
     public Lxattrb(byte[] rawBytes, string internalName)
     {
         InternalName = internalName;
-        
+
         var index = 0;
         Format = BitConverter.ToInt16(rawBytes, index);
         index += 2;
@@ -425,6 +442,8 @@ public class Lxattrb:IEa
     public DateTimeOffset ModifiedTime { get; }
     public DateTimeOffset InodeChanged { get; }
 
+    public string InternalName { get; }
+
     public override string ToString()
     {
         var sb = new StringBuilder();
@@ -452,6 +471,4 @@ public class Lxattrb:IEa
 
         return sb.ToString();
     }
-    
-    public string InternalName { get; }
 }

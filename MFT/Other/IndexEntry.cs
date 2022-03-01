@@ -16,18 +16,25 @@ public class IndexEntry
         var indexKeyDataSize = BitConverter.ToInt16(rawBytes, index);
         index += 2;
 
-        var indexFlags = (IndexRoot.IndexFlag) BitConverter.ToInt32(rawBytes, index);
+        var indexFlags = (IndexRoot.IndexFlag)BitConverter.ToInt32(rawBytes, index);
         index += 4;
 
-        if ((indexFlags & IndexRoot.IndexFlag.IsLast) == IndexRoot.IndexFlag.IsLast) return;
+        if ((indexFlags & IndexRoot.IndexFlag.IsLast) == IndexRoot.IndexFlag.IsLast)
+        {
+            return;
+        }
 
         if (indexKeyDataSize == 0x10)
             //indicates no more index entries
+        {
             return;
+        }
 
         if (indexKeyDataSize <= 0x40)
             //too small to do anything with
+        {
             return;
+        }
 
         if (indexKeyDataSize > 0)
         {
@@ -39,6 +46,7 @@ public class IndexEntry
 
             var createdRaw = BitConverter.ToInt64(rawBytes, index);
             if (createdRaw > 0)
+            {
                 try
                 {
                     CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
@@ -47,11 +55,13 @@ public class IndexEntry
                 {
                     Log.Warning("Invalid CreatedOn timestamp. Enable --debug for more details");
                 }
+            }
 
             index += 8;
 
             var contentModRaw = BitConverter.ToInt64(rawBytes, index);
             if (contentModRaw > 0)
+            {
                 try
                 {
                     ContentModifiedOn = DateTimeOffset.FromFileTime(contentModRaw).ToUniversalTime();
@@ -60,11 +70,13 @@ public class IndexEntry
                 {
                     Log.Warning("Invalid ContentModifiedOn timestamp. Enable --debug for more details");
                 }
+            }
 
             index += 8;
 
             var recordModRaw = BitConverter.ToInt64(rawBytes, index);
             if (recordModRaw > 0)
+            {
                 try
                 {
                     RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
@@ -73,11 +85,13 @@ public class IndexEntry
                 {
                     Log.Warning("Invalid RecordModifiedOn timestamp. Enable --debug for more details");
                 }
+            }
 
             index += 8;
 
             var lastAccessRaw = BitConverter.ToInt64(rawBytes, index);
             if (lastAccessRaw > 0)
+            {
                 try
                 {
                     LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
@@ -86,6 +100,7 @@ public class IndexEntry
                 {
                     Log.Warning("Invalid LastAccessedOn timestamp. Enable --debug for more details");
                 }
+            }
 
             index += 8;
 
@@ -94,7 +109,7 @@ public class IndexEntry
             LogicalSize = BitConverter.ToUInt64(rawBytes, index);
             index += 8;
 
-            Flags = (StandardInfo.Flag) BitConverter.ToInt32(rawBytes, index);
+            Flags = (StandardInfo.Flag)BitConverter.ToInt32(rawBytes, index);
             index += 4;
 
 
@@ -103,7 +118,7 @@ public class IndexEntry
 
             NameLength = rawBytes[index];
             index += 1;
-            NameType = (NameTypes) rawBytes[index];
+            NameType = (NameTypes)rawBytes[index];
             index += 1;
 
             FileName = Encoding.Unicode.GetString(rawBytes, index, NameLength * 2);

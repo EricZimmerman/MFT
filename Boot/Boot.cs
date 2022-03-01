@@ -17,9 +17,11 @@ public class Boot
         SectorSignature = BitConverter.ToUInt16(rawBytes, 510);
 
         if (SectorSignature != expectedSectorSig)
+        {
             Log.Warning(
                 "Expected signature (0x55 0xAA) not found at offset 0x1FE. Value found: {SectorSignature}",
                 GetSectorSignature());
+        }
 
         BootEntryPoint = $"0x{rawBytes[0]:X2} 0x{rawBytes[1]:X2} 0x{rawBytes[2]:X2}";
 
@@ -226,23 +228,38 @@ public class Boot
         if (as32Bit)
         {
             if (reverse)
+            {
                 for (var i = 3; i > -1; i--)
+                {
                     sn = $"{sn} {b[i]:X2}";
+                }
+            }
             else
+            {
                 for (var i = 0; i < 4; i++)
+                {
                     sn = $"{sn} {b[i]:X2}";
+                }
+            }
 
             return sn.Trim();
         }
 
-        for (var i = 0; i < 8; i++) sn = $"{sn} {b[i]:X2}";
+        for (var i = 0; i < 8; i++)
+        {
+            sn = $"{sn} {b[i]:X2}";
+        }
 
         return sn.Trim();
     }
 
     private static int GetSizeAsBytes(byte size, int clusterSize)
     {
-        if (size <= 127) return size * clusterSize;
-        return (int) Math.Pow(2, 256 - size);
+        if (size <= 127)
+        {
+            return size * clusterSize;
+        }
+
+        return (int)Math.Pow(2, 256 - size);
     }
 }

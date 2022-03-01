@@ -191,13 +191,19 @@ public class ReparsePoint : Attribute
         var printNameOffset = BitConverter.ToInt16(content, 12);
         var printNameSize = BitConverter.ToInt16(content, 14);
 
-        if (Tag != ReparsePointTag.SymbolicLink && Tag != ReparsePointTag.MountPoint) return;
+        if (Tag != ReparsePointTag.SymbolicLink && Tag != ReparsePointTag.MountPoint)
+        {
+            return;
+        }
 
         if (Tag == ReparsePointTag.SymbolicLink)
         {
             var symFlags = BitConverter.ToInt32(content, 16);
 
-            if (symFlags == 0x1) SymlinkFlagRelative = true;
+            if (symFlags == 0x1)
+            {
+                SymlinkFlagRelative = true;
+            }
 
             subNameOffset += 4;
         }
@@ -205,9 +211,13 @@ public class ReparsePoint : Attribute
         if (subNameSize > 0)
         {
             if (subNameOffset == 0)
+            {
                 subNameOffset = 0x10;
+            }
             else
+            {
                 subNameOffset = 0x14;
+            }
 
             SubstituteName = Encoding.Unicode.GetString(content, subNameOffset, subNameSize);
         }
@@ -215,9 +225,13 @@ public class ReparsePoint : Attribute
         if (printNameSize > 0)
         {
             if (printNameOffset == 0)
-                printNameOffset = (short) (subNameOffset + subNameSize);
+            {
+                printNameOffset = (short)(subNameOffset + subNameSize);
+            }
             else
-                printNameOffset = (short) (subNameOffset + printNameOffset);
+            {
+                printNameOffset = (short)(subNameOffset + printNameOffset);
+            }
 
 
             PrintName = Encoding.Unicode.GetString(content, printNameOffset, printNameSize);

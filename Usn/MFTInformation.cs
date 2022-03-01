@@ -6,7 +6,10 @@ public class MftInformation
 {
     public MftInformation(byte[] rawBytes)
     {
-        if (rawBytes.Length != 8) throw new ArgumentException("rawBytes must be 8 bytes long!");
+        if (rawBytes.Length != 8)
+        {
+            throw new ArgumentException("rawBytes must be 8 bytes long!");
+        }
 
         var sequenceNumber = BitConverter.ToUInt16(rawBytes, 6);
 

@@ -29,7 +29,7 @@ public class VolumeInformation : Attribute
         MajorVersion = residentData.Data[ContentOffset + 0x8];
         MinorVersion = residentData.Data[ContentOffset + 0x9];
 
-        VolumeFlags = (VolumeFlag) BitConverter.ToInt16(residentData.Data, ContentOffset + 0xA);
+        VolumeFlags = (VolumeFlag)BitConverter.ToInt16(residentData.Data, ContentOffset + 0xA);
     }
 
     public byte[] UnknownBytes { get; }

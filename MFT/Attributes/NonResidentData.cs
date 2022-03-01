@@ -18,7 +18,7 @@ public class NonResidentData
         ActualSize = BitConverter.ToUInt64(rawBytes, 0x30);
         InitializedSize = BitConverter.ToUInt64(rawBytes, 0x38);
 
-        var index = (int) offsetToDataRuns; //set index into bytes to start reading offsets
+        var index = (int)offsetToDataRuns; //set index into bytes to start reading offsets
 
         DataRuns = new List<DataRun>();
 
@@ -26,8 +26,8 @@ public class NonResidentData
 
         while (drStart != 0)
         {
-            var offsetLength = (byte) ((drStart & 0xF0) >> 4); //left nibble
-            var clusterLenByteCount = (byte) (drStart & 0x0F); //right nibble
+            var offsetLength = (byte)((drStart & 0xF0) >> 4); //left nibble
+            var clusterLenByteCount = (byte)(drStart & 0x0F); //right nibble
             index += 1;
 
             var runLenBytes = new byte[8]; //length should never exceed 8, so start with 8
@@ -44,9 +44,15 @@ public class NonResidentData
 
             //negative offsets
             if (offsetLength > 0)
+            {
                 if (clusterBytes[offsetLength - 1] >= 0x80)
+                {
                     for (int i = offsetLength; i < clusterBytes.Length; i++)
+                    {
                         clusterBytes[i] = 0xFF;
+                    }
+                }
+            }
 
             //we can safely get our cluster #
             var clusterNumber = BitConverter.ToInt64(clusterBytes, 0);
@@ -78,7 +84,10 @@ public class NonResidentData
         sb.AppendLine();
         sb.AppendLine("DataRuns Entries");
 
-        foreach (var dataRun in DataRuns) sb.AppendLine(dataRun.ToString());
+        foreach (var dataRun in DataRuns)
+        {
+            sb.AppendLine(dataRun.ToString());
+        }
 
         return sb.ToString();
     }

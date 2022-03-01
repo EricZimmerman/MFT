@@ -14,8 +14,11 @@ public static class ExtensionMethods
 
         foreach (var attribute in fns)
         {
-            var fn = (FileName) attribute;
-            if (fn.FileInfo.NameType == NameTypes.Dos) continue;
+            var fn = (FileName)attribute;
+            if (fn.FileInfo.NameType == NameTypes.Dos)
+            {
+                continue;
+            }
 
             var key = $"{fn.FileInfo.FileName}-{fn.FileInfo.ParentMftRecord.GetKey()}";
 
@@ -31,7 +34,7 @@ public static class ExtensionMethods
             record.Attributes.Where(t =>
                 t.AttributeType == AttributeType.ReparsePoint).ToList();
 
-        return (ReparsePoint) reparseAttr.FirstOrDefault();
+        return (ReparsePoint)reparseAttr.FirstOrDefault();
     }
 
     public static FileName GetFileNameAttributeFromFileRecord(this FileRecord fr) //, int attributeNumber = -1
@@ -44,31 +47,44 @@ public static class ExtensionMethods
 //                return (FileName) fin;
 //            }
         var fi = fr.Attributes.FirstOrDefault(t =>
-            t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.DosWindows);
+            t.AttributeType == AttributeType.FileName && ((FileName)t).FileInfo.NameType == NameTypes.DosWindows);
 
-        if (fi != null) return (FileName) fi;
-
-        fi = fr.Attributes.FirstOrDefault(t =>
-            t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Windows);
-
-        if (fi != null) return (FileName) fi;
-
+        if (fi != null)
+        {
+            return (FileName)fi;
+        }
 
         fi = fr.Attributes.FirstOrDefault(t =>
-            t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Posix);
+            t.AttributeType == AttributeType.FileName && ((FileName)t).FileInfo.NameType == NameTypes.Windows);
 
-        if (fi != null) return (FileName) fi;
+        if (fi != null)
+        {
+            return (FileName)fi;
+        }
+
+
+        fi = fr.Attributes.FirstOrDefault(t =>
+            t.AttributeType == AttributeType.FileName && ((FileName)t).FileInfo.NameType == NameTypes.Posix);
+
+        if (fi != null)
+        {
+            return (FileName)fi;
+        }
 
 
         fi = fr.Attributes.SingleOrDefault(t =>
-            t.AttributeType == AttributeType.FileName && ((FileName) t).FileInfo.NameType == NameTypes.Dos);
+            t.AttributeType == AttributeType.FileName && ((FileName)t).FileInfo.NameType == NameTypes.Dos);
 
-        return (FileName) fi;
+        return (FileName)fi;
     }
 
     public static string GetKey(this MftEntryInfo mftInfo, bool asDecimal = false)
     {
-        if (asDecimal) return $"{mftInfo.MftEntryNumber}-{mftInfo.MftSequenceNumber}";
+        if (asDecimal)
+        {
+            return $"{mftInfo.MftEntryNumber}-{mftInfo.MftSequenceNumber}";
+        }
+
         return $"{mftInfo.MftEntryNumber:X8}-{mftInfo.MftSequenceNumber:X8}";
     }
 
@@ -76,20 +92,29 @@ public static class ExtensionMethods
     {
         if (asDecimal)
         {
-            if (record.IsDeleted()) return $"{record.EntryNumber}-{record.SequenceNumber - 1}";
+            if (record.IsDeleted())
+            {
+                return $"{record.EntryNumber}-{record.SequenceNumber - 1}";
+            }
 
             return $"{record.EntryNumber}-{record.SequenceNumber}";
         }
 
 
-        if (record.IsDeleted()) return $"{record.EntryNumber:X8}-{record.SequenceNumber - 1:X8}";
+        if (record.IsDeleted())
+        {
+            return $"{record.EntryNumber:X8}-{record.SequenceNumber - 1:X8}";
+        }
 
         return $"{record.EntryNumber:X8}-{record.SequenceNumber:X8}";
     }
 
     public static bool IsDirectory(this FileRecord record)
     {
-        if (record == null) return false;
+        if (record == null)
+        {
+            return false;
+        }
 
         return (record.EntryFlags & FileRecord.EntryFlag.IsDirectory) ==
                FileRecord.EntryFlag.IsDirectory;
@@ -120,15 +145,22 @@ public static class ExtensionMethods
 
         foreach (var attribute in dataAttrs)
         {
-            var da = (Data) attribute;
+            var da = (Data)attribute;
 
-            if (da.IsResident == false && da.NonResidentData.StartingVirtualClusterNumber > 0) continue;
+            if (da.IsResident == false && da.NonResidentData.StartingVirtualClusterNumber > 0)
+            {
+                continue;
+            }
 
             ulong size;
             if (da.IsResident)
-                size = (ulong) da.AttributeContentLength;
+            {
+                size = (ulong)da.AttributeContentLength;
+            }
             else
+            {
                 size = da.NonResidentData.ActualSize;
+            }
 
             var adsi = new AdsInfo(da.Name, size, da.ResidentData, da.NonResidentData, da.AttributeNumber);
 
@@ -140,7 +172,10 @@ public static class ExtensionMethods
 
     public static ulong GetFileSize(this FileRecord record)
     {
-        if (record.IsDirectory()) return 0;
+        if (record.IsDirectory())
+        {
+            return 0;
+        }
 
         var fn = record.Attributes.FirstOrDefault(t => t.AttributeType == AttributeType.FileName);
 
@@ -148,19 +183,25 @@ public static class ExtensionMethods
 
         if (datas.Count >= 1)
         {
-            var data = (Data) datas.First();
+            var data = (Data)datas.First();
 
-            if (data.IsResident) return (ulong) data.ResidentData.Data.LongLength;
+            if (data.IsResident)
+            {
+                return (ulong)data.ResidentData.Data.LongLength;
+            }
 
             return data.NonResidentData.ActualSize;
         }
 
-        if (datas.Count != 0) return 0;
+        if (datas.Count != 0)
+        {
+            return 0;
+        }
 
 
         if (fn != null)
         {
-            var fna = (FileName) fn;
+            var fna = (FileName)fn;
             return fna.FileInfo.LogicalSize;
         }
 

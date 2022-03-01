@@ -8,11 +8,12 @@ public static class MftFile
 
     public static Mft Load(string mftPath)
     {
-        if (File.Exists(mftPath) == false) throw new FileNotFoundException($"'{mftPath}' not found");
-
-        using (var fs = new FileStream(mftPath, FileMode.Open, FileAccess.Read))
+        if (File.Exists(mftPath) == false)
         {
-            return new Mft(fs);
+            throw new FileNotFoundException($"'{mftPath}' not found");
         }
+
+        using var fs = new FileStream(mftPath, FileMode.Open, FileAccess.Read);
+        return new Mft(fs);
     }
 }

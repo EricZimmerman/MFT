@@ -6,11 +6,12 @@ public static class SdhFile
 {
     public static Sdh Load(string sdhFile)
     {
-        if (File.Exists(sdhFile) == false) throw new FileNotFoundException($"'{sdhFile}' not found");
-
-        using (var fs = new FileStream(sdhFile, FileMode.Open, FileAccess.Read))
+        if (File.Exists(sdhFile) == false)
         {
-            return new Sdh(fs);
+            throw new FileNotFoundException($"'{sdhFile}' not found");
         }
+
+        using var fs = new FileStream(sdhFile, FileMode.Open, FileAccess.Read);
+        return new Sdh(fs);
     }
 }

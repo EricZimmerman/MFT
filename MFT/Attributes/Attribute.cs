@@ -40,7 +40,7 @@ public abstract class Attribute
     {
         AttributeNumber = BitConverter.ToInt16(rawBytes, 0xE);
 
-        AttributeType = (AttributeType) BitConverter.ToInt32(rawBytes, 0);
+        AttributeType = (AttributeType)BitConverter.ToInt32(rawBytes, 0);
         AttributeSize = BitConverter.ToInt32(rawBytes, 4);
 
         IsResident = rawBytes[0x8] == 0;
@@ -48,13 +48,16 @@ public abstract class Attribute
         NameSize = rawBytes[0x09];
         NameOffset = BitConverter.ToInt16(rawBytes, 0xA);
 
-        AttributeDataFlag = (AttributeDataFlag) BitConverter.ToInt16(rawBytes, 0xC);
+        AttributeDataFlag = (AttributeDataFlag)BitConverter.ToInt16(rawBytes, 0xC);
 
         AttributeContentLength = BitConverter.ToInt32(rawBytes, 0x10);
         ContentOffset = BitConverter.ToInt16(rawBytes, 0x14);
 
         Name = string.Empty;
-        if (NameSize > 0) Name = Encoding.Unicode.GetString(rawBytes, NameOffset, NameSize * 2);
+        if (NameSize > 0)
+        {
+            Name = Encoding.Unicode.GetString(rawBytes, NameOffset, NameSize * 2);
+        }
     }
 
     public AttributeType AttributeType { get; }
@@ -76,11 +79,17 @@ public abstract class Attribute
     {
         var name = string.Empty;
 
-        if (NameSize > 0) name = $", Name: {Name}";
+        if (NameSize > 0)
+        {
+            name = $", Name: {Name}";
+        }
 
         var flags = string.Empty;
 
-        if (AttributeDataFlag > 0) flags = $" Attribute flags: {AttributeDataFlag.ToString().Replace(", ", "|")},";
+        if (AttributeDataFlag > 0)
+        {
+            flags = $" Attribute flags: {AttributeDataFlag.ToString().Replace(", ", "|")},";
+        }
 
         return
             $"Type: {AttributeType}, Attribute #: 0x{AttributeNumber:X},{flags} Size: 0x{AttributeSize:X}, Content size: 0x{AttributeContentLength:X}, Name size: 0x{NameSize:X}{name}, Content offset: 0x{ContentOffset:X}, Resident: {IsResident}";

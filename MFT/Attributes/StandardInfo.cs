@@ -44,6 +44,7 @@ public class StandardInfo : Attribute
     {
         var createdRaw = BitConverter.ToInt64(rawBytes, 0x18);
         if (createdRaw > 0)
+        {
             try
             {
                 CreatedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x18)).ToUniversalTime();
@@ -52,9 +53,11 @@ public class StandardInfo : Attribute
             {
                 Log.Warning("Invalid CreatedOn timestamp! Enable --debug for record information");
             }
+        }
 
         var contentModRaw = BitConverter.ToInt64(rawBytes, 0x20);
         if (contentModRaw > 0)
+        {
             try
             {
                 ContentModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x20)).ToUniversalTime();
@@ -63,9 +66,11 @@ public class StandardInfo : Attribute
             {
                 Log.Warning("Invalid ContentModifiedOn timestamp! Enable --debug for record information");
             }
+        }
 
         var recordModRaw = BitConverter.ToInt64(rawBytes, 0x28);
         if (recordModRaw > 0)
+        {
             try
             {
                 RecordModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x28))
@@ -75,9 +80,11 @@ public class StandardInfo : Attribute
             {
                 Log.Warning("Invalid RecordModifiedOn timestamp! Enable --debug for record information");
             }
+        }
 
         var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x30);
         if (lastAccessRaw > 0)
+        {
             try
             {
                 LastAccessedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x30)).ToUniversalTime();
@@ -86,14 +93,18 @@ public class StandardInfo : Attribute
             {
                 Log.Warning("Invalid LastAccessedOn timestamp! Enable --debug for record information");
             }
+        }
 
-        Flags = (Flag) BitConverter.ToInt32(rawBytes, 0x38);
+        Flags = (Flag)BitConverter.ToInt32(rawBytes, 0x38);
 
         MaxVersion = BitConverter.ToInt32(rawBytes, 0x3C);
-        Flags2 = (Flag2) BitConverter.ToInt32(rawBytes, 0x40);
+        Flags2 = (Flag2)BitConverter.ToInt32(rawBytes, 0x40);
         ClassId = BitConverter.ToInt32(rawBytes, 0x44);
 
-        if (rawBytes.Length <= 0x48) return;
+        if (rawBytes.Length <= 0x48)
+        {
+            return;
+        }
 
         OwnerId = BitConverter.ToInt32(rawBytes, 0x48);
         SecurityId = BitConverter.ToInt32(rawBytes, 0x4C);

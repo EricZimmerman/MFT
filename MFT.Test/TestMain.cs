@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Boot;
 using FluentAssertions;
+using I30;
 using LogFile;
 using MFT.Attributes;
 using MFT.Other;
@@ -98,15 +99,51 @@ public class TestMain
     }
 
 
-    // [Test]
-    // public void I30Start()
-    // {
-    //     var bb = I30File.Load(@"..\..\TestFiles\$I30\Start\$I30");
-    //
-    //     Debug.WriteLine($"$Entry count: {bb.Entries.Count}");
-    //
-    //    
-    // }
+    [Test]
+    public void I30Start()
+    {
+        var bb = I30File.Load(@"D:\Code\MFT\MFT.Test\TestFiles\$I30\Start\$I30");
+
+        Log.Information("Active entry count: {Count}", bb.Entries.Count(t => t.FromSlack == false));
+
+        Log.Information("ACTIVE");
+        foreach (var indexEntry in bb.Entries.Where(t => t.FromSlack == false))
+        {
+            Log.Information("{Ie}", indexEntry);
+        }
+
+
+        Log.Information("Slack entry count: {Count}", bb.Entries.Count(t => t.FromSlack));
+
+        Log.Information("FROM SLACK");
+        foreach (var indexEntry in bb.Entries.Where(t => t.FromSlack))
+        {
+            Log.Information("{Ie}", indexEntry);
+        }
+    }
+
+    [Test]
+    public void I30First()
+    {
+        var bb = I30File.Load(@"D:\Code\MFT\MFT.Test\TestFiles\$I30\FirstDelete\$I30");
+
+        Log.Information("Active entry count: {Count}", bb.Entries.Count(t => t.FromSlack == false));
+        Log.Information("Slack entry count: {Count}", bb.Entries.Count(t => t.FromSlack));
+
+        foreach (var indexEntry in bb.Entries.Where(t => t.FromSlack))
+        {
+            Log.Information("{Ie}", indexEntry);
+        }
+    }
+
+    [Test]
+    public void I30Second()
+    {
+        var bb = I30File.Load(@"D:\Code\MFT\MFT.Test\TestFiles\$I30\SecondDelete\$I30");
+
+        Log.Information("Active entry count: {Count}", bb.Entries.Count(t => t.FromSlack == false));
+        Log.Information("Slack entry count: {Count}", bb.Entries.Count(t => t.FromSlack));
+    }
 
 
     [Test]
@@ -116,12 +153,12 @@ public class TestMain
             .WriteTo.Console()
             .MinimumLevel.Information()
             .CreateLogger();
-        
+
         var bb = BootFile.Load(@"/home/eric/Code/MFT/MFT.Test/TestFiles/Boot/$Boot");
 
-        Log.Information("{@Boot}",bb);
-        
-        Log.Information("$Boot.BootEntryPoint: {BootEntryPoint}",bb.BootEntryPoint);
+        Log.Information("{@Boot}", bb);
+
+        Log.Information("$Boot.BootEntryPoint: {BootEntryPoint}", bb.BootEntryPoint);
         Debug.WriteLine($"$Boot.FileSystemSignature: {bb.FileSystemSignature}");
 
         Debug.WriteLine($"$Boot.BytesPerSector: {bb.BytesPerSector}");
@@ -154,7 +191,10 @@ public class TestMain
     {
         var lf = SdsFile.Load(@"C:\Users\eric\OneDrive\ntfs\sds3\$SDS");
 
-        foreach (var lfSdsEntry in lf.SdsEntries) Console.WriteLine(lfSdsEntry);
+        foreach (var lfSdsEntry in lf.SdsEntries)
+        {
+            Console.WriteLine(lfSdsEntry);
+        }
 
         //ss..Count.Should().Be(41);
     }
@@ -190,13 +230,19 @@ public class TestMain
 
         var f = m.GetDirectoryContents("00000005-00000005");
 
-        foreach (var parentMapEntry in f) Debug.WriteLine(parentMapEntry);
+        foreach (var parentMapEntry in f)
+        {
+            Debug.WriteLine(parentMapEntry);
+        }
 
         Debug.WriteLine("--------------------------------------");
 
         f = m.GetDirectoryContents("0000011F-00000003");
 
-        foreach (var parentMapEntry in f) Debug.WriteLine(parentMapEntry);
+        foreach (var parentMapEntry in f)
+        {
+            Debug.WriteLine(parentMapEntry);
+        }
     }
 
     [Test]
@@ -230,11 +276,12 @@ public class TestMain
     {
         //@"D:\SynologyDrive\ntfs\$O\$O"
 
-        using (var fs = new FileStream(@"C:\Temp\ooo", FileMode.Open))
-        {
-            var ea = new O.O(fs);
+        using var fs = new FileStream(@"C:\Temp\ooo", FileMode.Open);
+        var ea = new O.O(fs);
 
-            foreach (var eaEntry in ea.Entries) Debug.WriteLine(eaEntry);
+        foreach (var eaEntry in ea.Entries)
+        {
+            Debug.WriteLine(eaEntry);
         }
 
         ;
@@ -249,7 +296,7 @@ public class TestMain
         var lf = File.ReadAllBytes(@"D:\Temp\Maxim_EA)STUFF_MFT_wsl2\ea-2.bin");
 
         var ea = new Lxattrr(lf, "LXXATTR");
-        
+
         Debug.WriteLine(ea);
 
         //ss..Count.Should().Be(41);
@@ -260,13 +307,14 @@ public class TestMain
     {
         var lf = File.ReadAllBytes(@"D:\SynologyDrive\temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xABD9C00.bin");
 
-        
 
         var ea = new FileRecord(lf, 0xABD9C00);
-        
-        
 
-        foreach (var eaAttribute in ea.Attributes) Debug.WriteLine(eaAttribute);
+
+        foreach (var eaAttribute in ea.Attributes)
+        {
+            Debug.WriteLine(eaAttribute);
+        }
 
         //ss..Count.Should().Be(41);
     }
@@ -278,7 +326,10 @@ public class TestMain
         //ss..Count.Should().Be(41);
 
         var ea = new FileRecord(lf, 0xD99C800);
-        foreach (var eaAttribute in ea.Attributes) Debug.WriteLine(eaAttribute);
+        foreach (var eaAttribute in ea.Attributes)
+        {
+            Debug.WriteLine(eaAttribute);
+        }
     }
 
 
@@ -335,7 +386,9 @@ public class TestMain
                 var SaclAceCount = ssSdsEntry.SecurityDescriptor.Sacl.AceCount;
                 var uniqueAce = new HashSet<string>();
                 foreach (var saclAceRecord in ssSdsEntry.SecurityDescriptor.Sacl.AceRecords)
+                {
                     uniqueAce.Add(saclAceRecord.AceType.ToString());
+                }
 
                 var UniqueSaclAceTypes = string.Join("|", uniqueAce);
             }
@@ -345,7 +398,9 @@ public class TestMain
                 var DaclAceCount = ssSdsEntry.SecurityDescriptor.Dacl.AceCount;
                 var uniqueAce = new HashSet<string>();
                 foreach (var daclAceRecord in ssSdsEntry.SecurityDescriptor.Dacl.AceRecords)
+                {
                     uniqueAce.Add(daclAceRecord.AceType.ToString());
+                }
 
                 var UniqueDaclAceTypes = string.Join("|", uniqueAce);
             }
@@ -404,7 +459,7 @@ public class TestMain
         foreach (var attribute in m2FileRecord.Value.Attributes.Where(t =>
                      t.AttributeType == AttributeType.FileName))
         {
-            var fn = (FileName) attribute;
+            var fn = (FileName)attribute;
             if (fn.FileInfo.NameType == NameTypes.Dos)
             {
             }
@@ -417,7 +472,7 @@ public class TestMain
         foreach (var attribute in m2FileRecord.Value.Attributes.Where(t =>
                      t.AttributeType == AttributeType.FileName))
         {
-            var fn = (FileName) attribute;
+            var fn = (FileName)attribute;
             if (fn.FileInfo.NameType == NameTypes.Dos)
             {
             }

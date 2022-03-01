@@ -155,11 +155,11 @@ public class UsnEntry
 
         UpdateTimestamp = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 32)).UtcDateTime;
 
-        UpdateReasons = (UpdateReasonFlag) BitConverter.ToUInt32(rawBytes, 40);
-        UpdateSources = (UpdateSourceFlag) BitConverter.ToUInt32(rawBytes, 44);
+        UpdateReasons = (UpdateReasonFlag)BitConverter.ToUInt32(rawBytes, 40);
+        UpdateSources = (UpdateSourceFlag)BitConverter.ToUInt32(rawBytes, 44);
 
         SecurityDescriptorId = BitConverter.ToInt32(rawBytes, 48);
-        FileAttributes = (FileAttributeFlag) BitConverter.ToInt32(rawBytes, 52);
+        FileAttributes = (FileAttributeFlag)BitConverter.ToInt32(rawBytes, 52);
 
         NameSize = BitConverter.ToInt16(rawBytes, 56);
         NameOffset = BitConverter.ToInt16(rawBytes, 58);

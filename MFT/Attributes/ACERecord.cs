@@ -82,7 +82,7 @@ public class AceRecord
     }
 
     // public properties...
-    public AceFlagsEnum AceFlags => (AceFlagsEnum) RawBytes[1];
+    public AceFlagsEnum AceFlags => (AceFlagsEnum)RawBytes[1];
 
     public ushort AceSize => BitConverter.ToUInt16(RawBytes, 2);
 
@@ -149,7 +149,7 @@ public class AceRecord
         }
     }
 
-    public MasksEnum Mask => (MasksEnum) BitConverter.ToUInt32(RawBytes, 4);
+    public MasksEnum Mask => (MasksEnum)BitConverter.ToUInt32(RawBytes, 4);
 
     public byte[] RawBytes { get; }
 
