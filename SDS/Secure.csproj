@@ -9,6 +9,7 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <Version>1.1.1.0</Version>
+        <Authors>Eric R. Zimmerman</Authors>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Serilog" Version="2.10.0"/>

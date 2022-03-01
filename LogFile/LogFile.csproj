@@ -5,6 +5,7 @@
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <Copyright>Eric R. Zimmerman</Copyright>
         <LangVersion>10</LangVersion>
+        <Authors>Eric R. Zimmerman</Authors>
         <Description>$LogFile parser</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Version>1.1.1.0</Version>
