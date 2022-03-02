@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
+using MFT;
 using MFT.Other;
 using Serilog;
-using FileInfo = MFT.Attributes.FileInfo;
 
 namespace I30;
 
@@ -20,7 +15,7 @@ public class I30
 
         var sig = 0x58444E49;
 
-        Entries = new List<IndexEntry>();
+        Entries = new List<IndexEntryI30>();
 
         var pages = new List<byte[]>();
 
@@ -137,7 +132,7 @@ public class I30
 
                         var indxBuffer = binaryReader.ReadBytes(indexSize);
 
-                        var ie = new IndexEntry(indxBuffer, absoluteOffset, pageNumber, false);
+                        var ie = new IndexEntryI30(indxBuffer, absoluteOffset, pageNumber, false);
 
                         if (ie.MftReferenceSelf.MftEntryNumber == 0)
                         {
@@ -150,53 +145,70 @@ public class I30
                     }
                 }
 
-                var h = GetUnicodeHits(slackSpace);
-
+                Log.Verbose("IN SLACK LOOP for {Page", pageNumber);
                 var slackAbsOffset = pageNumber * 0x1000 + 0x18 + dataStartOffset +
                                      activeSpace.Length;
 
-                Log.Verbose("IN SLACK LOOP for {Page", pageNumber);
+                var slackIe = FileRecord.GetSlackFileEntries(slackSpace, pageNumber, slackAbsOffset);
 
-                foreach (var hitInfo in h)
+                //var h = GetUnicodeHits(slackSpace);
+
+                foreach (var indexEntry in slackIe)
                 {
-                    Log.Verbose("Processing offset {O} {H}", hitInfo.Offset, hitInfo.Hit);
-
-                    //contains offset to start of hit and hit, but we only need start of the string to know where to begin
-                    //the start of the record is 0x42 bytes from where the hit is
-                    //since we know the offset of the hit, subtract 2 to get length of decoded string.
-                    //multiply by 2 for # of bytes we need to read.
-                    //add this to get the total length of the data we need to read adn read into slackspace as needed
-
-                    var nameSize = slackSpace[hitInfo.Offset - 2];
-                    var start = hitInfo.Offset - 0x42;
-                    var end = hitInfo.Offset + nameSize * 2;
-
-                    var buffSize = end - start;
-
-                    var buff = new byte[buffSize];
-                    Buffer.BlockCopy(slackSpace, start, buff, 0, buffSize);
-
-                    var md5 = GetMd5(buff);
-
-                    if (uniqueSlackEntryMd5s.Contains(md5))
+                    if (uniqueSlackEntryMd5s.Contains(indexEntry.Md5))
                     {
-                        Log.Debug("Discarding duplicate slack buffer with MD5 {Md5}", md5);
+                        Log.Debug("Discarding duplicate slack buffer with MD5 {Md5}", indexEntry.Md5);
                         continue;
                     }
 
-                    var slackIndex = new IndexEntry(buff, slackAbsOffset + start - 0x10, pageNumber, true);
+                    Entries.Add(indexEntry);
 
-                    //some cleanup of questionable stuff
-                    if (slackIndex.FileInfo.NameLength == 0)
-                    {
-                        continue;
-                    }
+                    uniqueSlackEntryMd5s.Add(indexEntry.Md5);
 
-                    Log.Debug("{Ie}", slackIndex);
-                    Entries.Add(slackIndex);
-
-                    uniqueSlackEntryMd5s.Add(md5);
                 }
+
+
+
+                // foreach (var hitInfo in h)
+                // {
+                //     Log.Verbose("Processing offset {O} {H}", hitInfo.Offset, hitInfo.Hit);
+                //
+                //     //contains offset to start of hit and hit, but we only need start of the string to know where to begin
+                //     //the start of the record is 0x42 bytes from where the hit is
+                //     //since we know the offset of the hit, subtract 2 to get length of decoded string.
+                //     //multiply by 2 for # of bytes we need to read.
+                //     //add this to get the total length of the data we need to read adn read into slackspace as needed
+                //
+                //     var nameSize = slackSpace[hitInfo.Offset - 2];
+                //     var start = hitInfo.Offset - 0x42;
+                //     var end = hitInfo.Offset + nameSize * 2;
+                //
+                //     var buffSize = end - start;
+                //
+                //     var buff = new byte[buffSize];
+                //     Buffer.BlockCopy(slackSpace, start, buff, 0, buffSize);
+                //
+                //     var md5 = GetMd5(buff);
+                //
+                //     if (uniqueSlackEntryMd5s.Contains(md5))
+                //     {
+                //         Log.Debug("Discarding duplicate slack buffer with MD5 {Md5}", md5);
+                //         continue;
+                //     }
+                //
+                //     var slackIndex = new IndexEntry(buff, slackAbsOffset + start - 0x10, pageNumber, true);
+                //
+                //     //some cleanup of questionable stuff
+                //     if (slackIndex.FileInfo.NameLength == 0)
+                //     {
+                //         continue;
+                //     }
+                //
+                //     Log.Debug("{Ie}", slackIndex);
+                //     Entries.Add(slackIndex);
+                //
+                //     uniqueSlackEntryMd5s.Add(md5);
+                // }
             }
 
             pageNumber += 1;
@@ -204,116 +216,9 @@ public class I30
     }
 
 
-    public List<IndexEntry> Entries { get; }
+    public List<IndexEntryI30> Entries { get; }
 
 
-    private string GetMd5(byte[] input)
-    {
-        using var myHash = MD5.Create();
-        var byteArrayResult =
-            myHash.ComputeHash(input);
-        return
-            string.Concat(Array.ConvertAll(byteArrayResult,
-                h => h.ToString("X2")));
-    }
 
-
-    private List<HitInfo> GetUnicodeHits(byte[] bytes)
-    {
-        var maxString = "";
-        var mi2 = $"{"{"}{3}{","}{maxString}{"}"}";
-
-        var uniRange = "[\u0020-\u007E]";
-        var regUni = new Regex($"{uniRange}{mi2}", RegexOptions.Compiled);
-        var uniString = Encoding.Unicode.GetString(bytes);
-
-        var hits = new List<HitInfo>();
-
-        foreach (Match match in regUni.Matches(uniString))
-        {
-            if (match.Value.Trim().Length == 0)
-            {
-                continue;
-            }
-
-            var actualOffset = match.Index * 2;
-
-            var hi = new HitInfo(actualOffset, match.Value.Trim());
-            hits.Add(hi);
-        }
-
-        return hits;
-    }
 }
 
-public class HitInfo
-{
-    public HitInfo(int offset, string hit)
-    {
-        Offset = offset;
-        Hit = hit;
-    }
-
-    public int Offset { get; set; }
-    public string Hit { get; set; }
-
-    public override string ToString()
-    {
-        return $"0x{Offset:X}: {Hit}";
-    }
-}
-
-public class IndexEntry
-{
-    public enum OEntryFlag
-    {
-        HasSubNodes = 0x1,
-        LastEntry = 0x2
-    }
-
-    public IndexEntry(byte[] rawBytes, long absoluteOffset, int pageNumber, bool fromSlack)
-    {
-        PageNumber = pageNumber;
-        FromSlack = fromSlack;
-
-        AbsoluteOffset = absoluteOffset;
-
-        using var br = new BinaryReader(new MemoryStream(rawBytes));
-
-        var skipOffset = 0;
-        if (fromSlack == false)
-        {
-            MftReferenceSelf = new MftEntryInfo(br.ReadBytes(8));
-
-            if (MftReferenceSelf.MftEntryNumber == 0)
-            {
-                return;
-            }
-
-            var indexEntrySize = br.ReadInt16();
-            var indexDataSize = br.ReadInt16();
-            Flag = (OEntryFlag)br.ReadInt32();
-            skipOffset = 8 + 2 + 2 + 4;
-        }
-
-        FileInfo = new FileInfo(rawBytes.Skip(skipOffset).ToArray());
-    }
-
-    public OEntryFlag Flag { get; }
-
-    public int PageNumber { get; }
-    public bool FromSlack { get; }
-
-    public long AbsoluteOffset { get; }
-
-    public MftEntryInfo MftReferenceSelf { get; }
-
-    public FileInfo FileInfo { get; }
-
-
-    public override string ToString()
-    {
-        return
-            $"Absolute offset: 0x{AbsoluteOffset:X} FromSlack: {FromSlack} Self MFT: {MftReferenceSelf} FileInfo: {FileInfo}";
-    }
-}

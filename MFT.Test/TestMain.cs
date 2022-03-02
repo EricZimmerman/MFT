@@ -89,12 +89,12 @@ public class TestMain
         //  var aa = fff.FileRecords["89646-1"];
 
         //
-        var f1 = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0x15E2E.bin"), 0);
-        var f2 = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0x176FD.bin"), 0);
+        var f1 = new FileRecord(File.ReadAllBytes(@"C:\temp\FILE with INDX slack"), 0);
+     //   var f2 = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0x176FD.bin"), 0);
         // var f3 = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0xB8A1400.bin"), 0);
         //
         Console.WriteLine(f1);
-        Console.WriteLine(f2);
+       // Console.WriteLine(f2);
         // Console.WriteLine(f3);
     }
 
