@@ -6,7 +6,7 @@ public static class MftFile
 {
     public static string DateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
 
-    public static Mft Load(string mftPath)
+    public static Mft Load(string mftPath, bool recoverFromSlack)
     {
         if (File.Exists(mftPath) == false)
         {
@@ -14,6 +14,6 @@ public static class MftFile
         }
 
         using var fs = new FileStream(mftPath, FileMode.Open, FileAccess.Read);
-        return new Mft(fs);
+        return new Mft(fs,recoverFromSlack);
     }
 }

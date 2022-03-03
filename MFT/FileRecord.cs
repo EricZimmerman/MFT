@@ -26,7 +26,7 @@ public class FileRecord
     private const int BaadSig = 0x44414142;
     private const int FileSig = 0x454c4946;
 
-    public FileRecord(byte[] rawBytes, int offset)
+    public FileRecord(byte[] rawBytes, int offset, bool recoverFromSlack)
     {
         Offset = offset;
 
@@ -237,6 +237,11 @@ public class FileRecord
         }
 
         Log.Verbose("Slack starts at 0x{Index:X} Absolute offset: 0x{Offset:X}", index, index + offset);
+
+        if (recoverFromSlack == false)
+        {
+            return;
+        }
         
         var slackSpace = new byte[rawBytes.Length - index];
         Buffer.BlockCopy(rawBytes, index, slackSpace, 0, slackSpace.Length);
@@ -247,16 +252,18 @@ public class FileRecord
         {
             return;
         }
+      
 
+        Log.Warning("");
         Log.Warning("Found {Count:N0} Index entries found in slack space!",slackIe.Count);
         foreach (var indexEntryI30 in slackIe)
         {
             Log.Warning("Name: {Name}, Index Flag: {Flag}, Offset: {Offset} MFT Entry/seq: {Entry}/{Seq}" ,indexEntryI30.FileInfo.FileName,indexEntryI30.Flag,$"0x{indexEntryI30.AbsoluteOffset:X}",$"0x{indexEntryI30.MftReferenceSelf?.MftEntryNumber:X}",$"0x{indexEntryI30.MftReferenceSelf?.MftSequenceNumber:X}");
             Log.Warning("File flags: {Flags}, Parent MFT Entry/seq: {Entry}/{Seq}",indexEntryI30.FileInfo.Flags,$"0x{indexEntryI30.FileInfo.ParentMftRecord.MftEntryNumber:X}",$"0x{indexEntryI30.FileInfo.ParentMftRecord.MftSequenceNumber:X}");
-            Log.Warning("Created on: {Date}",indexEntryI30.FileInfo.CreatedOn);
+            Log.Warning("Created on:          {Date}",indexEntryI30.FileInfo.CreatedOn);
             Log.Warning("Content Modified on: {Date}",indexEntryI30.FileInfo.ContentModifiedOn);
-            Log.Warning("Record Modified on: {Date}",indexEntryI30.FileInfo.RecordModifiedOn);
-            Log.Warning("Last Accessed on: {Date}",indexEntryI30.FileInfo.LastAccessedOn);
+            Log.Warning("Record Modified on:  {Date}",indexEntryI30.FileInfo.RecordModifiedOn);
+            Log.Warning("Last Accessed on:    {Date}",indexEntryI30.FileInfo.LastAccessedOn);
             Log.Warning("");
         }
 
@@ -302,6 +309,11 @@ public class FileRecord
                 slackIndex.Md5 = md5;
                 //some cleanup of questionable stuff
                 if (slackIndex.FileInfo.NameLength == 0)
+                {
+                    continue;
+                }
+
+                if (slackIndex.FileInfo.Flags < 0)
                 {
                     continue;
                 }

@@ -13,7 +13,7 @@ public class Mft
     private readonly Dictionary<string, DirectoryNameMapValue> _directoryNameMap;
     private readonly Dictionary<string, HashSet<ParentMapEntry>> _parentDirectoryNameMap;
 
-    public Mft(Stream fileStream)
+    public Mft(Stream fileStream, bool recoverFromSlack)
     {
         FileRecords = new Dictionary<string, FileRecord>();
         FreeFileRecords = new Dictionary<string, FileRecord>();
@@ -56,7 +56,7 @@ public class Mft
 
             CurrentOffset = index;
 
-            var f = new FileRecord(fileBytes, index);
+            var f = new FileRecord(fileBytes, index,recoverFromSlack);
 
             var key = f.GetKey();
 

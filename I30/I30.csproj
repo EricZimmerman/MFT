@@ -9,7 +9,7 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <Authors>Eric R. Zimmerman</Authors>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Version>1.2.1.0</Version>
+        <Version>1.2.1.1</Version>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\MFT\MFT.csproj"/>

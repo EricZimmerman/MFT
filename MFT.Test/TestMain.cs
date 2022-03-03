@@ -55,7 +55,7 @@ public class TestMain
 
         //   LogManager.Configuration = config;
 
-        var f = MftFile.Load(@"C:\Users\eric\OneDrive\ntfs\$MFT");
+        var f = MftFile.Load(@"C:\Users\eric\OneDrive\ntfs\$MFT",false);
         Debug.WriteLine(f);
 
         /*var ff = f.GetDirectoryContents("00000005-00000005");
@@ -89,7 +89,7 @@ public class TestMain
         //  var aa = fff.FileRecords["89646-1"];
 
         //
-        var f1 = new FileRecord(File.ReadAllBytes(@"C:\temp\FILE with INDX slack"), 0);
+        var f1 = new FileRecord(File.ReadAllBytes(@"C:\temp\FILE with INDX slack"), 0,true);
      //   var f2 = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0x176FD.bin"), 0);
         // var f3 = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0xB8A1400.bin"), 0);
         //
@@ -219,7 +219,7 @@ public class TestMain
     [Test]
     public void PathTest()
     {
-        var m = MftFile.Load(Xwf);
+        var m = MftFile.Load(Xwf,false);
 
         // --lf .\Windows\system32\config
         //find entry for config
@@ -248,7 +248,7 @@ public class TestMain
     [Test]
     public void MFTs()
     {
-        var m = MftFile.Load(@"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT");
+        var m = MftFile.Load(@"D:\Egnyte\Private\ezimmerman\MFTs\Win10_$MFT",false);
 
 //           var f = m.GetDirectoryContents("00000005-00000005");
 //
@@ -308,7 +308,7 @@ public class TestMain
         var lf = File.ReadAllBytes(@"D:\SynologyDrive\temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xABD9C00.bin");
 
 
-        var ea = new FileRecord(lf, 0xABD9C00);
+        var ea = new FileRecord(lf, 0xABD9C00,false);
 
 
         foreach (var eaAttribute in ea.Attributes)
@@ -325,7 +325,7 @@ public class TestMain
         var lf = File.ReadAllBytes(@"D:\SynologyDrive\temp\Maxim_EA)STUFF_MFT_wsl2\MFTECmd_FILE_Offset0xD99C800.bin");
         //ss..Count.Should().Be(41);
 
-        var ea = new FileRecord(lf, 0xD99C800);
+        var ea = new FileRecord(lf, 0xD99C800,false);
         foreach (var eaAttribute in ea.Attributes)
         {
             Debug.WriteLine(eaAttribute);
@@ -443,7 +443,7 @@ public class TestMain
 
         var start = DateTimeOffset.Now;
 
-        var m2 = MftFile.Load(Nromanoff);
+        var m2 = MftFile.Load(Nromanoff,false);
 
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console()
