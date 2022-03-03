@@ -33,7 +33,7 @@ public class FileInfo
             }
             catch (Exception)
             {
-                Log.Warning("Invalid ConCreatedOntentModifiedOn timestamp! Enable --debug for record information");
+                Log.Warning("Invalid CreatedOn timestamp! Enable --debug for record information");
             }
         }
 
