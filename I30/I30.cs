@@ -149,7 +149,7 @@ public class I30
                 var slackAbsOffset = pageNumber * 0x1000 + 0x18 + dataStartOffset +
                                      activeSpace.Length;
 
-                var slackIe = FileRecord.GetSlackFileEntries(slackSpace, pageNumber, slackAbsOffset);
+                var slackIe = FileRecord.GetSlackFileEntries(slackSpace, pageNumber, slackAbsOffset,0);
 
                 //var h = GetUnicodeHits(slackSpace);
 

@@ -55,10 +55,10 @@ public class TestMain
 
         //   LogManager.Configuration = config;
 
-        /*var f = MftFile.Load(@"D:\Code\MFT\MFT.Test\TestFiles\tdungan\$MFT");
-        Debug.WriteLine(1);
+        var f = MftFile.Load(@"C:\Users\eric\OneDrive\ntfs\$MFT");
+        Debug.WriteLine(f);
 
-        var ff = f.GetDirectoryContents("00000005-00000005");
+        /*var ff = f.GetDirectoryContents("00000005-00000005");
 
         foreach (var parentMapEntry in ff)
         {

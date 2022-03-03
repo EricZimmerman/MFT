@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -240,7 +241,7 @@ public class FileRecord
         var slackSpace = new byte[rawBytes.Length - index];
         Buffer.BlockCopy(rawBytes, index, slackSpace, 0, slackSpace.Length);
 
-        var slackIe =  GetSlackFileEntries(slackSpace, 0, index);
+        var slackIe =  GetSlackFileEntries(slackSpace, 0, index,EntryNumber);
 
         if (slackIe.Count == 0)
         {
@@ -262,7 +263,7 @@ public class FileRecord
 
     }
     
-    public static List<IndexEntryI30> GetSlackFileEntries(byte[] slackSpace, int pageNumber, int startOffset)
+    public static List<IndexEntryI30> GetSlackFileEntries(byte[] slackSpace, int pageNumber, int startOffset, uint entryNumber)
     {
         var ie = new List<IndexEntryI30>();
 
@@ -278,33 +279,50 @@ public class FileRecord
             //multiply by 2 for # of bytes we need to read.
             //add this to get the total length of the data we need to read adn read into slackspace as needed
 
-            var nameSize = slackSpace[hitInfo.Offset - 2];
-            var start = hitInfo.Offset - 0x42;
-            var end = hitInfo.Offset + nameSize * 2;
-
-            var buffSize = end - start;
-
-            if (start < 0)
+            try
             {
-                Log.Warning("Found possible slack index entry for {FileName} at {Offset}, but not enough data to interpret. Skipping...",hitInfo.Hit,$"0x{startOffset + hitInfo.Offset:X}");
-                continue;
+                var nameSize = slackSpace[hitInfo.Offset - 2];
+                var start = hitInfo.Offset - 0x42;
+                var end = hitInfo.Offset + nameSize * 2;
+
+                var buffSize = end - start;
+
+                if (start < 0)
+                {
+                    Log.Warning("Found possible slack index entry for {FileName} at {Offset}, but not enough data to interpret. Skipping...",hitInfo.Hit,$"0x{startOffset + hitInfo.Offset:X}");
+                    continue;
+                }
+            
+                var buff = new byte[buffSize];
+                Buffer.BlockCopy(slackSpace, start, buff, 0, buffSize);
+
+                var md5 = GetMd5(buff);
+
+                var slackIndex = new IndexEntryI30(buff, startOffset + start - 0x10, pageNumber, true);
+                slackIndex.Md5 = md5;
+                //some cleanup of questionable stuff
+                if (slackIndex.FileInfo.NameLength == 0)
+                {
+                    continue;
+                }
+
+                Log.Debug("Slack {Ie}", slackIndex);
+                ie.Add(slackIndex);
+            }
+            catch (Exception e)
+            {
+                if (entryNumber > 0)
+                {
+                    Log.Warning(e,"Error processing slack index entry in FILE Entry {Entry}! You may want to review this manually. Offset {Offset}. Name: {Name}. Error: {Error}",$"ox{entryNumber:X}",$"0x{hitInfo.Offset:X}",hitInfo.Hit,e.Message);    
+                }
+                else
+                {
+                    Log.Warning(e,"Error processing slack index entry! You may want to review this manually. Offset {Offset}. Name: {Name}. Error: {Error}",$"0x{hitInfo.Offset:X}",hitInfo.Hit,e.Message);
+                }
+                
             }
             
-            var buff = new byte[buffSize];
-            Buffer.BlockCopy(slackSpace, start, buff, 0, buffSize);
-
-            var md5 = GetMd5(buff);
-
-            var slackIndex = new IndexEntryI30(buff, startOffset + start - 0x10, pageNumber, true);
-            slackIndex.Md5 = md5;
-            //some cleanup of questionable stuff
-            if (slackIndex.FileInfo.NameLength == 0)
-            {
-                continue;
-            }
-
-            Log.Debug("Slack {Ie}", slackIndex);
-            ie.Add(slackIndex);
+            
         }
 
         return ie;
