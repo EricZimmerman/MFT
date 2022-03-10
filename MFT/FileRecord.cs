@@ -278,7 +278,7 @@ public class FileRecord
         
         foreach (var hitInfo in h)
         {
-            Log.Verbose("Processing offset {O} {H}", hitInfo.Offset, hitInfo.Hit);
+            Log.Verbose("Processing slack offset {O} {H}", hitInfo.Offset, hitInfo.Hit);
 
             //contains offset to start of hit and hit, but we only need start of the string to know where to begin
             //the start of the record is 0x42 bytes from where the hit is
@@ -288,6 +288,12 @@ public class FileRecord
 
             try
             {
+                if (hitInfo.Offset == 0)
+                {
+                    //we cant get a size or anything useful, so skip it
+                    Log.Warning("Found possible slack index entry for {FileName} at {Offset}, but not enough data to interpret. Skipping...",hitInfo.Hit,$"0x{startOffset + hitInfo.Offset:X}");
+                    continue;
+                }
                 var nameSize = slackSpace[hitInfo.Offset - 2];
                 var start = hitInfo.Offset - 0x42;
                 var end = hitInfo.Offset + nameSize * 2;
@@ -305,8 +311,11 @@ public class FileRecord
 
                 var md5 = GetMd5(buff);
 
-                var slackIndex = new IndexEntryI30(buff, startOffset + start - 0x10, pageNumber, true);
-                slackIndex.Md5 = md5;
+                var slackIndex = new IndexEntryI30(buff, startOffset + start - 0x10, pageNumber, true)
+                {
+                    Md5 = md5
+                };
+                
                 //some cleanup of questionable stuff
                 if (slackIndex.FileInfo.NameLength == 0)
                 {
@@ -325,11 +334,11 @@ public class FileRecord
             {
                 if (entryNumber > 0)
                 {
-                    Log.Warning(e,"Error processing slack index entry in FILE Entry {Entry}! You may want to review this manually. Offset {Offset}. Name: {Name}. Error: {Error}",$"ox{entryNumber:X}",$"0x{hitInfo.Offset:X}",hitInfo.Hit,e.Message);    
+                    Log.Warning(e,"Error processing slack index entry in FILE Entry {Entry}! You may want to review this manually. Offset {Offset}. Name: {Name}. Error: {Error}",$"ox{entryNumber:X}",$"0x{startOffset + hitInfo.Offset:X}",hitInfo.Hit,e.Message);    
                 }
                 else
                 {
-                    Log.Warning(e,"Error processing slack index entry! You may want to review this manually. Offset {Offset}. Name: {Name}. Error: {Error}",$"0x{hitInfo.Offset:X}",hitInfo.Hit,e.Message);
+                    Log.Warning(e,"Error processing slack index entry! You may want to review this manually. Offset {Offset}. Name: {Name}. Error: {Error}",$"0x{startOffset +hitInfo.Offset:X}",hitInfo.Hit,e.Message);
                 }
                 
             }

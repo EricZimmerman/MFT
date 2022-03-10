@@ -40,9 +40,17 @@ public class I30
             {
                 var sigActual = br.ReadInt32();
 
+                if (sigActual == 0x00)
+                {
+                    //empty page
+                    Log.Warning("Empty page found at offset {Offset}. Skipping", $"0x{pageNumber * 0x1000:X}");
+                    pageNumber++;
+                    continue;
+                }
+                
                 if (sig != sigActual)
                 {
-                    throw new Exception("Invalid header! Expected 'INDX' Signature.");
+                    throw new Exception("Invalid header! Expected 'INDX' Signature");
                 }
 
                 var fixupOffset = br.ReadInt16();
@@ -166,49 +174,6 @@ public class I30
                     uniqueSlackEntryMd5s.Add(indexEntry.Md5);
 
                 }
-
-
-
-                // foreach (var hitInfo in h)
-                // {
-                //     Log.Verbose("Processing offset {O} {H}", hitInfo.Offset, hitInfo.Hit);
-                //
-                //     //contains offset to start of hit and hit, but we only need start of the string to know where to begin
-                //     //the start of the record is 0x42 bytes from where the hit is
-                //     //since we know the offset of the hit, subtract 2 to get length of decoded string.
-                //     //multiply by 2 for # of bytes we need to read.
-                //     //add this to get the total length of the data we need to read adn read into slackspace as needed
-                //
-                //     var nameSize = slackSpace[hitInfo.Offset - 2];
-                //     var start = hitInfo.Offset - 0x42;
-                //     var end = hitInfo.Offset + nameSize * 2;
-                //
-                //     var buffSize = end - start;
-                //
-                //     var buff = new byte[buffSize];
-                //     Buffer.BlockCopy(slackSpace, start, buff, 0, buffSize);
-                //
-                //     var md5 = GetMd5(buff);
-                //
-                //     if (uniqueSlackEntryMd5s.Contains(md5))
-                //     {
-                //         Log.Debug("Discarding duplicate slack buffer with MD5 {Md5}", md5);
-                //         continue;
-                //     }
-                //
-                //     var slackIndex = new IndexEntry(buff, slackAbsOffset + start - 0x10, pageNumber, true);
-                //
-                //     //some cleanup of questionable stuff
-                //     if (slackIndex.FileInfo.NameLength == 0)
-                //     {
-                //         continue;
-                //     }
-                //
-                //     Log.Debug("{Ie}", slackIndex);
-                //     Entries.Add(slackIndex);
-                //
-                //     uniqueSlackEntryMd5s.Add(md5);
-                // }
             }
 
             pageNumber += 1;

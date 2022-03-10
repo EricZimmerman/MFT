@@ -98,7 +98,29 @@ public class TestMain
         // Console.WriteLine(f3);
     }
 
+    [Test]
+    public void I30OneOff()
+    {
+        var bb = I30File.Load(@"C:\temp\$I30");
 
+        Log.Information("Active entry count: {Count}", bb.Entries.Count(t => t.FromSlack == false));
+
+        Log.Information("ACTIVE");
+        foreach (var indexEntry in bb.Entries.Where(t => t.FromSlack == false))
+        {
+            Log.Information("{Ie}", indexEntry);
+        }
+
+
+        Log.Information("Slack entry count: {Count}", bb.Entries.Count(t => t.FromSlack));
+
+        Log.Information("FROM SLACK");
+        foreach (var indexEntry in bb.Entries.Where(t => t.FromSlack))
+        {
+            Log.Information("{Ie}", indexEntry);
+        }
+    }
+    
     [Test]
     public void I30Start()
     {
