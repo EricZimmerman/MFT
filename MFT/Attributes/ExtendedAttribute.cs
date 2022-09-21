@@ -126,6 +126,7 @@ public class ExtendedAttribute : Attribute
                     var catHint = new CatHint(ciCat, name);
                     SubItems.Add(catHint);
                     break;
+                case "$KERNEL.PURGE.APPFIXCACHE":
                 case "$KERNEL.PURGE.APPXFICACHE":
                     var kpAppXFi = new byte[bytese.Length - index];
                     Buffer.BlockCopy(bytese, index, kpAppXFi, 0, kpAppXFi.Length);

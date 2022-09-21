@@ -58,6 +58,10 @@ public class TestMain
         var f = MftFile.Load(@"C:\Users\eric\OneDrive\ntfs\$MFT",false);
         Debug.WriteLine(f);
 
+        var fff = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0x1A4.bin"), 0, false);
+
+        Debug.WriteLine(fff);
+        
         /*var ff = f.GetDirectoryContents("00000005-00000005");
 
         foreach (var parentMapEntry in ff)

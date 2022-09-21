@@ -8,10 +8,10 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
-        <Version>1.1.1.0</Version>
+        <Version>1.2.0.0</Version>
 
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Serilog" Version="2.10.0"/>
+        <PackageReference Include="Serilog" Version="2.12.0" />
     </ItemGroup>
 </Project>
