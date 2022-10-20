@@ -28,7 +28,10 @@ public class StandardInfo : Attribute
         IntegrityStream = 0x08000,
         Virtual = 0x010000,
         NoScrubData = 0x020000,
-        HasEa = 0x040000,
+        RecallOnOpen = 0x040000,
+        RecallOnDataAccess = 0x400000,
+        Pinned = 0x80000,
+        UnPinned = 0x100000,
         IsDirectory = 0x10000000,
         IsIndexView = 0x20000000
     }
