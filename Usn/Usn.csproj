@@ -3,7 +3,7 @@
         <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
         
         <LangVersion>10</LangVersion>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
         <Copyright>Eric R. Zimmerman</Copyright>
         <Description>USN $J parser</Description>
