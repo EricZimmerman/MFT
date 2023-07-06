@@ -5,6 +5,7 @@
        
         <LangVersion>10</LangVersion>
         <Description>Boot parser</Description>
+        <Authors>Eric R. Zimmerman</Authors>
         <Copyright>Eric R. Zimmerman</Copyright>
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>

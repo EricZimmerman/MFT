@@ -10,6 +10,7 @@
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <Version>1.4.0</Version>
         <Authors>Eric R. Zimmerman</Authors>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
         <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
