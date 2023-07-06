@@ -8,9 +8,9 @@
         <Authors>Eric R. Zimmerman</Authors>
         <Description>$LogFile parser</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Version>1.3.0</Version>
+        <Version>1.4.0</Version>
 
-        <PackageTags>$MFT, $Boot, usn, $J, NTFS</PackageTags>
+        <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>icon.png</PackageIcon>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>

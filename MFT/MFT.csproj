@@ -3,7 +3,7 @@
         <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
         <Authors>Eric R. Zimmerman</Authors>
         <Description>$MFT Parser</Description>
-        <Version>1.3.0</Version>
+        <Version>1.4.0</Version>
 
         <LangVersion>10</LangVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -11,7 +11,7 @@
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
       
-        <PackageTags>$MFT, $Boot, usn, $J, NTFS</PackageTags>
+        <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>icon.png</PackageIcon>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>

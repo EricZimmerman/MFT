@@ -8,10 +8,10 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <Description>USN $J parser</Description>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
-        <Version>1.3.0</Version>
+        <Version>1.4.0</Version>
         <Authors>Eric R. Zimmerman</Authors>
 
-        <PackageTags>$MFT, $Boot, usn, $J, NTFS</PackageTags>
+        <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>icon.png</PackageIcon>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>

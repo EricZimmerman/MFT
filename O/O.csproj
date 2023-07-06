@@ -9,9 +9,9 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <Description>O Parser</Description>
         <Authors>Eric R. Zimmerman</Authors>
-        <Version>1.3.0</Version>
+        <Version>1.4.0</Version>
 
-        <PackageTags>$MFT, $Boot, usn, $J, NTFS</PackageTags>
+        <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>icon.png</PackageIcon>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
