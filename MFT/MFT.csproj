@@ -10,7 +10,6 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
-
       
         <PackageTags>$MFT, $Boot, usn, $J, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
