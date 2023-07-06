@@ -2,7 +2,6 @@
     <PropertyGroup>
         <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-       
         <LangVersion>10</LangVersion>
         <Description>Boot parser</Description>
         <Authors>Eric R. Zimmerman</Authors>
