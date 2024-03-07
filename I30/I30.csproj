@@ -9,7 +9,7 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <Authors>Eric R. Zimmerman</Authors>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Version>1.4.1</Version>
+        <Version>1.4.2</Version>
 
         <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>

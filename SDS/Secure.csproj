@@ -8,7 +8,7 @@
         <Description>$SDS parser</Description>
         <Copyright>Eric R. Zimmerman</Copyright>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
-        <Version>1.4.1</Version>
+        <Version>1.4.2</Version>
         <Authors>Eric R. Zimmerman</Authors>
 
         <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
