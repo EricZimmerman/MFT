@@ -7,7 +7,7 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <Description>USN $J parser</Description>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
-        <Version>1.4.0</Version>
+        <Version>1.4.1</Version>
         <Authors>Eric R. Zimmerman</Authors>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
@@ -20,14 +20,14 @@
 
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Serilog" Version="3.0.1" />
+        <PackageReference Include="Serilog" Version="3.1.1" />
 
         <None Include="../README.md" Pack="true" PackagePath=""/>
         <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="MinVer" Version="4.3.0">
+        <PackageReference Include="MinVer" Version="5.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

@@ -34,7 +34,7 @@ public class MftInformation
 
     public ulong EntryNumber { get; set; }
 
-    public int SequenceNumber { get; set; }
+    public uint SequenceNumber { get; set; }
 
     public override string ToString()
     {
