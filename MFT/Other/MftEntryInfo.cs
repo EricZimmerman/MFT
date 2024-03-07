@@ -11,7 +11,7 @@ public class MftEntryInfo
             throw new ArgumentException("rawEntryBytes must be 8 bytes long!");
         }
 
-        var sequenceNumber = BitConverter.ToInt16(rawEntryBytes, 6);
+        var sequenceNumber = BitConverter.ToUInt16(rawEntryBytes, 6);
 
         uint entryIndex;
 
@@ -34,7 +34,7 @@ public class MftEntryInfo
 
     public uint MftEntryNumber { get; set; }
 
-    public short MftSequenceNumber { get; set; }
+    public ushort MftSequenceNumber { get; set; }
 
     public override string ToString()
     {
