@@ -55,8 +55,9 @@ public class TestMain
 
         //   LogManager.Configuration = config;
 
-        var f = MftFile.Load(@"C:\Users\eric\OneDrive\ntfs\$MFT",false);
-        Debug.WriteLine(f);
+        var f = MftFile.Load(@"C:\temp\MFT\$MFT",false);
+        Console.WriteLine(f);
+        return;
 
         var fff = new FileRecord(File.ReadAllBytes(@"C:\temp\MFTECmd_FILE_Offset0x1A4.bin"), 0, false);
 

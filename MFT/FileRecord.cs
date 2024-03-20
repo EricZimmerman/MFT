@@ -114,6 +114,7 @@ public class FileRecord
 
         Log.Debug("FILE record entry/seq #: 0x{EntryNumber:X}/{SequenceNumber:X}", EntryNumber, SequenceNumber);
 
+       
         //start attribute processing at FirstAttributeOffset
 
         var index = (int)FirstAttributeOffset;

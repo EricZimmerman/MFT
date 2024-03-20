@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using MFT.Other;
+using Serilog;
 
 namespace MFT.Attributes;
 
@@ -21,6 +22,13 @@ public class AttributeList : Attribute
             while (index < rawBytes.Length)
             {
                 var size = BitConverter.ToInt16(rawBytes, index + 4);
+
+                if (size < rawBytes.Length - index)
+                {
+                    Log.Debug("Not enough data to process attribute list. {Msg}","Skipping remaining bytes in attribute list");
+                    break;
+                }
+                
                 var buffer = new byte[size];
                 Buffer.BlockCopy(rawBytes, index, buffer, 0, size);
 
