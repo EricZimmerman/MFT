@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.0;net6.0;net8.0;net9.0</TargetFrameworks>
+        <TargetFramework>netstandard2.0</TargetFramework>
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <Copyright>Eric R. Zimmerman</Copyright>
@@ -8,7 +8,7 @@
         <Authors>Eric R. Zimmerman</Authors>
         <Description>$LogFile parser</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Version>1.5</Version>
+        <Version>1.5.1</Version>
 
         <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>

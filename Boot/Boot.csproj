@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.0;net6.0;net8.0;net9.0</TargetFrameworks>
+        <TargetFramework>netstandard2.0</TargetFramework>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <LangVersion>10</LangVersion>
         <Description>Boot parser</Description>
@@ -8,7 +8,7 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
-        <Version>1.5</Version>
+        <Version>1.5.1</Version>
 
         <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
