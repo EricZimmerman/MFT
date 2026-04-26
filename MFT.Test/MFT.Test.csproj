@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <LangVersion>10</LangVersion>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
         <None Include="TestFiles\%24I30\FirstDelete\%24I30" />

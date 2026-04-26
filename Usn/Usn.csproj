@@ -7,7 +7,7 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <Description>USN $J parser</Description>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
-        <Version>2026.5.0</Version>
+        <Version>2026.5.1</Version>
         <Authors>Eric R. Zimmerman</Authors>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
