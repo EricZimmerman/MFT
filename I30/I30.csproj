@@ -9,7 +9,7 @@
         <Copyright>Eric R. Zimmerman</Copyright>
         <Authors>Eric R. Zimmerman</Authors>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Version>1.5.1</Version>
+        <Version>2026.5.0</Version>
 
         <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -22,14 +22,14 @@
     <ItemGroup>
         <ProjectReference Include="..\MFT\MFT.csproj" />
  
-        <PackageReference Include="Serilog" Version="4.2.0" />
+        <PackageReference Include="Serilog" Version="4.3.1" />
 
         <None Include="../README.md" Pack="true" PackagePath=""/>
-        <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.25">
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="MinVer" Version="6.0.0">
+        <PackageReference Include="MinVer" Version="7.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
