@@ -29,6 +29,11 @@ public class FileRecord
     /// <summary>The fixed part of the record header (through the entry number at 0x2C)</summary>
     private const int HeaderSize = 0x30;
 
+    private static readonly byte[] NoFixups = new byte[2];
+
+    private readonly byte[] _fixupRaw;
+    private List<string> _parseErrors;
+
     /// <summary>The smallest attribute: a resident attribute header</summary>
     private const int MinAttributeSize = 0x18;
 
@@ -85,27 +90,28 @@ public class FileRecord
 
         if (applyFixups == false)
         {
-            FixupData = new FixupData(new byte[2]);
+            _fixupRaw = NoFixups;
             FixupOk = true;
         }
         else if (FixupOffset < 0 || FixupEntryCount < 1 || FixupOffset + fixupTotalLength > rawBytes.Length)
         {
             ParseErrors.Add(
                 $"Fixup array at 0x{FixupOffset:X} with 0x{FixupEntryCount:X} entries does not fit in the record; fixups not applied");
-            FixupData = new FixupData(new byte[2]);
+            _fixupRaw = NoFixups;
         }
         else
         {
             var fixupBuffer = new byte[fixupTotalLength];
             Buffer.BlockCopy(rawBytes, FixupOffset, fixupBuffer, 0, fixupTotalLength);
 
-            FixupData = new FixupData(fixupBuffer);
+            _fixupRaw = fixupBuffer;
+            var fixupExpected = BitConverter.ToInt16(fixupBuffer, 0);
 
             FixupOk = true;
 
-            //fixup verification
+            //fixup verification: the first value is expected at the end of each sector, the rest are what goes there
             var counter = 512;
-            foreach (var bytese in FixupData.FixupActual)
+            for (var actual = 2; actual + 2 <= fixupBuffer.Length; actual += 2)
             {
                 //adjust the offset to where we need to check
                 var fixupOffset = counter - 2;
@@ -117,17 +123,17 @@ public class FileRecord
                 }
 
                 var expected = BitConverter.ToInt16(rawBytes, fixupOffset);
-                if (expected != FixupData.FixupExpected && EntryFlags != 0x0)
+                if (expected != fixupExpected && EntryFlags != 0x0)
                 {
                     FixupOk = false;
                     Log.Warning(
                         "Offset: 0x{Offset:X} Entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X} Fixup values do not match at 0x{FixupOffset:X}. Expected: 0x{FixupExpected:X2}, actual: 0x{Expected:X2}",
                         Offset, BitConverter.ToUInt32(rawBytes, 0x2c), BitConverter.ToUInt16(rawBytes, 0x10), fixupOffset,
-                        FixupData.FixupExpected, expected);
+                        fixupExpected, expected);
                 }
 
-                //replace fixup expected with actual bytes. bytese has actual replacement values in it.
-                Buffer.BlockCopy(bytese, 0, rawBytes, fixupOffset, 2);
+                //replace fixup expected with actual bytes
+                Buffer.BlockCopy(fixupBuffer, actual, rawBytes, fixupOffset, 2);
 
                 counter += 512;
             }
@@ -461,9 +467,13 @@ public class FileRecord
     ///     Problems found while parsing the record: a header or fixup array that does not fit, attributes with bad
     ///     sizes, attributes that could not be parsed or of unknown types. The attributes that could be read are kept.
     /// </summary>
-    public List<string> ParseErrors { get; } = new();
+    public List<string> ParseErrors => _parseErrors ??= new List<string>();
 
-    public FixupData FixupData { get; }
+    /// <summary>True when <see cref="ParseErrors" /> has anything (without creating the list, as reading it does)</summary>
+    public bool HasParseErrors => _parseErrors is { Count: > 0 };
+
+    /// <summary>Built when read: a loaded $MFT keeps only the raw fixup array of each record</summary>
+    public FixupData FixupData => new(_fixupRaw ?? NoFixups);
 
     public bool IsBad { get; }
     public bool IsUninitialized { get; }

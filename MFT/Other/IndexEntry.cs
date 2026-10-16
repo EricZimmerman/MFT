@@ -7,8 +7,15 @@ namespace MFT.Other;
 
 public class IndexEntry
 {
-    public IndexEntry(byte[] rawBytes)
+    /// <param name="rawBytes">The entry from its length field on (8 bytes in, after the file reference)</param>
+    public IndexEntry(byte[] rawBytes) : this(rawBytes, null)
     {
+    }
+
+    private IndexEntry(byte[] rawBytes, MftEntryInfo mftReference)
+    {
+        MftReference = mftReference;
+
         var index = 0;
         // var size = BitConverter.ToInt16(rawBytes, index);
         index += 2;
@@ -44,63 +51,19 @@ public class IndexEntry
 
             ParentMftRecord = new MftEntryInfo(mftInfoBytes);
 
-            var createdRaw = BitConverter.ToInt64(rawBytes, index);
-            if (createdRaw > 0)
-            {
-                try
-                {
-                    CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
-                }
-                catch (Exception)
-                {
-                    Log.Warning("Invalid CreatedOn timestamp. Enable --debug for more details");
-                }
-            }
+            _createdOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "Invalid CreatedOn timestamp. Enable --debug for more details");
 
             index += 8;
 
-            var contentModRaw = BitConverter.ToInt64(rawBytes, index);
-            if (contentModRaw > 0)
-            {
-                try
-                {
-                    ContentModifiedOn = DateTimeOffset.FromFileTime(contentModRaw).ToUniversalTime();
-                }
-                catch (Exception)
-                {
-                    Log.Warning("Invalid ContentModifiedOn timestamp. Enable --debug for more details");
-                }
-            }
+            _contentModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "Invalid ContentModifiedOn timestamp. Enable --debug for more details");
 
             index += 8;
 
-            var recordModRaw = BitConverter.ToInt64(rawBytes, index);
-            if (recordModRaw > 0)
-            {
-                try
-                {
-                    RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
-                }
-                catch (Exception)
-                {
-                    Log.Warning("Invalid RecordModifiedOn timestamp. Enable --debug for more details");
-                }
-            }
+            _recordModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "Invalid RecordModifiedOn timestamp. Enable --debug for more details");
 
             index += 8;
 
-            var lastAccessRaw = BitConverter.ToInt64(rawBytes, index);
-            if (lastAccessRaw > 0)
-            {
-                try
-                {
-                    LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
-                }
-                catch (Exception)
-                {
-                    Log.Warning("Invalid LastAccessedOn timestamp. Enable --debug for more details");
-                }
-            }
+            _lastAccessedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "Invalid LastAccessedOn timestamp. Enable --debug for more details");
 
             index += 8;
 
@@ -133,13 +96,32 @@ public class IndexEntry
     public string FileName { get; }
     public ulong PhysicalSize { get; }
     public ulong LogicalSize { get; }
-    public DateTimeOffset? CreatedOn { get; }
-    public DateTimeOffset? ContentModifiedOn { get; }
-    public DateTimeOffset? RecordModifiedOn { get; }
-    public DateTimeOffset? LastAccessedOn { get; }
+    private readonly long _createdOn;
+    public DateTimeOffset? CreatedOn => FileTimes.ToDate(_createdOn);
+    private readonly long _contentModifiedOn;
+    public DateTimeOffset? ContentModifiedOn => FileTimes.ToDate(_contentModifiedOn);
+    private readonly long _recordModifiedOn;
+    public DateTimeOffset? RecordModifiedOn => FileTimes.ToDate(_recordModifiedOn);
+    private readonly long _lastAccessedOn;
+    public DateTimeOffset? LastAccessedOn => FileTimes.ToDate(_lastAccessedOn);
     public StandardInfo.Flag Flags { get; }
 
     public MftEntryInfo ParentMftRecord { get; }
+
+    /// <summary>The file the entry is for (null when parsed without it, from the public constructor)</summary>
+    public MftEntryInfo MftReference { get; }
+
+    /// <summary>Parses a whole index entry: the 8 byte file reference, then the entry</summary>
+    public static IndexEntry FromEntry(byte[] entry)
+    {
+        var reference = new byte[8];
+        Buffer.BlockCopy(entry, 0, reference, 0, 8);
+
+        var rest = new byte[entry.Length - 8];
+        Buffer.BlockCopy(entry, 8, rest, 0, rest.Length);
+
+        return new IndexEntry(rest, new MftEntryInfo(reference));
+    }
 
     public override string ToString()
     {
@@ -150,7 +132,7 @@ public class IndexEntry
         sb.AppendLine(
             $"File name: {FileName} (Len:0x{NameLength:X}) Flags: {Flags.ToString().Replace(", ", "|")}, Name Type: {NameType} " +
             $"Reparse Value: 0x{ReparseValue:X} Physical Size: 0x{PhysicalSize:X}, Logical Size: 0x{LogicalSize:X}" +
-            $"\r\nParent Mft Record: {ParentMftRecord} " +
+            $"\r\nMft Record: {MftReference} Parent Mft Record: {ParentMftRecord} " +
             $"\r\nCreated On:\t\t{CreatedOn?.ToString(MftFile.DateTimeFormat)}" +
             $"\r\nContent Modified On:\t{ContentModifiedOn?.ToString(MftFile.DateTimeFormat)}" +
             $"\r\nRecord Modified On:\t{RecordModifiedOn?.ToString(MftFile.DateTimeFormat)}" +

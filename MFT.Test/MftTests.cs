@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using FluentAssertions;
 using MFT.Attributes;
@@ -146,5 +146,17 @@ public class MftTests
         Entry(mft, 65).GetFileSize().Should().Be(1000);
         FullPath(mft, Entry(mft, 72)).Should().Be(@".\Long file name number 7.txt");
         mft.GetDirectoryContents("00000005-00000005").Should().HaveCount(43);
+    }
+
+    [Test]
+    public void IndexRootEntriesHaveTheirOwnReferences()
+    {
+        var mft = MftFile.Load(TestFile("Generated", "$MFT"), false);
+
+        //$Extend's $I30 root: each entry is for its own file, and its key's parent is $Extend
+        var root = Entry(mft, 11).Attributes.OfType<IndexRoot>().Single(t => t.Name == "$I30");
+        root.IndexEntries.Select(t => (t.FileName, t.MftReference.MftEntryNumber, t.ParentMftRecord.MftEntryNumber)).Should()
+            .Equal(("$ObjId", 25UL, 11UL), ("$Quota", 24UL, 11UL), ("$Reparse", 26UL, 11UL));
+        root.MftRecord.MftEntryNumber.Should().Be(25);
     }
 }

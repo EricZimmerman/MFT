@@ -166,7 +166,7 @@ public class NtfsLogRecord
 
         try
         {
-            Decode();
+            Decode(parseErrors, lsn);
         }
         catch (Exception e)
         {
@@ -209,8 +209,22 @@ public class NtfsLogRecord
         return DateTimeOffset.FromFileTime(raw).ToUniversalTime();
     }
 
-    private void Decode()
+    private void Decode(List<string> parseErrors, ulong lsn)
     {
+        //checkpoint table dumps, and attributes opened since
+        switch (RedoOperation)
+        {
+            case NtfsOperation.OpenAttributeTableDump:
+                OpenAttributeTable = OpenAttribute.ParseTable(RedoData, lsn, parseErrors);
+                return;
+            case NtfsOperation.AttributeNamesDump:
+                AttributeNames = OpenAttribute.ParseNames(RedoData);
+                return;
+            case NtfsOperation.OpenNonresidentAttribute:
+                OpenedAttribute = OpenAttribute.FromOpenRecord(TargetAttribute, RedoData, UndoData, lsn);
+                return;
+        }
+
         //a whole file record: InitializeFileRecordSegment redo (a new or reused record)
         if (RedoOperation == NtfsOperation.InitializeFileRecordSegment && RedoData.Length >= 0x30 &&
             BitConverter.ToInt32(RedoData, 0) == 0x454c4946)
@@ -332,6 +346,27 @@ public class NtfsLogRecord
 
     /// <summary>UpdateFileNameRoot/Allocation: the previous timestamps and sizes</summary>
     public LoggedFileNameUpdate UndoFileNameUpdate { get; private set; }
+
+    /// <summary>OpenAttributeTableDump: the attributes NTFS had open at the checkpoint</summary>
+    public List<OpenAttribute> OpenAttributeTable { get; private set; }
+
+    /// <summary>AttributeNamesDump: the names of the open attributes, by table offset</summary>
+    public Dictionary<ushort, string> AttributeNames { get; private set; }
+
+    /// <summary>OpenNonresidentAttribute: the attribute that was opened, at table offset <see cref="TargetAttribute" /></summary>
+    public OpenAttribute OpenedAttribute { get; private set; }
+
+    /// <summary>
+    ///     The open attribute <see cref="TargetAttribute" /> referred to at this record's LSN: the file and attribute
+    ///     changed (for operations on file records, $MFT's $DATA). Null when no checkpoint or open record defines it
+    /// </summary>
+    public OpenAttribute TargetOpenAttribute { get; internal set; }
+
+    /// <summary>
+    ///     True when <see cref="TargetOpenAttribute" /> comes from across missing log data (no checkpoint or open
+    ///     record defines it in this record's stretch of the log), so the table offset may have been reused since
+    /// </summary>
+    public bool TargetOpenAttributeInferred { get; internal set; }
 
     public override string ToString() =>
         $"{RedoOperation}/{UndoOperation} target {(TargetMftEntry.HasValue ? $"MFT entry {TargetMftEntry}" : $"attribute {TargetAttribute}")}, redo 0x{RedoLength:X}, undo 0x{UndoLength:X}";

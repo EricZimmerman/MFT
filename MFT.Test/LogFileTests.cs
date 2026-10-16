@@ -258,6 +258,122 @@ public class LogFileTests
     }
 
     [Test]
+    public void CheckpointsAndOpenAttributesOfTheServerSample()
+    {
+        var lf = Parse(Sample());
+
+        var restart = lf.Records.First(t => t.Restart != null);
+        restart.Lsn.Should().Be(9570436);
+        restart.Restart.MajorVersion.Should().Be(1);
+        restart.Restart.OpenAttributeTableLsn.Should().Be(9565025);
+        restart.Restart.AttributeNamesLsn.Should().Be(9566135);
+        lf.Records.Count(t => t.Restart != null).Should().Be(12);
+
+        var dump = lf.Records.Single(t => t.Lsn == 9565025).Ntfs.OpenAttributeTable;
+        dump.Should().HaveCount(211);
+        dump[0].Index.Should().Be(0x18);
+        dump[0].FileReference.MftEntryNumber.Should().Be(0);
+        dump[0].AttributeType.Should().Be(AttributeType.Data);
+        dump[1].FileReference.MftEntryNumber.Should().Be(5);
+        dump[1].AttributeName.Should().Be("$I30");
+        dump[1].BytesPerIndexBuffer.Should().Be(4096);
+
+        //an $O index entry ($ObjId), and a write to $UsnJrnl:$J
+        Target(lf, 10078455).Should().Be((0x19UL, (ushort)1, AttributeType.IndexAllocation, "$O"));
+        Target(lf, 10078529).Should().Be((0x14AB0UL, (ushort)2, AttributeType.Data, "$J"));
+        //before the first checkpoint: from it (the attribute was open before the log starts)
+        Target(lf, 8527384).Should().Be((0x37FUL, (ushort)1, AttributeType.IndexAllocation, "$I30"));
+        //file record operations change $MFT:$DATA
+        Target(lf, 8527269).Should().Be((0UL, (ushort)1, AttributeType.Data, ""));
+
+        var transaction = lf.Records.Where(t => t.TransactionFirstLsn == 8527697).ToList();
+        transaction.Select(t => t.Lsn).Should().Equal(8527697, 8527720, 8527745, 8527770);
+        transaction.Select(t => t.TransactionId).Distinct().Should().Equal(24u);
+        lf.Records.Select(t => t.TransactionFirstLsn).Distinct().Should().HaveCount(38552);
+    }
+
+    private static (ulong, ushort, AttributeType, string) Target(LogFile.LogFile lf, ulong lsn)
+    {
+        var t = lf.Records.Single(r => r.Lsn == lsn).Ntfs.TargetOpenAttribute;
+        return (t.FileReference.MftEntryNumber, t.FileReference.MftSequenceNumber, t.AttributeType, t.AttributeName);
+    }
+
+    /// <summary>An open attribute table entry as Windows 8 and later write it (0x28 bytes)</summary>
+    private static byte[] OpenEntry(ulong entry, ushort sequence, AttributeType type, uint bytesPerIndexBuffer = 0)
+    {
+        var e = new byte[0x28];
+        BitConverter.GetBytes(0xFFFFFFFF).CopyTo(e, 0);
+        BitConverter.GetBytes(bytesPerIndexBuffer).CopyTo(e, 4);
+        BitConverter.GetBytes((int)type).CopyTo(e, 8);
+        BitConverter.GetBytes(entry | (ulong)sequence << 48).CopyTo(e, 0x10);
+        return e;
+    }
+
+    [Test]
+    public void TargetAttributesAreResolved()
+    {
+        var b = new LogFileBuilder();
+        var dir = Encoding.Unicode.GetBytes("$I30");
+        var tableLsn = 0UL;
+        var namesLsn = 0UL;
+
+        //an attribute opened at offset 0x40, then used
+        long at = LogStart + DataOffset;
+        at = b.Record(at, NtfsRecord((ushort)NtfsOperation.OpenNonresidentAttribute, 0, OpenEntry(0x100, 2, AttributeType.IndexAllocation, 4096), dir, targetAttribute: 0x40));
+        var used = at;
+        at = b.Record(at, NtfsRecord((ushort)NtfsOperation.UpdateNonresidentValue, 0, new byte[8], targetAttribute: 0x40), transaction: 7);
+        at = b.Record(at, NtfsRecord((ushort)NtfsOperation.SetBitsInNonresidentBitMap, 0, new byte[8], targetAttribute: 0x40), transaction: 7,
+            previous: Lsn(used));
+
+        //a mount: a restart area without tables, so 0x40 is something else from here
+        at = b.Record(at, new byte[0x70], type: 2);
+
+        //used before this stretch's checkpoint, which defines it
+        var early = at;
+        at = b.Record(at, NtfsRecord((ushort)NtfsOperation.UpdateNonresidentValue, 0, new byte[8], targetAttribute: 0x40));
+
+        var table = new byte[0x18 + 2 * 0x28];
+        BitConverter.GetBytes((ushort)0x28).CopyTo(table, 0);
+        BitConverter.GetBytes((ushort)2).CopyTo(table, 2);
+        OpenEntry(0, 1, AttributeType.Data).CopyTo(table, 0x18);
+        OpenEntry(0x200, 1, AttributeType.Data).CopyTo(table, 0x40);
+        tableLsn = Lsn(at);
+        at = b.Record(at, NtfsRecord((ushort)NtfsOperation.OpenAttributeTableDump, 0, table));
+
+        var names = new byte[4 + 4 + 2 + 4];
+        BitConverter.GetBytes((ushort)0x40).CopyTo(names, 0);
+        BitConverter.GetBytes((ushort)4).CopyTo(names, 2);
+        Encoding.Unicode.GetBytes("$J").CopyTo(names, 4);
+        namesLsn = Lsn(at);
+        at = b.Record(at, NtfsRecord((ushort)NtfsOperation.AttributeNamesDump, 0, names));
+
+        var restart = new byte[0x70];
+        BitConverter.GetBytes(1).CopyTo(restart, 0);
+        BitConverter.GetBytes(tableLsn).CopyTo(restart, 0x10);
+        BitConverter.GetBytes(namesLsn).CopyTo(restart, 0x18);
+        at = b.Record(at, restart, type: 2);
+
+        var later = at;
+        b.Record(at, NtfsRecord((ushort)NtfsOperation.UpdateNonresidentValue, 0, new byte[8], targetAttribute: 0x40));
+
+        var lf = Parse(b.Build());
+
+        (ulong, ushort, AttributeType, string) Of(long offset) => Target(lf, Lsn(offset));
+
+        Of(used).Should().Be((0x100UL, (ushort)2, AttributeType.IndexAllocation, "$I30"));
+        Of(early).Should().Be((0x200UL, (ushort)1, AttributeType.Data, "$J"));
+        Of(later).Should().Be((0x200UL, (ushort)1, AttributeType.Data, "$J"));
+        lf.Records.Single(t => t.Lsn == Lsn(later)).Ntfs.TargetOpenAttributeInferred.Should().BeFalse();
+
+        var r = lf.Records.Single(t => t.Lsn == tableLsn + 0).Ntfs.OpenAttributeTable;
+        r.Select(t => t.Index).Should().Equal((ushort)0x18, (ushort)0x40);
+        lf.Records.Single(t => t.Restart?.OpenAttributeTableLsn == tableLsn).Restart.AttributeNamesLsn.Should().Be(namesLsn);
+
+        //the two records of transaction 7
+        lf.Records.Where(t => t.TransactionId == 7).Select(t => t.TransactionFirstLsn).Distinct().Should().Equal(Lsn(used));
+    }
+
+    [Test]
     public void UnloggedDataIsNotAnError()
     {
         //ZeroEndOfFileRecord gives only a length: the bytes to zero

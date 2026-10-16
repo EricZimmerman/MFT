@@ -13,26 +13,16 @@ public class MftEntryInfo
 
         var sequenceNumber = BitConverter.ToUInt16(rawEntryBytes, 6);
 
-        uint entryIndex;
+        //a 48 bit entry number: the high 16 bits start at bit 32 (this used to multiply them by 2^24, in a uint)
+        var low = BitConverter.ToUInt32(rawEntryBytes, 0);
+        ulong high = BitConverter.ToUInt16(rawEntryBytes, 4);
 
-        var entryIndex1 = BitConverter.ToUInt32(rawEntryBytes, 0);
-        uint entryIndex2 = BitConverter.ToUInt16(rawEntryBytes, 4);
-
-        if (entryIndex2 == 0)
-        {
-            entryIndex = entryIndex1;
-        }
-        else
-        {
-            entryIndex2 = entryIndex2 * 16777216; //2^24
-            entryIndex = entryIndex1 + entryIndex2;
-        }
-
-        MftEntryNumber = entryIndex;
+        MftEntryNumber = low | (high << 32);
         MftSequenceNumber = sequenceNumber;
     }
 
-    public uint MftEntryNumber { get; set; }
+    /// <summary>The 48 bit entry number (NTFS uses the low 32 bits)</summary>
+    public ulong MftEntryNumber { get; set; }
 
     public ushort MftSequenceNumber { get; set; }
 

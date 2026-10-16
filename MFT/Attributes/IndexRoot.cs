@@ -54,19 +54,12 @@ public class IndexRoot : Attribute
 
         index += 3; //padding
 
-        //TODO verify this
-        var mftInfoBytes = new byte[8];
-        Buffer.BlockCopy(rawBytes, index, mftInfoBytes, 0, 8);
-        index += 8;
-
-        MftRecord = new MftEntryInfo(mftInfoBytes);
-        //end verify
-
         IndexEntries = new List<IndexEntry>();
 
-        while (rawBytes.Length - index >= 2)
+        //entries: an 8 byte file reference, then the entry length at +8 (the last entry, without a key, is 0x10 long)
+        while (rawBytes.Length - index >= 10)
         {
-            var indexValSize = BitConverter.ToInt16(rawBytes, index);
+            var indexValSize = BitConverter.ToInt16(rawBytes, index + 8);
 
             if (indexValSize == 0x10)
                 //indicates no more index entries
@@ -74,7 +67,7 @@ public class IndexRoot : Attribute
                 break;
             }
 
-            if (indexValSize < 8)
+            if (indexValSize < 0x10)
                 //damaged; 0 would never move forward and a negative size threw
             {
                 break;
@@ -88,11 +81,21 @@ public class IndexRoot : Attribute
             var buff = new byte[indexValSize];
             Buffer.BlockCopy(rawBytes, index, buff, 0, indexValSize);
 
-            var ie = new IndexEntry(buff);
+            var ie = IndexEntry.FromEntry(buff);
+
+            //this was read as the root's own reference, but it is the first entry's
+            MftRecord ??= ie.MftReference;
 
             IndexEntries.Add(ie);
 
             index += indexValSize;
+        }
+
+        if (MftRecord == null && rawBytes.Length - index >= 8)
+        {
+            var mftInfoBytes = new byte[8];
+            Buffer.BlockCopy(rawBytes, index, mftInfoBytes, 0, 8);
+            MftRecord = new MftEntryInfo(mftInfoBytes);
         }
     }
 
@@ -101,6 +104,7 @@ public class IndexRoot : Attribute
     public int AllocatedSizeOfEntries { get; }
     public int OffsetToFirstIndexEntry { get; }
     public List<IndexEntry> IndexEntries { get; }
+    /// <summary>The file reference of the first index entry (kept for compatibility; each entry has its own <see cref="IndexEntry.MftReference" />)</summary>
     public MftEntryInfo MftRecord { get; }
     public AttributeType IndexedAttributeType { get; }
     public int EntrySize { get; }

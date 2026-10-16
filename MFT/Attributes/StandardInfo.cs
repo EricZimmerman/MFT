@@ -1,4 +1,5 @@
 ﻿using System;
+using MFT.Other;
 using System.Text;
 using Serilog;
 
@@ -45,58 +46,13 @@ public class StandardInfo : Attribute
 
     public StandardInfo(byte[] rawBytes) : base(rawBytes)
     {
-        var createdRaw = BitConverter.ToInt64(rawBytes, 0x18);
-        if (createdRaw > 0)
-        {
-            try
-            {
-                CreatedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x18)).ToUniversalTime();
-            }
-            catch (Exception)
-            {
-                Log.Warning("Invalid CreatedOn timestamp! Enable --debug for record information");
-            }
-        }
+        _createdOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x18), "Invalid CreatedOn timestamp! Enable --debug for record information");
 
-        var contentModRaw = BitConverter.ToInt64(rawBytes, 0x20);
-        if (contentModRaw > 0)
-        {
-            try
-            {
-                ContentModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x20)).ToUniversalTime();
-            }
-            catch (Exception)
-            {
-                Log.Warning("Invalid ContentModifiedOn timestamp! Enable --debug for record information");
-            }
-        }
+        _contentModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x20), "Invalid ContentModifiedOn timestamp! Enable --debug for record information");
 
-        var recordModRaw = BitConverter.ToInt64(rawBytes, 0x28);
-        if (recordModRaw > 0)
-        {
-            try
-            {
-                RecordModifiedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x28))
-                    .ToUniversalTime();
-            }
-            catch (Exception)
-            {
-                Log.Warning("Invalid RecordModifiedOn timestamp! Enable --debug for record information");
-            }
-        }
+        _recordModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x28), "Invalid RecordModifiedOn timestamp! Enable --debug for record information");
 
-        var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x30);
-        if (lastAccessRaw > 0)
-        {
-            try
-            {
-                LastAccessedOn = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 0x30)).ToUniversalTime();
-            }
-            catch (Exception)
-            {
-                Log.Warning("Invalid LastAccessedOn timestamp! Enable --debug for record information");
-            }
-        }
+        _lastAccessedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x30), "Invalid LastAccessedOn timestamp! Enable --debug for record information");
 
         Flags = (Flag)BitConverter.ToInt32(rawBytes, 0x38);
 
@@ -123,10 +79,14 @@ public class StandardInfo : Attribute
     public int QuotaCharged { get; }
     public long UpdateSequenceNumber { get; }
 
-    public DateTimeOffset? CreatedOn { get; }
-    public DateTimeOffset? ContentModifiedOn { get; }
-    public DateTimeOffset? RecordModifiedOn { get; }
-    public DateTimeOffset? LastAccessedOn { get; }
+    private readonly long _createdOn;
+    public DateTimeOffset? CreatedOn => FileTimes.ToDate(_createdOn);
+    private readonly long _contentModifiedOn;
+    public DateTimeOffset? ContentModifiedOn => FileTimes.ToDate(_contentModifiedOn);
+    private readonly long _recordModifiedOn;
+    public DateTimeOffset? RecordModifiedOn => FileTimes.ToDate(_recordModifiedOn);
+    private readonly long _lastAccessedOn;
+    public DateTimeOffset? LastAccessedOn => FileTimes.ToDate(_lastAccessedOn);
 
     public Flag Flags { get; }
 

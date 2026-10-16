@@ -24,57 +24,13 @@ public class FileInfo
 
         ParentMftRecord = new MftEntryInfo(entryBytes);
 
-        var createdRaw = BitConverter.ToInt64(rawBytes, 0x8);
-        if (createdRaw > 0)
-        {
-            try
-            {
-                CreatedOn = DateTimeOffset.FromFileTime(createdRaw).ToUniversalTime();
-            }
-            catch (Exception)
-            {
-                Log.Warning("Invalid CreatedOn timestamp! Enable --debug for record information");
-            }
-        }
+        _createdOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x8), "Invalid CreatedOn timestamp! Enable --debug for record information");
 
-        var contentModRaw = BitConverter.ToInt64(rawBytes, 0x10);
-        if (contentModRaw > 0)
-        {
-            try
-            {
-                ContentModifiedOn = DateTimeOffset.FromFileTime(contentModRaw).ToUniversalTime();
-            }
-            catch (Exception)
-            {
-                Log.Warning("Invalid ContentModifiedOn timestamp! Enable --debug for record information");
-            }
-        }
+        _contentModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x10), "Invalid ContentModifiedOn timestamp! Enable --debug for record information");
 
-        var recordModRaw = BitConverter.ToInt64(rawBytes, 0x18);
-        if (recordModRaw > 0)
-        {
-            try
-            {
-                RecordModifiedOn = DateTimeOffset.FromFileTime(recordModRaw).ToUniversalTime();
-            }
-            catch (Exception)
-            {
-                Log.Warning("Invalid RecordModifiedOn timestamp! Enable --debug for record information");
-            }
-        }
+        _recordModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x18), "Invalid RecordModifiedOn timestamp! Enable --debug for record information");
 
-        var lastAccessRaw = BitConverter.ToInt64(rawBytes, 0x20);
-        if (lastAccessRaw > 0)
-        {
-            try
-            {
-                LastAccessedOn = DateTimeOffset.FromFileTime(lastAccessRaw).ToUniversalTime();
-            }
-            catch (Exception)
-            {
-                Log.Warning("Invalid LastAccessedOn timestamp! Enable --debug for record information");
-            }
-        }
+        _lastAccessedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x20), "Invalid LastAccessedOn timestamp! Enable --debug for record information");
 
         PhysicalSize = BitConverter.ToUInt64(rawBytes, 0x28);
         LogicalSize = BitConverter.ToUInt64(rawBytes, 0x30);
@@ -95,10 +51,14 @@ public class FileInfo
     public string FileName { get; }
     public ulong PhysicalSize { get; }
     public ulong LogicalSize { get; }
-    public DateTimeOffset? CreatedOn { get; }
-    public DateTimeOffset? ContentModifiedOn { get; }
-    public DateTimeOffset? RecordModifiedOn { get; }
-    public DateTimeOffset? LastAccessedOn { get; }
+    private readonly long _createdOn;
+    public DateTimeOffset? CreatedOn => FileTimes.ToDate(_createdOn);
+    private readonly long _contentModifiedOn;
+    public DateTimeOffset? ContentModifiedOn => FileTimes.ToDate(_contentModifiedOn);
+    private readonly long _recordModifiedOn;
+    public DateTimeOffset? RecordModifiedOn => FileTimes.ToDate(_recordModifiedOn);
+    private readonly long _lastAccessedOn;
+    public DateTimeOffset? LastAccessedOn => FileTimes.ToDate(_lastAccessedOn);
     public StandardInfo.Flag Flags { get; }
     public MftEntryInfo ParentMftRecord { get; }
 

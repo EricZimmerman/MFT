@@ -164,6 +164,199 @@ public class LogFile
         {
             record.Ntfs = new NtfsLogRecord(record.ClientData, ClusterSize, ParseErrors, record.Lsn);
         }
+
+        foreach (var record in Records.Where(t => t.RecordType == LogRecordType.ClientRestart &&
+                                                 t.ClientData.Length >= NtfsRestartArea.MinimumSize))
+        {
+            record.Restart = new NtfsRestartArea(record.ClientData);
+        }
+
+        ResolveOpenAttributes();
+        GroupTransactions();
+    }
+
+    /// <summary>Records further apart than this many pages start a new stretch for open attribute resolution</summary>
+    private const int GapPages = 64;
+
+    /// <summary>Operations whose TargetAttribute is not an open attribute</summary>
+    private static readonly HashSet<NtfsOperation> NoTargetAttribute = new()
+    {
+        NtfsOperation.Noop, NtfsOperation.CompensationLogRecord, NtfsOperation.EndTopLevelAction,
+        NtfsOperation.PrepareTransaction, NtfsOperation.CommitTransaction, NtfsOperation.ForgetTransaction,
+        NtfsOperation.OpenAttributeTableDump, NtfsOperation.AttributeNamesDump, NtfsOperation.DirtyPageTableDump,
+        NtfsOperation.TransactionTableDump
+    };
+
+    /// <summary>
+    ///     Sets <see cref="NtfsLogRecord.TargetOpenAttribute" />. Each checkpoint dumps the open attribute table (and the
+    ///     names, linked by its restart area or else the next names dump), and OpenNonresidentAttribute records add
+    ///     entries between checkpoints. A record uses the newest definition of its table offset at or before its LSN;
+    ///     before the first one, the oldest (an attribute that was open before the log starts). Both only within a
+    ///     stretch of the log: a restart area without a table (a mount or clean dismount) starts a new table, and where
+    ///     records are missing (older passes, damaged pages) the table may have changed
+    /// </summary>
+    private void ResolveOpenAttributes()
+    {
+        var namesByLsn = Records.Where(t => t.Ntfs?.AttributeNames != null).ToDictionary(t => t.Lsn, t => t.Ntfs.AttributeNames);
+        var namesFor = Records.Where(t => t.Restart != null && t.Restart.OpenAttributeTableLsn != 0)
+            .GroupBy(t => t.Restart.OpenAttributeTableLsn)
+            .ToDictionary(t => t.Key, t => t.First().Restart.AttributeNamesLsn);
+        var nameDumps = namesByLsn.Keys.OrderBy(t => t).ToList();
+
+        var boundaries = Records.Where(t => t.RecordType == LogRecordType.ClientRestart && (t.Restart == null || t.Restart.OpenAttributeTableLsn == 0))
+            .Select(t => t.Lsn).ToList();
+
+        //where many records are missing (left from an older pass, or lost pages), the table may have changed unseen.
+        //Gaps of a few pages are normal (up to about 25 in the Museum logs; passes are 1 MB to 1.6 GB apart)
+        var gap = (ulong)PageSize * GapPages / 8;
+        for (var i = 1; i < Records.Count; i++)
+        {
+            if (Records[i].Lsn - Records[i - 1].Lsn > gap)
+            {
+                boundaries.Add(Records[i].Lsn);
+            }
+        }
+
+        boundaries.Sort();
+
+        //the stretch of the log an LSN is in: the number of boundaries at or before it
+        int Mount(ulong lsn)
+        {
+            var at = boundaries.BinarySearch(lsn);
+            return at >= 0 ? at + 1 : ~at;
+        }
+
+        var definitions = new Dictionary<(int Mount, ushort Index), List<OpenAttribute>>();
+        var byIndex = new Dictionary<ushort, List<OpenAttribute>>();
+
+        void Add(OpenAttribute entry)
+        {
+            var key = (Mount(entry.DefinedAtLsn), entry.Index);
+            if (definitions.TryGetValue(key, out var list) == false)
+            {
+                list = new List<OpenAttribute>();
+                definitions.Add(key, list);
+            }
+
+            list.Add(entry);
+
+            if (byIndex.TryGetValue(entry.Index, out var all) == false)
+            {
+                all = new List<OpenAttribute>();
+                byIndex.Add(entry.Index, all);
+            }
+
+            all.Add(entry);
+        }
+
+        foreach (var record in Records.Where(t => t.Ntfs != null))
+        {
+            if (record.Ntfs.OpenAttributeTable != null)
+            {
+                //the names dump of the same checkpoint
+                Dictionary<ushort, string> names = null;
+                if (namesFor.TryGetValue(record.Lsn, out var namesLsn) && namesLsn != 0)
+                {
+                    namesByLsn.TryGetValue(namesLsn, out names);
+                }
+                else
+                {
+                    var next = nameDumps.FirstOrDefault(t => t > record.Lsn);
+                    if (next != 0 && Mount(next) == Mount(record.Lsn))
+                    {
+                        names = namesByLsn[next];
+                    }
+                }
+
+                foreach (var entry in record.Ntfs.OpenAttributeTable)
+                {
+                    //the names dump has the named attributes; without one, the names are not known
+                    entry.AttributeName = names == null ? null : names.TryGetValue(entry.Index, out var name) ? name : string.Empty;
+
+                    Add(entry);
+                }
+            }
+
+            if (record.Ntfs.OpenedAttribute != null)
+            {
+                Add(record.Ntfs.OpenedAttribute);
+            }
+        }
+
+        //Windows 7 open records have no name: take it from a later dump of the same attribute
+        foreach (var list in definitions.Values)
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (list[i].AttributeName != null)
+                {
+                    continue;
+                }
+
+                var same = list.Skip(i + 1).FirstOrDefault(t => t.FromCheckpoint && t.AttributeName != null &&
+                                                               t.FileReference.MftEntryNumber == list[i].FileReference.MftEntryNumber &&
+                                                               t.FileReference.MftSequenceNumber == list[i].FileReference.MftSequenceNumber &&
+                                                               t.AttributeType == list[i].AttributeType);
+                list[i].AttributeName = same?.AttributeName;
+            }
+        }
+
+        foreach (var record in Records.Where(t => t.Ntfs != null && t.Ntfs.TargetAttribute != 0 &&
+                                                 NoTargetAttribute.Contains(t.Ntfs.RedoOperation) == false))
+        {
+            if (definitions.TryGetValue((Mount(record.Lsn), record.Ntfs.TargetAttribute), out var list) == false)
+            {
+                //nothing in this stretch defines it (typically records left from an older pass): the nearest
+                //definition elsewhere, marked as inferred
+                if (byIndex.TryGetValue(record.Ntfs.TargetAttribute, out var all))
+                {
+                    record.Ntfs.TargetOpenAttribute = all.LastOrDefault(t => t.DefinedAtLsn <= record.Lsn) ?? all[0];
+                    record.Ntfs.TargetOpenAttributeInferred = true;
+                }
+
+                continue;
+            }
+
+            //lists are in LSN order
+            OpenAttribute found = null;
+            foreach (var entry in list)
+            {
+                if (entry.DefinedAtLsn > record.Lsn)
+                {
+                    break;
+                }
+
+                found = entry;
+            }
+
+            record.Ntfs.TargetOpenAttribute = found ?? list[0];
+        }
+    }
+
+    /// <summary>Sets <see cref="LogRecord.TransactionFirstLsn" /> by following each record's previous LSN</summary>
+    private void GroupTransactions()
+    {
+        var first = new Dictionary<ulong, ulong>();
+        foreach (var record in Records)
+        {
+            ulong start;
+            if (record.ClientPreviousLsn == 0 || record.ClientPreviousLsn >= record.Lsn)
+            {
+                start = record.Lsn;
+            }
+            else if (first.TryGetValue(record.ClientPreviousLsn, out var previous))
+            {
+                start = previous;
+            }
+            else
+            {
+                //the transaction began before the oldest record that is still in the log
+                start = record.ClientPreviousLsn;
+            }
+
+            first[record.Lsn] = start;
+            record.TransactionFirstLsn = start;
+        }
     }
 
     private static byte[] Copy(byte[] bytes, long offset, int length)

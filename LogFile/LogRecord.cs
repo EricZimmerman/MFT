@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace LogFile;
 
@@ -62,6 +62,16 @@ public class LogRecord
 
     /// <summary>For client records of the NTFS client: the NTFS operation (null for restart records)</summary>
     public NtfsLogRecord Ntfs { get; internal set; }
+
+    /// <summary>For client restart records: the NTFS restart area of the checkpoint</summary>
+    public NtfsRestartArea Restart { get; internal set; }
+
+    /// <summary>
+    ///     The first record of this record's transaction, from <see cref="ClientPreviousLsn" /> (which links the records
+    ///     of a transaction); for a transaction that began before the oldest record in the log, the LSN its chain leaves
+    ///     the log at. Transaction ids are slots that are reused, so this is what tells transactions apart
+    /// </summary>
+    public ulong TransactionFirstLsn { get; internal set; }
 
     public override string ToString() =>
         $"LSN {Lsn} at 0x{FileOffset:X}: {RecordType}, transaction {TransactionId}, previous {ClientPreviousLsn}{(Ntfs != null ? ", " + Ntfs : "")}{(Truncated ? " (truncated)" : "")}";

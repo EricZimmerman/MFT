@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -113,6 +113,17 @@ public class RecordRobustnessTests
 
         fr.IsBad.Should().BeTrue();
         fr.ParseErrors.Should().ContainSingle().Which.Should().Contain("header");
+    }
+
+    [Test]
+    public void EntryNumbersAre48Bits()
+    {
+        //the high 16 bits are bits 32-47; they used to be multiplied by 2^24 in a uint
+        var info = new MftEntryInfo(new byte[] { 0x01, 0x00, 0x00, 0x80, 0x02, 0x00, 0x03, 0x00 });
+
+        info.MftEntryNumber.Should().Be(0x2_8000_0001UL);
+        info.MftSequenceNumber.Should().Be(3);
+        info.GetKey().Should().Be("280000001-00000003");
     }
 
     [Test]
