@@ -64,12 +64,18 @@ public class IndexRoot : Attribute
 
         IndexEntries = new List<IndexEntry>();
 
-        while (index < rawBytes.Length)
+        while (rawBytes.Length - index >= 2)
         {
             var indexValSize = BitConverter.ToInt16(rawBytes, index);
 
             if (indexValSize == 0x10)
                 //indicates no more index entries
+            {
+                break;
+            }
+
+            if (indexValSize < 8)
+                //damaged; 0 would never move forward and a negative size threw
             {
                 break;
             }

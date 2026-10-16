@@ -5,91 +5,127 @@ using Serilog;
 
 namespace Usn;
 
+/// <summary>
+///     $UsnJrnl:$J. Records are 8 byte aligned: length (4), major version (2), minor version (2), then the record.
+///     V2 and V3 records are returned; V4 (range tracking extents, no name) are skipped by their length. Zeros
+///     between records are skipped 8 bytes at a time; anything that is not a record skips to the next 4 KB page.
+/// </summary>
 public class Usn
 {
     private const int PageSize = 0x1000;
 
+    /// <summary>Records are never larger than this: the V3 fixed part plus a 255 character name, rounded up</summary>
+    private const int MaxRecordSize = 0x260;
+
+    private const int MinRecordSize = 0x38;
+
+    /// <summary>Offset of the last record read (kept for compatibility; it describes the last file loaded)</summary>
     public static uint LastOffset;
+
+    private readonly Stream _stream;
+    private readonly byte[] _buffer = new byte[0x100000];
+    private long _bufferStart;
+    private int _bufferLength;
 
     public Usn(Stream fileStream, long startingOffset)
     {
         UsnEntries = new List<UsnEntry>();
 
-        fileStream.Seek(startingOffset, SeekOrigin.Begin);
-
-        var lastGoodPageOffset = startingOffset;
+        _stream = fileStream;
+        _bufferStart = startingOffset;
 
         Log.Verbose("Beginning processing");
 
-        while (fileStream.Position < fileStream.Length)
+        var position = startingOffset;
+
+        while (Ensure(position, 8))
         {
-            Log.Verbose("Starting fileStream.Position 0x{Position:X8}", fileStream.Position);
-
-            LastOffset = (uint)fileStream.Position;
-
-            var calcBuff = new byte[8];
-            fileStream.Read(calcBuff, 0, 8);
-            fileStream.Seek(-8, SeekOrigin.Current); //reverse to where we were
-
-            var size = BitConverter.ToUInt32(calcBuff, 0);
-            var majorVer = BitConverter.ToInt16(calcBuff, 4); //used for error checking
+            var at = (int)(position - _bufferStart);
+            var size = BitConverter.ToUInt32(_buffer, at);
+            var majorVer = BitConverter.ToInt16(_buffer, at + 4); //used for error checking
 
             if (size == 0)
             {
-                Log.Verbose("Size is zero. Increasing index by 0x{PageSize:X}", PageSize);
-
-                fileStream.Seek(lastGoodPageOffset + PageSize, SeekOrigin.Begin);
-
-                lastGoodPageOffset += PageSize;
-
+                //records are 8 byte aligned; this used to skip to the next page and lose the records after the zeros
+                position += 8;
                 continue;
             }
 
-            if (size > PageSize)
-            {
-                Log.Verbose("Junk data found at 0x{Position:X8}. Increasing index by 0x{PageSize:X}",
-                    fileStream.Position, PageSize);
+            var valid = size >= MinRecordSize && size <= MaxRecordSize && size % 8 == 0 &&
+                        majorVer is 2 or 3 or 4 && Ensure(position, (int)size);
 
-                lastGoodPageOffset += PageSize;
-
-                fileStream.Seek(lastGoodPageOffset, SeekOrigin.Begin);
-
-                continue;
-            }
-
-            if (size < 0x38 || size > 0x250 || majorVer != 2
-               ) //~ minimum length, so jump to next page || max defined as max filename length (0xFF) + min length (it should not be bigger than this)
+            if (valid == false)
             {
                 Log.Verbose(
-                    "Strange size or ver # incorrect at 0x{Position:X8}. Increasing index by 0x{PageSize:X}. Size: 0x{Size:X} version: {MajorVer}",
-                    fileStream.Position, PageSize, size, majorVer);
-
-                fileStream.Seek(lastGoodPageOffset + PageSize, SeekOrigin.Begin);
-
-                lastGoodPageOffset += PageSize;
-
+                    "Strange size or ver # incorrect at 0x{Position:X8}. Skipping to the next page. Size: 0x{Size:X} version: {MajorVer}",
+                    position, size, majorVer);
+                position = (position / PageSize + 1) * PageSize;
                 continue;
             }
 
-            if (fileStream.Position % PageSize == 0)
-            {
-                Log.Debug("Setting lastGoodPageOffset to 0x{Position:X8}", fileStream.Position);
+            LastOffset = (uint)position;
 
-                lastGoodPageOffset = fileStream.Position;
+            if (majorVer == 4)
+            {
+                //range tracking: extents of a change, no name
+                position += size;
+                continue;
             }
 
-            Log.Verbose("Processing UsnEntry at 0x{Position:X}", startingOffset + fileStream.Position);
+            Log.Verbose("Processing UsnEntry at 0x{Position:X}", position);
 
             var buff = new byte[size];
+            Buffer.BlockCopy(_buffer, (int)(position - _bufferStart), buff, 0, (int)size);
 
-            fileStream.Read(buff, 0, (int)size);
+            try
+            {
+                var ue = new UsnEntry(buff, position);
+                if (ue.InvalidTimestamp)
+                {
+                    ParseErrors.Add($"Record at 0x{position:X} has an invalid timestamp");
+                }
 
-            var ue = new UsnEntry(buff, LastOffset);
-            UsnEntries.Add(ue);
+                UsnEntries.Add(ue);
+            }
+            catch (Exception e)
+            {
+                ParseErrors.Add($"Record at 0x{position:X} could not be parsed: {e.Message}");
+            }
+
+            position += size;
         }
 
         Log.Debug("Found {Count:N0} records", UsnEntries.Count);
     }
 
+    /// <summary>Makes <paramref name="count" /> bytes at <paramref name="position" /> available in the buffer</summary>
+    private bool Ensure(long position, int count)
+    {
+        if (position >= _bufferStart && position + count <= _bufferStart + _bufferLength)
+        {
+            return true;
+        }
+
+        _stream.Seek(position, SeekOrigin.Begin);
+        _bufferStart = position;
+        _bufferLength = 0;
+
+        while (_bufferLength < _buffer.Length)
+        {
+            var n = _stream.Read(_buffer, _bufferLength, _buffer.Length - _bufferLength);
+            if (n == 0)
+            {
+                break;
+            }
+
+            _bufferLength += n;
+        }
+
+        return count <= _bufferLength;
+    }
+
     public List<UsnEntry> UsnEntries { get; }
+
+    /// <summary>Records that could not be parsed or have invalid timestamps; the others are kept</summary>
+    public List<string> ParseErrors { get; } = new();
 }

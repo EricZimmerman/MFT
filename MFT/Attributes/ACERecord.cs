@@ -157,8 +157,36 @@ public class AceRecord
     {
         get
         {
-            var rawSidBytes = new byte[AceSize - 0x8];
-            Buffer.BlockCopy(RawBytes, 0x8, rawSidBytes, 0, rawSidBytes.Length);
+            //header (4) and mask (4), then the SID; object ACEs have flags (4) and up to two GUIDs first
+            var sidOffset = 0x8;
+            switch (RawBytes[0])
+            {
+                case 0x5:
+                case 0x6:
+                case 0x7:
+                case 0x8:
+                case 0xB:
+                case 0xC:
+                case 0xF:
+                case 0x10:
+                    if (RawBytes.Length < 0xC)
+                    {
+                        return string.Empty;
+                    }
+
+                    var objectFlags = BitConverter.ToUInt32(RawBytes, 0x8);
+                    sidOffset = 0xC + ((objectFlags & 1) == 1 ? 16 : 0) + ((objectFlags & 2) == 2 ? 16 : 0);
+                    break;
+            }
+
+            var length = Math.Min(AceSize, RawBytes.Length) - sidOffset;
+            if (length < 8)
+            {
+                return string.Empty;
+            }
+
+            var rawSidBytes = new byte[length];
+            Buffer.BlockCopy(RawBytes, sidOffset, rawSidBytes, 0, rawSidBytes.Length);
 
             return Helpers.ConvertHexStringToSidString(rawSidBytes);
         }

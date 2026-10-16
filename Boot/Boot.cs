@@ -12,7 +12,22 @@ public class Boot
         const int expectedSectorSig = 0xaa55;
 
         var rawBytes = new byte[512];
-        fileStream.Read(rawBytes, 0, 512);
+        var read = 0;
+        while (read < 512)
+        {
+            var n = fileStream.Read(rawBytes, read, 512 - read);
+            if (n == 0)
+            {
+                break;
+            }
+
+            read += n;
+        }
+
+        if (read < 512)
+        {
+            throw new Exception($"The boot sector needs 512 bytes; only {read} were read");
+        }
 
         SectorSignature = BitConverter.ToUInt16(rawBytes, 510);
 
@@ -28,7 +43,8 @@ public class Boot
         FileSystemSignature = Encoding.ASCII.GetString(rawBytes, 3, 8);
 
         BytesPerSector = BitConverter.ToInt16(rawBytes, 11);
-        SectorsPerCluster = rawBytes[13];
+        //values over 0x80 are a power of two: 2^(256 - value), for clusters over 64 KB (up to 2 MB)
+        SectorsPerCluster = rawBytes[13] > 0x80 ? 1 << (256 - rawBytes[13]) : rawBytes[13];
 
         ReservedSectors = BitConverter.ToInt16(rawBytes, 14);
         NumberOfFaTs = rawBytes[16];

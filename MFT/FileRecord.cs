@@ -26,9 +26,23 @@ public class FileRecord
     private const int BaadSig = 0x44414142;
     private const int FileSig = 0x454c4946;
 
-    public FileRecord(byte[] rawBytes, int offset, bool recoverFromSlack)
+    /// <summary>The fixed part of the record header (through the entry number at 0x2C)</summary>
+    private const int HeaderSize = 0x30;
+
+    /// <summary>The smallest attribute: a resident attribute header</summary>
+    private const int MinAttributeSize = 0x18;
+
+    public FileRecord(byte[] rawBytes, long offset, bool recoverFromSlack)
     {
         Offset = offset;
+
+        if (rawBytes.Length < HeaderSize)
+        {
+            Log.Debug("FILE record at offset 0x{Offset:X} is only 0x{Length:X} bytes", offset, rawBytes.Length);
+            ParseErrors.Add($"Record is only 0x{rawBytes.Length:X} bytes; the header needs 0x{HeaderSize:X}");
+            IsBad = true;
+            return;
+        }
 
         var sig = BitConverter.ToInt32(rawBytes, 0);
 
@@ -55,39 +69,55 @@ public class FileRecord
         FixupOffset = BitConverter.ToInt16(rawBytes, 0x4);
         FixupEntryCount = BitConverter.ToInt16(rawBytes, 0x6);
 
-        //to build fixup info, take FixupEntryCount x 2 bytes as each are 2 bytes long
-        var fixupTotalLength = FixupEntryCount * 2;
-
-        var fixupBuffer = new byte[fixupTotalLength];
-        Buffer.BlockCopy(rawBytes, FixupOffset, fixupBuffer, 0, fixupTotalLength);
-
         //pull this early so we can check if its free in our fix up value messages
         EntryFlags = (EntryFlag)BitConverter.ToInt16(rawBytes, 0x16);
 
-        FixupData = new FixupData(fixupBuffer);
+        //to build fixup info, take FixupEntryCount x 2 bytes as each are 2 bytes long
+        var fixupTotalLength = FixupEntryCount * 2;
 
-        FixupOk = true;
-
-        //fixup verification
-        var counter = 512;
-        foreach (var bytese in FixupData.FixupActual)
+        if (FixupOffset < 0 || FixupEntryCount < 1 || FixupOffset + fixupTotalLength > rawBytes.Length)
         {
-            //adjust the offset to where we need to check
-            var fixupOffset = counter - 2;
+            ParseErrors.Add(
+                $"Fixup array at 0x{FixupOffset:X} with 0x{FixupEntryCount:X} entries does not fit in the record; fixups not applied");
+            FixupData = new FixupData(new byte[2]);
+        }
+        else
+        {
+            var fixupBuffer = new byte[fixupTotalLength];
+            Buffer.BlockCopy(rawBytes, FixupOffset, fixupBuffer, 0, fixupTotalLength);
 
-            var expected = BitConverter.ToInt16(rawBytes, fixupOffset);
-            if (expected != FixupData.FixupExpected && EntryFlags != 0x0)
+            FixupData = new FixupData(fixupBuffer);
+
+            FixupOk = true;
+
+            //fixup verification
+            var counter = 512;
+            foreach (var bytese in FixupData.FixupActual)
             {
-                FixupOk = false;
-                Log.Warning(
-                    "Offset: 0x{Offset:X} Entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X} Fixup values do not match at 0x{FixupOffset:X}. Expected: 0x{FixupExpected:X2}, actual: 0x{Expected:X2}",
-                    Offset, EntryNumber, SequenceNumber, fixupOffset, FixupData.FixupExpected, expected);
+                //adjust the offset to where we need to check
+                var fixupOffset = counter - 2;
+
+                if (fixupOffset + 2 > rawBytes.Length)
+                {
+                    //more fixups than sectors in the record
+                    break;
+                }
+
+                var expected = BitConverter.ToInt16(rawBytes, fixupOffset);
+                if (expected != FixupData.FixupExpected && EntryFlags != 0x0)
+                {
+                    FixupOk = false;
+                    Log.Warning(
+                        "Offset: 0x{Offset:X} Entry/seq: 0x{EntryNumber:X}/0x{SequenceNumber:X} Fixup values do not match at 0x{FixupOffset:X}. Expected: 0x{FixupExpected:X2}, actual: 0x{Expected:X2}",
+                        Offset, BitConverter.ToUInt32(rawBytes, 0x2c), BitConverter.ToUInt16(rawBytes, 0x10), fixupOffset,
+                        FixupData.FixupExpected, expected);
+                }
+
+                //replace fixup expected with actual bytes. bytese has actual replacement values in it.
+                Buffer.BlockCopy(bytese, 0, rawBytes, fixupOffset, 2);
+
+                counter += 512;
             }
-
-            //replace fixup expected with actual bytes. bytese has actual replacement values in it.
-            Buffer.BlockCopy(bytese, 0, rawBytes, fixupOffset, 2);
-
-            counter += 512;
         }
 
         LogSequenceNumber = BitConverter.ToInt64(rawBytes, 0x8);
@@ -110,16 +140,36 @@ public class FileRecord
 
         FirstAvailablAttribueId = BitConverter.ToInt16(rawBytes, 0x28);
 
-        EntryNumber = BitConverter.ToUInt32(rawBytes, 0x2c);
+        if (FixupOffset >= HeaderSize)
+        {
+            EntryNumber = BitConverter.ToUInt32(rawBytes, 0x2c);
+        }
+        else
+        {
+            //NTFS 3.0 records have no entry number (the fixup array starts at 0x2A), so use the record's position
+            EntryNumber = (uint)(offset / rawBytes.Length);
+        }
 
         Log.Debug("FILE record entry/seq #: 0x{EntryNumber:X}/{SequenceNumber:X}", EntryNumber, SequenceNumber);
 
-       
-        //start attribute processing at FirstAttributeOffset
+        //attributes run until the end marker. Deleted records can have their used size reduced while the
+        //attributes after it are intact, so keep going past it (up to the allocated size), but there anything
+        //that does not look like an attribute just ends the list quietly
+        var end = AllocatedRecordSize > 0 && AllocatedRecordSize <= rawBytes.Length
+            ? AllocatedRecordSize
+            : rawBytes.Length;
+        var used = ActualRecordSize > 0 && ActualRecordSize <= end ? ActualRecordSize : end;
 
+        //start attribute processing at FirstAttributeOffset
         var index = (int)FirstAttributeOffset;
 
-        while (index < ActualRecordSize)
+        if (index < HeaderSize - 8 || index > end)
+        {
+            ParseErrors.Add($"First attribute offset 0x{FirstAttributeOffset:X} is outside the record");
+            index = end;
+        }
+
+        while (index + 8 <= end)
         {
             var attrType = (AttributeType)BitConverter.ToInt32(rawBytes, index);
 
@@ -128,6 +178,19 @@ public class FileRecord
             if (attrSize == 0 || attrType == AttributeType.EndOfAttributes)
             {
                 index += 8; //skip -1 type and 0 size
+                break;
+            }
+
+            var pastUsedSize = index >= used;
+
+            if (attrSize < MinAttributeSize || attrSize > end - index)
+            {
+                if (pastUsedSize == false)
+                {
+                    ParseErrors.Add(
+                        $"Attribute {attrType} at 0x{index:X} has size 0x{attrSize:X}; 0x{end - index:X} bytes are left in the record");
+                }
+
                 break;
             }
 
@@ -142,96 +205,48 @@ public class FileRecord
             var rawAttr = new byte[attrSize];
             Buffer.BlockCopy(rawBytes, index, rawAttr, 0, attrSize);
 
-            switch (attrType)
+            Attribute attribute;
+            var failed = false;
+            try
             {
-                case AttributeType.StandardInformation:
-                    var si = new StandardInfo(rawAttr);
-                    Attributes.Add(si);
+                attribute = ParseAttribute(attrType, rawAttr);
+            }
+            catch (Exception e)
+            {
+                attribute = null;
+                failed = true;
+
+                if (pastUsedSize)
+                {
                     break;
+                }
 
-                case AttributeType.FileName:
-                    var fi = new FileName(rawAttr);
-                    Attributes.Add(fi);
-                    break;
+                ParseErrors.Add($"Attribute {attrType} at 0x{index:X} could not be parsed: {e.Message}");
+                Log.Debug(e, "Offset 0x{Offset:X}: attribute {AttrType} at 0x{Index:X} could not be parsed", Offset,
+                    attrType, index);
 
-                case AttributeType.Data:
-                    var d = new Data(rawAttr);
-                    Attributes.Add(d);
-                    break;
+                if (attrType == AttributeType.ReparsePoint)
+                {
+                    Log.Error(e,
+                        "There was an error parsing a ReparsePoint in FILE record at offset 0x{Offset:X}. Please extract via --dd and --do and send to saericzimmerman@gmail.com",
+                        Offset);
+                }
+            }
 
-                case AttributeType.IndexAllocation:
-                    var ia = new IndexAllocation(rawAttr);
-                    Attributes.Add(ia);
-                    break;
+            if (attribute == null && pastUsedSize)
+            {
+                //not an attribute type we know, past the used size: leftovers
+                break;
+            }
 
-                case AttributeType.IndexRoot:
-                    var ir = new IndexRoot(rawAttr);
-                    Attributes.Add(ir);
-                    break;
+            if (attribute == null && failed == false)
+            {
+                ParseErrors.Add($"Unknown attribute type 0x{(int)attrType:X} at 0x{index:X}; skipped");
+            }
 
-                case AttributeType.Bitmap:
-                    var bm = new Bitmap(rawAttr);
-                    Attributes.Add(bm);
-                    break;
-
-                case AttributeType.VolumeVersionObjectId:
-                    var oi = new ObjectId_(rawAttr);
-                    Attributes.Add(oi);
-                    break;
-
-                case AttributeType.SecurityDescriptor:
-                    var sd = new SecurityDescriptor(rawAttr);
-                    Attributes.Add(sd);
-                    break;
-
-                case AttributeType.VolumeName:
-                    var vn = new VolumeName(rawAttr);
-                    Attributes.Add(vn);
-                    break;
-
-                case AttributeType.VolumeInformation:
-                    var vi = new VolumeInformation(rawAttr);
-                    Attributes.Add(vi);
-                    break;
-
-                case AttributeType.LoggedUtilityStream:
-                    var lus = new LoggedUtilityStream(rawAttr);
-                    Attributes.Add(lus);
-                    break;
-
-                case AttributeType.ReparsePoint:
-                    try
-                    {
-                        var rp = new ReparsePoint(rawAttr);
-
-                        Attributes.Add(rp);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e,
-                            "There was an error parsing a ReparsePoint in FILE record at offset 0x{Offset:X}. Please extract via --dd and --do and send to saericzimmerman@gmail.com",
-                            Offset);
-                    }
-
-                    break;
-
-                case AttributeType.AttributeList:
-                    var al = new AttributeList(rawAttr);
-                    Attributes.Add(al);
-                    break;
-
-                case AttributeType.Ea:
-                    var ea = new ExtendedAttribute(rawAttr);
-                    Attributes.Add(ea);
-                    break;
-
-                case AttributeType.EaInformation:
-                    var eai = new ExtendedAttributeInformation(rawAttr);
-                    Attributes.Add(eai);
-                    break;
-
-                default:
-                    throw new Exception($"Add me: {attrType} (0x{attrType:X})");
+            if (attribute != null)
+            {
+                Attributes.Add(attribute);
             }
 
             index += attrSize;
@@ -271,6 +286,47 @@ public class FileRecord
 
     }
     
+
+    /// <returns>The attribute, or null for a type that is not handled</returns>
+    private static Attribute ParseAttribute(AttributeType attrType, byte[] rawAttr)
+    {
+        switch (attrType)
+        {
+            case AttributeType.StandardInformation:
+                return new StandardInfo(rawAttr);
+            case AttributeType.FileName:
+                return new FileName(rawAttr);
+            case AttributeType.Data:
+                return new Data(rawAttr);
+            case AttributeType.IndexAllocation:
+                return new IndexAllocation(rawAttr);
+            case AttributeType.IndexRoot:
+                return new IndexRoot(rawAttr);
+            case AttributeType.Bitmap:
+                return new Bitmap(rawAttr);
+            case AttributeType.VolumeVersionObjectId:
+                return new ObjectId_(rawAttr);
+            case AttributeType.SecurityDescriptor:
+                return new SecurityDescriptor(rawAttr);
+            case AttributeType.VolumeName:
+                return new VolumeName(rawAttr);
+            case AttributeType.VolumeInformation:
+                return new VolumeInformation(rawAttr);
+            case AttributeType.LoggedUtilityStream:
+                return new LoggedUtilityStream(rawAttr);
+            case AttributeType.ReparsePoint:
+                return new ReparsePoint(rawAttr);
+            case AttributeType.AttributeList:
+                return new AttributeList(rawAttr);
+            case AttributeType.Ea:
+                return new ExtendedAttribute(rawAttr);
+            case AttributeType.EaInformation:
+                return new ExtendedAttributeInformation(rawAttr);
+            default:
+                return null;
+        }
+    }
+
     public static List<IndexEntryI30> GetSlackFileEntries(byte[] slackSpace, int pageNumber, int startOffset, uint entryNumber)
     {
         var ie = new List<IndexEntryI30>();
@@ -361,18 +417,16 @@ public class FileRecord
     }
 
 
+    /// <summary>Runs of 3 or more printable ASCII characters</summary>
+    private static readonly Regex UnicodeRuns = new("[\u0020-\u007E]{3,}", RegexOptions.Compiled);
+
     private static List<HitInfo> GetUnicodeHits(byte[] bytes)
     {
-        var maxString = "";
-        var mi2 = $"{"{"}{3}{","}{maxString}{"}"}";
-
-        var uniRange = "[\u0020-\u007E]";
-        var regUni = new Regex($"{uniRange}{mi2}", RegexOptions.Compiled);
         var uniString = Encoding.Unicode.GetString(bytes);
 
         var hits = new List<HitInfo>();
 
-        foreach (Match match in regUni.Matches(uniString))
+        foreach (Match match in UnicodeRuns.Matches(uniString))
         {
             if (match.Value.Trim().Length == 0)
             {
@@ -390,12 +444,18 @@ public class FileRecord
 
     public List<Attribute> Attributes { get; }
 
+    /// <summary>
+    ///     Problems found while parsing the record: a header or fixup array that does not fit, attributes with bad
+    ///     sizes, attributes that could not be parsed or of unknown types. The attributes that could be read are kept.
+    /// </summary>
+    public List<string> ParseErrors { get; } = new();
+
     public FixupData FixupData { get; }
 
     public bool IsBad { get; }
     public bool IsUninitialized { get; }
 
-    public int Offset { get; }
+    public long Offset { get; }
     public uint EntryNumber { get; }
     public short FirstAttributeOffset { get; }
     public int ActualRecordSize { get; }

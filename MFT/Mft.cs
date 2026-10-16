@@ -5,6 +5,7 @@ using System.Linq;
 using MFT.Attributes;
 using MFT.Other;
 using Serilog;
+using Serilog.Events;
 
 namespace MFT;
 
@@ -26,7 +27,10 @@ public class Mft
 
         var headerBytes = new byte[4];
 
-        fileStream.Read(headerBytes, 0, 4);
+        if (fileStream.Length < 0x20 || ReadFully(fileStream, headerBytes, 4) != 4)
+        {
+            throw new Exception("Invalid header! Expected 'FILE' Signature.");
+        }
 
         var sig = BitConverter.ToInt32(headerBytes, 0);
         if (sig != 0x454c4946) //Does not match FILE
@@ -39,29 +43,54 @@ public class Mft
 
         fileStream.Seek(0x1c, SeekOrigin.Begin); //go where data is
 
-        fileStream.Read(blockSizeBytes, 0, 4);
+        ReadFully(fileStream, blockSizeBytes, 4);
         fileStream.Seek(0, SeekOrigin.Begin); //reset to beginning
 
         var blockSize = BitConverter.ToInt32(blockSizeBytes, 0);
 
+        //1024 normally, 4096 on 4Kn disks. A bad size of 0 used to loop forever
+        if (blockSize < 0x100 || blockSize > 0x10000 || (blockSize & (blockSize - 1)) != 0)
+        {
+            throw new Exception($"Invalid FILE record size 0x{blockSize:X} in the first record (expected a power of two such as 0x400)");
+        }
+
         var fileBytes = new byte[blockSize];
 
-        var index = 0;
+        long index = 0;
 
         while (fileStream.Position < fileStream.Length)
         {
-            fileStream.Read(fileBytes, 0, blockSize);
+            var read = ReadFully(fileStream, fileBytes, blockSize);
 
-            //  Buffer.BlockCopy(rawBytes, index, fileBytes, 0, blockSize);
+            if (read < blockSize)
+            {
+                //a partial last record: don't leave the previous record's bytes in the rest of the buffer
+                Array.Clear(fileBytes, read, blockSize - read);
+            }
 
             CurrentOffset = index;
 
-            var f = new FileRecord(fileBytes, index,recoverFromSlack);
+            FileRecord f;
+            try
+            {
+                f = new FileRecord(fileBytes, index,recoverFromSlack);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Unable to process FILE record at offset 0x{Offset:X}: {Message}. Skipping...", index, e.Message);
+                ParseErrors.Add($"FILE record at offset 0x{index:X} could not be processed: {e.Message}");
+                index += blockSize;
+                continue;
+            }
 
             var key = f.GetKey();
 
-            Log.Verbose("Offset: 0x{Offset:X} flags: {EntryFlags} key: {Key}", f.Offset,
-                f.EntryFlags.ToString().Replace(", ", "|"), key);
+            //the flags string is slow to build, so only when it will be written
+            if (Log.IsEnabled(LogEventLevel.Verbose))
+            {
+                Log.Verbose("Offset: 0x{Offset:X} flags: {EntryFlags} key: {Key}", f.Offset,
+                    f.EntryFlags.ToString().Replace(", ", "|"), key);
+            }
 
             if (f.IsBad)
             {
@@ -102,12 +131,15 @@ public class Mft
                 f.MftRecordToBaseRecord.MftSequenceNumber > 0)
             {
                 //if the attribute list is NON-resident, have a fall back to get associated records
-                if (ExtensionFileRecords.ContainsKey(f.MftRecordToBaseRecord.GetKey()) == false)
+                var baseKey = f.MftRecordToBaseRecord.GetKey();
+
+                if (ExtensionFileRecords.TryGetValue(baseKey, out var extensions) == false)
                 {
-                    ExtensionFileRecords.Add(f.MftRecordToBaseRecord.GetKey(), new List<FileRecord>());
+                    extensions = new List<FileRecord>();
+                    ExtensionFileRecords.Add(baseKey, extensions);
                 }
 
-                ExtensionFileRecords[f.MftRecordToBaseRecord.GetKey()].Add(f);
+                extensions.Add(f);
             }
 
             index += blockSize;
@@ -131,6 +163,26 @@ public class Mft
 
     public long FileSize { get; }
 
+    /// <summary>FILE records that could not be processed at all (problems inside a record are in its ParseErrors)</summary>
+    public List<string> ParseErrors { get; } = new();
+
+    private static int ReadFully(Stream stream, byte[] buffer, int count)
+    {
+        var total = 0;
+        while (total < count)
+        {
+            var n = stream.Read(buffer, total, count - total);
+            if (n == 0)
+            {
+                break;
+            }
+
+            total += n;
+        }
+
+        return total;
+    }
+
 
     public Dictionary<string, FileRecord> FileRecords { get; }
     private Dictionary<string, List<FileRecord>> ExtensionFileRecords { get; }
@@ -145,7 +197,7 @@ public class Mft
     ///     When the MFT is being processed, this is set to the offset where the FILE record being processed starts.
     ///     <remarks>Used to include the offset where errors happen in parsing for log messages</remarks>
     /// </summary>
-    public static int CurrentOffset { get; private set; }
+    public static long CurrentOffset { get; private set; }
 
     private void BuildMaps(Dictionary<string, FileRecord> fileRecords, bool skipUnassociated = true)
     {
@@ -328,9 +380,11 @@ public class Mft
 
         var tempKey = recordKey;
 
-        while (_directoryNameMap.ContainsKey(tempKey))
+        //a damaged MFT can have directories that are each other's parent, which looped forever
+        var seen = new HashSet<string>();
+
+        while (_directoryNameMap.TryGetValue(tempKey, out var dir) && seen.Add(tempKey))
         {
-            var dir = _directoryNameMap[tempKey];
             stack.Push(dir.Name);
 
             if (tempKey.Equals("00000005-00000005"))

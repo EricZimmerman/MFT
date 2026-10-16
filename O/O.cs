@@ -10,123 +10,132 @@ namespace O;
 
 public class O
 {
+    /// <summary>OEntry reads this many bytes: the index entry header (0x10) and the $O key and data (0x48)</summary>
+    private const int EntrySize = 0x58;
+
     public O(Stream fileStream)
     {
         var pageSize = 0x1000;
 
         var rawBytes2 = new byte[fileStream.Length];
-        fileStream.Read(rawBytes2, 0, (int)fileStream.Length);
+        var read = 0;
+        while (read < rawBytes2.Length)
+        {
+            var n = fileStream.Read(rawBytes2, read, rawBytes2.Length - read);
+            if (n == 0)
+            {
+                break;
+            }
+
+            read += n;
+        }
 
         var sig = 0x58444E49;
 
-        var index2 = 0x0;
+        //this used to be created again for every page, so only the last page's entries were returned
+        Entries = new List<OEntry>();
 
-        while (index2 < rawBytes2.Length)
+        for (var index2 = 0; index2 + 0x28 <= read; index2 += pageSize)
         {
-            var index = 0x0;
-
             var rawBytes = new byte[pageSize];
-            Buffer.BlockCopy(rawBytes2, index2, rawBytes, 0, pageSize);
+            Buffer.BlockCopy(rawBytes2, index2, rawBytes, 0, Math.Min(pageSize, read - index2));
 
-            var headerBytes = new byte[4];
+            var sigActual = BitConverter.ToInt32(rawBytes, 0);
 
-            fileStream.Seek(0, SeekOrigin.Begin);
-
-            fileStream.Read(headerBytes, 0, 4);
-
-            var sigActual = BitConverter.ToInt32(headerBytes, 0);
-
-            if (sig != sigActual)
+            if (sigActual != sig)
             {
-                throw new Exception("Invalid header! Expected 'INDX' Signature.");
-            }
-
-            Entries = new List<OEntry>();
-
-            index += 4;
-
-            var fixupOffset = BitConverter.ToInt16(rawBytes, index);
-            index += 2;
-            var numFixupPairs = BitConverter.ToInt16(rawBytes, index);
-            index += 2;
-            var logFileSequenceNumber = BitConverter.ToInt64(rawBytes, index);
-            index += 8;
-            var virtualClusterNumber = BitConverter.ToInt64(rawBytes, index);
-            index += 8;
-
-            var dataStartPosition = index;
-
-            var indexValOffset = BitConverter.ToInt32(rawBytes, index);
-            index += 4;
-            var indexNodeSize = BitConverter.ToInt32(rawBytes, index);
-            index += 4;
-            var indexAllocatedSize = BitConverter.ToInt32(rawBytes, index);
-            index += 4;
-            var indexFlags = BitConverter.ToInt32(rawBytes, index);
-            index += 4;
-
-            var fixupTotalLength = numFixupPairs * 2;
-
-            var fixupBuffer = new byte[fixupTotalLength];
-            Buffer.BlockCopy(rawBytes, fixupOffset, fixupBuffer, 0, fixupTotalLength);
-
-
-            var fixupData = new FixupData(fixupBuffer);
-
-            var fixupOk = true;
-
-            //fixup verification
-            var counter = 512;
-            foreach (var bytese in fixupData.FixupActual)
-            {
-                //adjust the offset to where we need to check
-                var fixupOffset1 = counter - 2;
-
-                var expected = BitConverter.ToInt16(rawBytes, fixupOffset1);
-                if (expected != fixupData.FixupExpected)
+                if (index2 == 0)
                 {
-                    fixupOk = false;
-                    Log.Warning(
-                        "Fixup values do not match at 0x{FixupOffset1:X}. Expected: 0x{FixupExpected:X2}, actual: 0x{Expected:X2}",
-                        fixupOffset1, fixupData.FixupExpected, expected);
+                    throw new Exception("Invalid header! Expected 'INDX' Signature.");
                 }
 
-                //replace fixup expected with actual bytes. bytese has actual replacement values in it.
-                Buffer.BlockCopy(bytese, 0, rawBytes, fixupOffset1, 2);
+                if (sigActual != 0)
+                {
+                    ParseErrors.Add($"Page at 0x{index2:X} has no 'INDX' signature; skipped");
+                }
 
-                counter += 512;
+                continue;
             }
 
-            index += fixupTotalLength;
+            var fixupOffset = BitConverter.ToInt16(rawBytes, 4);
+            var numFixupPairs = BitConverter.ToInt16(rawBytes, 6);
 
-            while (index % 8 != 0)
+            //the index node header is at 0x18; its offsets are relative to it
+            var indexValOffset = BitConverter.ToInt32(rawBytes, 0x18);
+            var indexNodeSize = BitConverter.ToInt32(rawBytes, 0x18 + 4);
+
+            if (fixupOffset > 0 && numFixupPairs > 0 && fixupOffset + numFixupPairs * 2 <= rawBytes.Length)
             {
-                index += 1;
+                var fixupBuffer = new byte[numFixupPairs * 2];
+                Buffer.BlockCopy(rawBytes, fixupOffset, fixupBuffer, 0, fixupBuffer.Length);
+
+                var fixupData = new FixupData(fixupBuffer);
+
+                //fixup verification
+                var counter = 512;
+                foreach (var bytese in fixupData.FixupActual)
+                {
+                    //adjust the offset to where we need to check
+                    var fixupOffset1 = counter - 2;
+
+                    if (fixupOffset1 + 2 > rawBytes.Length)
+                    {
+                        break;
+                    }
+
+                    var expected = BitConverter.ToInt16(rawBytes, fixupOffset1);
+                    if (expected != fixupData.FixupExpected)
+                    {
+                        Log.Warning(
+                            "Fixup values do not match at 0x{FixupOffset1:X}. Expected: 0x{FixupExpected:X2}, actual: 0x{Expected:X2}",
+                            fixupOffset1, fixupData.FixupExpected, expected);
+                    }
+
+                    //replace fixup expected with actual bytes. bytese has actual replacement values in it.
+                    Buffer.BlockCopy(bytese, 0, rawBytes, fixupOffset1, 2);
+
+                    counter += 512;
+                }
+            }
+            else
+            {
+                ParseErrors.Add($"Page at 0x{index2:X}: fixup array does not fit; fixups not applied");
+            }
+
+            var index = 0x18 + indexValOffset;
+            var end = Math.Min(rawBytes.Length, 0x18 + indexNodeSize);
+
+            if (indexValOffset < 0x10 || index > end)
+            {
+                ParseErrors.Add($"Page at 0x{index2:X}: entries at 0x{indexValOffset:X} do not fit in the page");
+                continue;
             }
 
             Log.Verbose("Overall offset: 0x{Index2:X} Starting new INDEX ENTRY AREA at subindex {Index:X}", index2,
                 index);
 
-            while (index < rawBytes.Length)
+            while (end - index >= 0x10)
             {
-                //var offsetToData = BitConverter.ToUInt16(rawBytes, index);
-                //var sizeOfData = BitConverter.ToUInt16(rawBytes, index+2);
                 var sizeOfIndexEntry = BitConverter.ToUInt16(rawBytes, index + 8);
-                //var sizeOfIndexKey = BitConverter.ToUInt16(rawBytes, index+10);
+
                 var flags = BitConverter.ToUInt16(rawBytes, index + 12);
 
-                if (sizeOfIndexEntry == 0x10)
+                if ((flags & 2) == 2 || sizeOfIndexEntry < 0x10 || sizeOfIndexEntry > end - index)
                 {
-                    sizeOfIndexEntry = 0x58;
-                }
-
-                if (flags == 3 || sizeOfIndexEntry == 0 || index + sizeOfIndexEntry > rawBytes.Length)
-                {
+                    //the last entry, or damaged
                     break;
                 }
 
-                var buff = new byte[sizeOfIndexEntry];
-                Buffer.BlockCopy(rawBytes, index, buff, 0, 0x58);
+                if (sizeOfIndexEntry < EntrySize || end - index < EntrySize)
+                {
+                    ParseErrors.Add(
+                        $"Page at 0x{index2:X}: entry at 0x{index2 + index:X} is 0x{sizeOfIndexEntry:X} bytes, too small for an $O entry");
+                    index += sizeOfIndexEntry;
+                    continue;
+                }
+
+                var buff = new byte[EntrySize];
+                Buffer.BlockCopy(rawBytes, index, buff, 0, EntrySize);
 
                 var oe = new OEntry(buff, index2 + index);
 
@@ -139,10 +148,11 @@ public class O
 
                 Entries.Add(oe);
             }
-
-            index2 += pageSize;
         }
     }
+
+    /// <summary>Pages or entries that could not be read; the others are kept</summary>
+    public List<string> ParseErrors { get; } = new();
 
     public List<OEntry> Entries { get; }
 }

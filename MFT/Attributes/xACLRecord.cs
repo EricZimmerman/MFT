@@ -51,14 +51,20 @@ public class XAclRecord
 
             for (var i = 0; i < AceCount; i++)
             {
-                if (index > RawBytes.Length)
+                if (index + 4 > RawBytes.Length)
                     //ncrunch: no coverage
                 {
                     break; //ncrunch: no coverage
                 }
 
-                var aceSize = RawBytes[index + 2];
-                //  var rawAce = RawBytes.Skip(index).Take(aceSize).ToArray();
+                //the ACE size is 16 bits; this read one byte, so ACEs of 256 bytes or more (conditional ACEs) threw
+                //off every ACE after them
+                var aceSize = BitConverter.ToUInt16(RawBytes, index + 2);
+
+                if (aceSize < 8 || aceSize > RawBytes.Length - index)
+                {
+                    break;
+                }
 
                 var rawAce = new byte[aceSize];
                 Buffer.BlockCopy(RawBytes, index, rawAce, 0, aceSize);

@@ -24,8 +24,8 @@ public class MftInformation
         }
         else
         {
-            entryIndex2 = entryIndex2 * 16777216; //2^24
-            entryIndex = entryIndex1 + entryIndex2;
+            //the entry number is 48 bits: the high 16 bits start at bit 32 (this used to multiply by 2^24)
+            entryIndex = entryIndex1 | (entryIndex2 << 32);
         }
 
         EntryNumber = entryIndex;

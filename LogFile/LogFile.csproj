@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <!-- 'Logfile' on nuget.org is another author's package, and this parser is being replaced -->
+        <IsPackable>false</IsPackable>
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <Copyright>Eric R. Zimmerman</Copyright>
@@ -8,7 +10,6 @@
         <Authors>Eric R. Zimmerman</Authors>
         <Description>$LogFile parser</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Version>2026.5.1</Version>
 
         <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -19,15 +20,16 @@
 
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Serilog" Version="4.3.1" />
+        <InternalsVisibleTo Include="MFT.Test" />
+        <PackageReference Include="Serilog" Version="4.4.0" />
 
 
         <None Include="../README.md" Pack="true" PackagePath=""/>
-        <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.2">
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="MinVer" Version="7.0.0">
+        <PackageReference Include="MinVer" Version="8.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

@@ -22,13 +22,20 @@ public class NonResidentData
 
         DataRuns = new List<DataRun>();
 
-        var drStart = rawBytes[index];
+        var drStart = index < rawBytes.Length ? rawBytes[index] : (byte)0;
 
         while (drStart != 0)
         {
             var offsetLength = (byte)((drStart & 0xF0) >> 4); //left nibble
             var clusterLenByteCount = (byte)(drStart & 0x0F); //right nibble
             index += 1;
+
+            if (clusterLenByteCount > 8 || offsetLength > 8 ||
+                index + clusterLenByteCount + offsetLength > rawBytes.Length)
+            {
+                //a damaged run list; keep the runs read so far
+                break;
+            }
 
             var runLenBytes = new byte[8]; //length should never exceed 8, so start with 8
             Buffer.BlockCopy(rawBytes, index, runLenBytes, 0, clusterLenByteCount);
@@ -62,7 +69,7 @@ public class NonResidentData
             var dr = new DataRun(clusterRunLength, clusterNumber);
             DataRuns.Add(dr);
 
-            drStart = rawBytes[index];
+            drStart = index < rawBytes.Length ? rawBytes[index] : (byte)0;
         }
     }
 

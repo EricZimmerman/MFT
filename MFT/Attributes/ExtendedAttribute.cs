@@ -39,9 +39,15 @@ public class ExtendedAttribute : Attribute
 
         var chunks = new List<byte[]>();
 
-        while (index < Content.Length)
+        while (Content.Length - index >= 8)
         {
             var size = BitConverter.ToInt32(Content, index);
+
+            if (size < 8 || size > Content.Length - index)
+                //damaged; 0 would never move forward
+            {
+                break;
+            }
 
             var buff = new byte[size];
             Buffer.BlockCopy(Content, index, buff, 0, size);

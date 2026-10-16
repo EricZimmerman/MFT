@@ -438,27 +438,30 @@ public static class Helpers
 
         const string header = "S";
 
+        //revision (1), subauthority count (1), 48 bit big-endian authority, then count x UInt32 subauthorities.
+        //callers often pass more bytes than the SID (padding, or everything up to the end of a descriptor), so
+        //use the count rather than the buffer length, which turned the extra bytes into bogus subauthorities
+        if (hex == null || hex.Length < 8)
+        {
+            return string.Empty;
+        }
 
         var sidVersion = hex[0].ToString();
 
-        //TODO fix this to use Buffer
-        var authId = BitConverter.ToInt32(hex.Skip(4).Take(4).Reverse().ToArray(), 0);
-
-        var index = 8;
-
-        var sid = $"{header}-{sidVersion}-{authId}";
-
-        do
+        ulong authId = 0;
+        for (var i = 2; i < 8; i++)
         {
-            //TODO fix this to use Buffer
-            var tempAuthHex = hex.Skip(index).Take(4).ToArray();
+            authId = (authId << 8) | hex[i];
+        }
 
-            var tempAuth = BitConverter.ToUInt32(tempAuthHex, 0);
+        var sid = new System.Text.StringBuilder($"{header}-{sidVersion}-{authId}");
 
-            index += 4;
+        var count = Math.Min(hex[1], (hex.Length - 8) / 4);
 
-            sid = $"{sid}-{tempAuth}";
-        } while (index < hex.Length);
+        for (var i = 0; i < count; i++)
+        {
+            sid.Append('-').Append(BitConverter.ToUInt32(hex, 8 + i * 4));
+        }
 
         //some tests
         //var hexStr = BitConverter.ToString(hex);
@@ -487,7 +490,7 @@ public static class Helpers
         //}
 
 
-        return sid;
+        return sid.ToString();
     }
 
     public static string GetDescriptionFromEnumValue(Enum value)

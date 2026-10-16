@@ -9,10 +9,14 @@ namespace I30;
 
 public class I30
 {
+    /// <summary>INDX pages (index records) are 4096 bytes each</summary>
+    private const int PageSize = 0x1000;
+
+    /// <summary>The index node header (entries offset, sizes, flags) starts at 0x18; its offsets are relative to it</summary>
+    private const int NodeHeaderOffset = 0x18;
+
     public I30(Stream fileStream)
     {
-        var pageSize = 0x1000;
-
         var sig = 0x58444E49;
 
         Entries = new List<IndexEntryI30>();
@@ -23,167 +27,197 @@ public class I30
         {
             while (br.BaseStream.Position < br.BaseStream.Length)
             {
-                pages.Add(br.ReadBytes(pageSize));
+                pages.Add(br.ReadBytes(PageSize));
             }
         }
 
         var uniqueSlackEntryMd5s = new HashSet<string>();
 
         var pageNumber = 0;
+
         foreach (var page in pages)
         {
             //INDX pages are 4096 bytes each, so process them accordingly
-
             Log.Debug("Processing page 0x{PageNumber:X}", pageNumber);
 
-            using (var br = new BinaryReader(new MemoryStream(page)))
-            {
-                var sigActual = br.ReadInt32();
+            var pageOffset = (long)pageNumber * PageSize;
 
-                if (sigActual == 0x00)
-                {
-                    //empty page
-                    Log.Warning("Empty page found at offset {Offset}. Skipping", $"0x{pageNumber * 0x1000:X}");
-                    pageNumber++;
-                    continue;
-                }
-                
-                if (sig != sigActual)
+            if (page.Length < 0x28)
+            {
+                ParseErrors.Add($"Page at 0x{pageOffset:X} is only 0x{page.Length:X} bytes");
+                break;
+            }
+
+            var sigActual = BitConverter.ToInt32(page, 0);
+
+            if (sigActual == 0x00)
+            {
+                //empty page
+                Log.Warning("Empty page found at offset {Offset}. Skipping", $"0x{pageOffset:X}");
+                pageNumber++;
+                continue;
+            }
+
+            if (sig != sigActual)
+            {
+                if (pageNumber == 0)
                 {
                     throw new Exception("Invalid header! Expected 'INDX' Signature");
                 }
 
-                var fixupOffset = br.ReadInt16();
+                Log.Warning("Page at offset {Offset} has no 'INDX' signature. Skipping", $"0x{pageOffset:X}");
+                ParseErrors.Add($"Page at 0x{pageOffset:X} has no 'INDX' signature; skipped");
+                pageNumber++;
+                continue;
+            }
 
-                var numFixupPairs = br.ReadInt16();
-
-                var logFileSequenceNumber = br.ReadInt64();
-
-                var virtualClusterNumber = br.ReadInt64();
-
-                var dataStartOffset = br.ReadInt32();
-                var dataSize = br.ReadInt32();
-                var dataSizeAllocated = br.ReadInt32();
-
-                var isLeafNode = br.ReadInt32() == 0; //this gets us by padding too
-
-                var fixupTotalLength = numFixupPairs * 2;
-
-                var fixupBuffer = new byte[fixupTotalLength];
-
-                fixupBuffer = br.ReadBytes(fixupTotalLength);
-
-                while (br.BaseStream.Position % 8 != 0)
-                {
-                    br.ReadByte(); //gets us past padding
-                }
-
-                //since we need to change bytes for the index entries based on fixup, get an array of those bytes
-
-                var rawBytes = br.ReadBytes((int)(br.BaseStream.Length - br.BaseStream.Position));
-
-                var fixupData = new FixupData(fixupBuffer);
-
-                //fixup verification
-                var counter =
-                    512 - dataStartOffset -
-                    0x18; //datastartOffset is relative, so we need to account for where it begins, at 0x18
-                foreach (var bytese in fixupData.FixupActual)
-                {
-                    //adjust the offset to where we need to check
-                    var fixupOffset1 = counter - 2;
-
-                    var expected = BitConverter.ToInt16(rawBytes, fixupOffset1);
-                    if (expected != fixupData.FixupExpected)
-                    {
-                        Log.Warning(
-                            "Fixup values do not match at 0x{FixupOffset1:X}. Expected: 0x{FixupExpected:X2}, actual: 0x{Expected:X2}",
-                            fixupOffset1, fixupData.FixupExpected, expected);
-                    }
-
-                    //replace fixup expected with actual bytes. bytese has actual replacement values in it.
-                    Buffer.BlockCopy(bytese, 0, rawBytes, fixupOffset1, 2);
-
-                    counter += 512;
-                }
-
-                //rawbytes contains the data from the current page we need to parse to get to indexes
-                //datasize includes startoffset plus fixup, etc, so subtract data offset from size for the active index allocations
-                //valid data is allocated - dataoffset
-                //after that is slack
-
-                var activeSpace = new byte[dataSize - dataStartOffset];
-                Buffer.BlockCopy(rawBytes, 0, activeSpace, 0, activeSpace.Length);
-
-                var slackSpace = new byte[rawBytes.Length - activeSpace.Length];
-                Buffer.BlockCopy(rawBytes, dataSize - dataStartOffset, slackSpace, 0, slackSpace.Length);
-
-                // File.WriteAllBytes($@"C:\temp\{pageNumber}_slack.bin",slackSpace);
-
-                //absolute offset is page # * 0x1000 + 0x18 + datastartoffset
-                //for slack, add activespace.len
-
-                using (var binaryReader = new BinaryReader(new MemoryStream(activeSpace)))
-                {
-                    while (binaryReader.BaseStream.Position < binaryReader.BaseStream.Length)
-                    {
-                        var absoluteOffset = pageNumber * 0x1000 + 0x18 + dataStartOffset +
-                                             binaryReader.BaseStream.Position;
-
-                        Log.Verbose(
-                            "IN ACTIVE LOOP: Absolute offset: 0x{AbsoluteOffset:X} brActive.BaseStream.Position: 0x{Position:X}",
-                            absoluteOffset, binaryReader.BaseStream.Position);
-
-                        binaryReader.ReadInt64(); //mft info
-                        var indexSize = binaryReader.ReadInt16();
-                        binaryReader.BaseStream.Seek(-10, SeekOrigin.Current); //go back to start of the index data
-
-                        var indxBuffer = binaryReader.ReadBytes(indexSize);
-
-                        var ie = new IndexEntryI30(indxBuffer, absoluteOffset, pageNumber, false);
-
-                        if (ie.MftReferenceSelf.MftEntryNumber == 0)
-                        {
-                            continue;
-                        }
-
-                        //its ok
-                        Log.Debug("{Ie}", ie);
-                        Entries.Add(ie);
-                    }
-                }
-
-                Log.Verbose("IN SLACK LOOP for {Page", pageNumber);
-                var slackAbsOffset = pageNumber * 0x1000 + 0x18 + dataStartOffset +
-                                     activeSpace.Length;
-
-                var slackIe = FileRecord.GetSlackFileEntries(slackSpace, pageNumber, slackAbsOffset,0);
-
-                //var h = GetUnicodeHits(slackSpace);
-
-                foreach (var indexEntry in slackIe)
-                {
-                    if (uniqueSlackEntryMd5s.Contains(indexEntry.Md5))
-                    {
-                        Log.Debug("Discarding duplicate slack buffer with MD5 {Md5}", indexEntry.Md5);
-                        continue;
-                    }
-
-                    Entries.Add(indexEntry);
-
-                    uniqueSlackEntryMd5s.Add(indexEntry.Md5);
-
-                }
+            try
+            {
+                ProcessPage(page, pageNumber, uniqueSlackEntryMd5s);
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Error processing page at offset {Offset}: {Message}. Skipping", $"0x{pageOffset:X}",
+                    e.Message);
+                ParseErrors.Add($"Page at 0x{pageOffset:X} could not be processed: {e.Message}");
             }
 
             pageNumber += 1;
         }
     }
 
+    private void ProcessPage(byte[] page, int pageNumber, HashSet<string> uniqueSlackEntryMd5s)
+    {
+        var pageOffset = (long)pageNumber * PageSize;
+
+        var fixupOffset = BitConverter.ToInt16(page, 4);
+        var numFixupPairs = BitConverter.ToInt16(page, 6);
+        var dataStartOffset = BitConverter.ToInt32(page, NodeHeaderOffset);
+        var dataSize = BitConverter.ToInt32(page, NodeHeaderOffset + 4);
+
+        //fixups: the last 2 bytes of each 512 byte sector were replaced with the update sequence number;
+        //put the original bytes back
+        if (fixupOffset > 0 && numFixupPairs > 0 && fixupOffset + numFixupPairs * 2 <= page.Length)
+        {
+            var fixupBuffer = new byte[numFixupPairs * 2];
+            Buffer.BlockCopy(page, fixupOffset, fixupBuffer, 0, fixupBuffer.Length);
+
+            var fixupData = new FixupData(fixupBuffer);
+
+            var sectorEnd = 512 - 2;
+            foreach (var bytese in fixupData.FixupActual)
+            {
+                if (sectorEnd + 2 > page.Length)
+                {
+                    break;
+                }
+
+                var expected = BitConverter.ToInt16(page, sectorEnd);
+                if (expected != fixupData.FixupExpected)
+                {
+                    Log.Warning(
+                        "Fixup values do not match at 0x{FixupOffset1:X}. Expected: 0x{FixupExpected:X2}, actual: 0x{Expected:X2}",
+                        sectorEnd, fixupData.FixupExpected, expected);
+                }
+
+                //replace fixup expected with actual bytes. bytese has actual replacement values in it.
+                Buffer.BlockCopy(bytese, 0, page, sectorEnd, 2);
+
+                sectorEnd += 512;
+            }
+        }
+        else
+        {
+            ParseErrors.Add(
+                $"Page at 0x{pageOffset:X}: fixup array at 0x{fixupOffset:X} with 0x{numFixupPairs:X} entries does not fit; fixups not applied");
+        }
+
+        //entries are from the data start to the data size (both relative to 0x18); after that is slack
+        var activeStart = NodeHeaderOffset + dataStartOffset;
+        var activeEnd = NodeHeaderOffset + dataSize;
+
+        if (dataStartOffset < 0x10 || activeStart > page.Length || activeEnd < activeStart || activeEnd > page.Length)
+        {
+            ParseErrors.Add(
+                $"Page at 0x{pageOffset:X}: entries from 0x{dataStartOffset:X} to 0x{dataSize:X} do not fit in the page");
+            return;
+        }
+
+        var index = activeStart;
+
+        while (activeEnd - index >= 0x10)
+        {
+            var absoluteOffset = pageOffset + index;
+
+            Log.Verbose(
+                "IN ACTIVE LOOP: Absolute offset: 0x{AbsoluteOffset:X} brActive.BaseStream.Position: 0x{Position:X}",
+                absoluteOffset, index - activeStart);
+
+            //MFT reference (8), entry size (2), key size (2), flags (4), key
+            var indexSize = BitConverter.ToInt16(page, index + 8);
+
+            if (indexSize < 0x10 || indexSize > activeEnd - index)
+            {
+                //a size of 0 used to loop forever
+                ParseErrors.Add(
+                    $"Page at 0x{pageOffset:X}: index entry at 0x{absoluteOffset:X} has size 0x{indexSize:X}; rest of the page skipped");
+                break;
+            }
+
+            var indxBuffer = new byte[indexSize];
+            Buffer.BlockCopy(page, index, indxBuffer, 0, indexSize);
+
+            index += indexSize;
+
+            IndexEntryI30 ie;
+            try
+            {
+                ie = new IndexEntryI30(indxBuffer, absoluteOffset, pageNumber, false);
+            }
+            catch (Exception e)
+            {
+                ParseErrors.Add(
+                    $"Page at 0x{pageOffset:X}: index entry at 0x{absoluteOffset:X} could not be parsed: {e.Message}");
+                continue;
+            }
+
+            if (ie.MftReferenceSelf.MftEntryNumber == 0)
+            {
+                continue;
+            }
+
+            //its ok
+            Log.Debug("{Ie}", ie);
+            Entries.Add(ie);
+        }
+
+        Log.Verbose("IN SLACK LOOP for {Page}", pageNumber);
+
+        var slackSpace = new byte[page.Length - activeEnd];
+        Buffer.BlockCopy(page, activeEnd, slackSpace, 0, slackSpace.Length);
+
+        var slackAbsOffset = pageOffset + activeEnd;
+
+        var slackIe = FileRecord.GetSlackFileEntries(slackSpace, pageNumber, (int)slackAbsOffset, 0);
+
+        foreach (var indexEntry in slackIe)
+        {
+            if (uniqueSlackEntryMd5s.Contains(indexEntry.Md5))
+            {
+                Log.Debug("Discarding duplicate slack buffer with MD5 {Md5}", indexEntry.Md5);
+                continue;
+            }
+
+            Entries.Add(indexEntry);
+            uniqueSlackEntryMd5s.Add(indexEntry.Md5);
+        }
+    }
 
     public List<IndexEntryI30> Entries { get; }
 
-
-
+    /// <summary>
+    ///     Problems found: pages without a signature or that don't fit, entries with bad sizes. The entries that could be
+    ///     read are kept.
+    /// </summary>
+    public List<string> ParseErrors { get; } = new();
 }
-

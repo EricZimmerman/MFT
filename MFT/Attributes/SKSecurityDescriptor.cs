@@ -44,13 +44,37 @@ public class SkSecurityDescriptor
     {
         RawBytes = rawBytes;
 
-        _sizeSacl = DaclOffset - SaclOffset;
-        _sizeDacl = OwnerOffset - DaclOffset;
-        _sizeOwnerSid = GroupOffset - OwnerOffset;
-        _sizeGroupSid = (uint)(rawBytes.Length - GroupOffset);
+        //the sizes used to be the gaps between the parts, assuming the order SACL, DACL, owner, group; other
+        //writers (and damaged data) put them elsewhere, which underflowed. Take them from the data instead
+        _sizeSacl = AclSize(SaclOffset);
+        _sizeDacl = AclSize(DaclOffset);
+        _sizeOwnerSid = SidSize(OwnerOffset);
+        _sizeGroupSid = SidSize(GroupOffset);
 
 
         Padding = string.Empty; //TODO VERIFY ITS ALWAYS ZEROs
+    }
+
+    /// <summary>The ACL's size (at +2 in its header), cut to the end of the descriptor; 0 when there is none</summary>
+    private uint AclSize(uint offset)
+    {
+        if (offset == 0 || RawBytes.Length < 0x14 || offset > RawBytes.Length - 4)
+        {
+            return 0;
+        }
+
+        return Math.Min(BitConverter.ToUInt16(RawBytes, (int)offset + 2), (uint)RawBytes.Length - offset);
+    }
+
+    /// <summary>8 + 4 bytes per subauthority, cut to the end of the descriptor; 0 when there is none</summary>
+    private uint SidSize(uint offset)
+    {
+        if (offset == 0 || RawBytes.Length < 0x14 || offset > RawBytes.Length - 8)
+        {
+            return 0;
+        }
+
+        return Math.Min(8u + 4u * RawBytes[offset + 1], (uint)RawBytes.Length - offset);
     }
 
     // public properties...
@@ -60,7 +84,7 @@ public class SkSecurityDescriptor
     {
         get
         {
-            if ((Control & ControlEnum.SeDaclPresent) == ControlEnum.SeDaclPresent)
+            if ((Control & ControlEnum.SeDaclPresent) == ControlEnum.SeDaclPresent && _sizeDacl > 0)
             {
                 //var rawDacla = RawBytes.Skip((int) DaclOffset).Take((int) sizeDacl).ToArray();
 
@@ -85,6 +109,11 @@ public class SkSecurityDescriptor
         {
             // var rawGroup = RawBytes.Skip((int) GroupOffset).Take((int) sizeGroupSid).ToArray();
 
+            if (_sizeGroupSid == 0)
+            {
+                return string.Empty;
+            }
+
             var rawGroup = new byte[_sizeGroupSid];
             Buffer.BlockCopy(RawBytes, (int)GroupOffset, rawGroup, 0, (int)_sizeGroupSid);
 
@@ -101,6 +130,11 @@ public class SkSecurityDescriptor
         get
         {
             // var rawOwner = RawBytes.Skip((int) OwnerOffset).Take((int) sizeOwnerSid).ToArray();
+
+            if (_sizeOwnerSid == 0)
+            {
+                return string.Empty;
+            }
 
             var rawOwner = new byte[_sizeOwnerSid];
             Buffer.BlockCopy(RawBytes, (int)OwnerOffset, rawOwner, 0, (int)_sizeOwnerSid);
@@ -125,7 +159,7 @@ public class SkSecurityDescriptor
                 return null;
             }
 
-            if (_sizeSacl > 1000)
+            if (_sizeSacl == 0)
             {
                 return null;
             }

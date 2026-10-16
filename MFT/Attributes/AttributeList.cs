@@ -17,18 +17,22 @@ public class AttributeList : Attribute
 
         if (IsResident)
         {
-            var index = ContentOffset;
+            int index = ContentOffset;
+            var end = Math.Min(rawBytes.Length, ContentOffset + Math.Max(0, AttributeContentLength));
 
-            while (index < rawBytes.Length)
+            //each entry: type (4), entry size (2), name size (1), name offset (1), first VCN (8), base record (8), id (2), name
+            while (end - index >= 0x1A)
             {
-                var size = BitConverter.ToInt16(rawBytes, index + 4);
+                var size = BitConverter.ToUInt16(rawBytes, index + 4);
 
-                if (size < rawBytes.Length - index)
+                //this used to be 'size < remaining', which stopped when there WAS enough data, so resident
+                //attribute lists almost never had any entries
+                if (size < 0x1A || size > end - index)
                 {
                     Log.Debug("Not enough data to process attribute list. {Msg}","Skipping remaining bytes in attribute list");
                     break;
                 }
-                
+
                 var buffer = new byte[size];
                 Buffer.BlockCopy(rawBytes, index, buffer, 0, size);
 
@@ -48,9 +52,9 @@ public class AttributeList : Attribute
             ActualSize = BitConverter.ToUInt64(rawBytes, 0x30);
             InitializedSize = BitConverter.ToUInt64(rawBytes, 0x38);
 
-            var index = OffsetToDataRun;
+            int index = OffsetToDataRun;
 
-            var hasAnother = rawBytes[index] > 0;
+            var hasAnother = index < rawBytes.Length && rawBytes[index] > 0;
 
             //when data is split across several entries, must find them all and process in order of 
             //StartingVCN: 0x0 EndingVCN: 0x57C
@@ -67,6 +71,13 @@ public class AttributeList : Attribute
                 var clustersToReadAtOffset = (byte)(drStart & 0x0F);
                 var offsetToRun = (byte)((drStart & 0xF0) >> 4);
 
+                if (clustersToReadAtOffset > 8 || offsetToRun > 8 ||
+                    index + clustersToReadAtOffset + offsetToRun > rawBytes.Length)
+                {
+                    Log.Debug("Bad data run in attribute list. {Msg}", "Skipping remaining data runs");
+                    break;
+                }
+
                 var clusterCountRaw = new byte[8];
                 var offsetToRunRaw = new byte[8];
 
@@ -76,13 +87,22 @@ public class AttributeList : Attribute
                 Buffer.BlockCopy(rawBytes, index, offsetToRunRaw, 0, offsetToRun);
                 index += offsetToRun;
 
+                //the run offset is signed (relative to the previous run), as in NonResidentData
+                if (offsetToRun > 0 && offsetToRunRaw[offsetToRun - 1] >= 0x80)
+                {
+                    for (var i = offsetToRun; i < 8; i++)
+                    {
+                        offsetToRunRaw[i] = 0xFF;
+                    }
+                }
+
                 var clusterCount = BitConverter.ToUInt64(clusterCountRaw, 0);
                 var offset = BitConverter.ToInt64(offsetToRunRaw, 0);
 
                 var dr = new DataRun(clusterCount, offset);
                 DataRuns.Add(dr);
 
-                hasAnother = rawBytes[index] > 0;
+                hasAnother = index < rawBytes.Length && rawBytes[index] > 0;
             }
         }
     }

@@ -136,36 +136,89 @@ public class UsnEntry
         ClientReplicationManagement = 0x00000008
     }
 
+    /// <summary>
+    ///     A USN_RECORD_V2, or a USN_RECORD_V3 (128 bit file references, of which NTFS uses the low 64 bits; every
+    ///     field after them is 16 bytes further on)
+    /// </summary>
+    /// <exception cref="ArgumentException">Not a V2 or V3 record, or shorter than its fixed part</exception>
     public UsnEntry(byte[] rawBytes, long offset)
     {
         OffsetToData = offset;
+
         Size = BitConverter.ToInt32(rawBytes, 0);
         MajorVersion = BitConverter.ToInt16(rawBytes, 4);
         MinorVersion = BitConverter.ToInt16(rawBytes, 6);
+
+        int extra;
+        switch (MajorVersion)
+        {
+            case 2:
+                extra = 0;
+                break;
+            case 3:
+                extra = 16;
+                break;
+            default:
+                throw new ArgumentException($"USN record version {MajorVersion} is not a V2 or V3 record");
+        }
+
+        if (rawBytes.Length < 0x3C + extra)
+        {
+            throw new ArgumentException($"USN record is 0x{rawBytes.Length:X} bytes, shorter than its fixed part");
+        }
+
+        var refSize = 8 + extra / 2;
 
         var frb = new byte[8];
         Buffer.BlockCopy(rawBytes, 8, frb, 0, 8);
         FileReference = new MftInformation(frb);
 
         var pfrb = new byte[8];
-        Buffer.BlockCopy(rawBytes, 16, pfrb, 0, 8);
+        Buffer.BlockCopy(rawBytes, 8 + refSize, pfrb, 0, 8);
         ParentFileReference = new MftInformation(pfrb);
 
-        UpdateSequenceNumber = BitConverter.ToUInt64(rawBytes, 24);
+        UpdateSequenceNumber = BitConverter.ToUInt64(rawBytes, 24 + extra);
 
-        UpdateTimestamp = DateTimeOffset.FromFileTime(BitConverter.ToInt64(rawBytes, 32)).UtcDateTime;
+        var timestamp = BitConverter.ToInt64(rawBytes, 32 + extra);
+        if (timestamp >= 0 && timestamp <= MaxFileTime)
+        {
+            UpdateTimestamp = DateTimeOffset.FromFileTime(timestamp).UtcDateTime;
+        }
+        else
+        {
+            //out of range for a DateTimeOffset; this used to throw and end the journal
+            UpdateTimestamp = DateTimeOffset.MinValue;
+            InvalidTimestamp = true;
+        }
 
-        UpdateReasons = (UpdateReasonFlag)BitConverter.ToUInt32(rawBytes, 40);
-        UpdateSources = (UpdateSourceFlag)BitConverter.ToUInt32(rawBytes, 44);
+        UpdateReasons = (UpdateReasonFlag)BitConverter.ToUInt32(rawBytes, 40 + extra);
 
-        SecurityDescriptorId = BitConverter.ToInt32(rawBytes, 48);
-        FileAttributes = (FileAttributeFlag)BitConverter.ToInt32(rawBytes, 52);
+        UpdateSources = (UpdateSourceFlag)BitConverter.ToUInt32(rawBytes, 44 + extra);
 
-        NameSize = BitConverter.ToInt16(rawBytes, 56);
-        NameOffset = BitConverter.ToInt16(rawBytes, 58);
+        SecurityDescriptorId = BitConverter.ToInt32(rawBytes, 48 + extra);
 
-        Name = Encoding.Unicode.GetString(rawBytes, NameOffset, NameSize);
+        FileAttributes = (FileAttributeFlag)BitConverter.ToInt32(rawBytes, 52 + extra);
+
+        NameSize = BitConverter.ToInt16(rawBytes, 56 + extra);
+        NameOffset = BitConverter.ToInt16(rawBytes, 58 + extra);
+
+        //a name past the end of the record is cut to what is there
+        if (NameOffset >= 0 && NameOffset <= rawBytes.Length)
+        {
+            var nameSize = Math.Max(0, Math.Min((int)NameSize, rawBytes.Length - NameOffset));
+            Name = Encoding.Unicode.GetString(rawBytes, NameOffset, nameSize - nameSize % 2);
+        }
+        else
+        {
+            Name = string.Empty;
+        }
     }
+
+    /// <summary>9999-12-31 as a FILETIME, the largest a DateTimeOffset holds</summary>
+    private const long MaxFileTime = 2650467743999999999;
+
+    /// <summary>The timestamp was out of range, so <see cref="UpdateTimestamp" /> is DateTimeOffset.MinValue</summary>
+    public bool InvalidTimestamp { get; }
 
     public int Size { get; }
     public short MajorVersion { get; }

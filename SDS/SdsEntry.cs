@@ -27,6 +27,9 @@ public class SdsEntry
 
     public SkSecurityDescriptor SecurityDescriptor { get; }
 
+    /// <summary>True for a copy from the mirror block that differs from the primary copy</summary>
+    public bool FromMirror { get; internal set; }
+
     private string GetHash()
     {
         var b = BitConverter.GetBytes(_hash);

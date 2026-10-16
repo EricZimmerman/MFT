@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+  </Configurations>
+  <Project Path="Boot/Boot.csproj" />
+  <Project Path="I30/I30.csproj" />
+  <Project Path="LogFile/LogFile.csproj" />
+  <Project Path="MFT.Test/MFT.Test.csproj" />
+  <Project Path="MFT/MFT.csproj" />
+  <Project Path="O/O.csproj" />
+  <Project Path="SDS/Secure.csproj" />
+  <Project Path="Usn/Usn.csproj" />
+</Solution>
