@@ -13,7 +13,7 @@ The SDK is pinned in `global.json` (.NET 10). Libraries target `netstandard2.0`,
 ```bash
 dotnet build -c Release                                          # builds MFT.slnx
 dotnet test -c Release                                           # CI; CorpusTests is [Explicit] and skipped
-dotnet test -c Release --filter "FullyQualifiedName~CorpusTests" # every $MFT in ../MFTs (or MFT_CORPUS), slow
+dotnet test -c Release --filter "FullyQualifiedName~CorpusTests" # every $MFT in ../Corpus/MFTs (or ../MFTs, or MFT_CORPUS), slow
 dotnet test --filter "FullyQualifiedName~RecordRobustnessTests"  # one fixture
 dotnet pack -c Release
 ```
@@ -50,7 +50,7 @@ dotnet pack -c Release
 - `RecordRobustnessTests` (with `RecordBuilder`) and `MftFileTests`: built and damaged records and $MFT files. Add regression tests here.
 - `OtherFormatTests`: $Boot, $I30, $SDS, $J, $O and SIDs/ACEs, with built data where there are no samples.
 - `LogFileTests` (with `LogFileBuilder`, which builds LFS 2.0 logs): a real Server 2012 R2 $LogFile (gzipped in `TestFiles/DFIRArtifactMuseum/LogFile`), records spanning pages, fast copies, pages past the end of the file, old records mid-page, torn pages, decoding.
-- `TestFiles/Generated`: made with ntfsprogs (see its README). `TestFiles/DFIRArtifactMuseum`: MIT samples from the DFIR Artifact Museum (see its README). `CorpusTests`: a local `MFTs` folder next to the repo (or `MFT_CORPUS`), never copied into the repo.
+- `TestFiles/Generated`: made with ntfsprogs (see its README). `TestFiles/DFIRArtifactMuseum`: MIT samples from the DFIR Artifact Museum (see its README). `CorpusTests`: a local `MFTs` folder in `Corpus/` next to the repo (or directly next to it, or `MFT_CORPUS`), never copied into the repo.
 
 ## Versioning and release
 

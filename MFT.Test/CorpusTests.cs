@@ -27,10 +27,16 @@ public class CorpusTests
         var dir = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
         for (var i = 0; i < 6 && dir != null; i++, dir = dir.Parent)
         {
-            var candidate = Path.Combine(dir.FullName, "MFTs");
-            if (Directory.Exists(candidate))
+            foreach (var candidate in new[]
+                     {
+                         Path.Combine(dir.FullName, "Corpus", "MFTs"),
+                         Path.Combine(dir.FullName, "MFTs")
+                     })
             {
-                return candidate;
+                if (Directory.Exists(candidate))
+                {
+                    return candidate;
+                }
             }
         }
 
