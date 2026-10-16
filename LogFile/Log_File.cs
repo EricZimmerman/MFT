@@ -4,7 +4,10 @@ namespace LogFile;
 
 public static class Log_File
 {
-    public static LogFile Load(string logFile)
+    /// <param name="logFile">Path of the $LogFile</param>
+    /// <param name="clusterSize">Bytes per cluster of the volume (from $Boot), to work out target $MFT entries</param>
+    /// <exception cref="LogFileParseException">No valid restart page, or the log was never used</exception>
+    public static LogFile Load(string logFile, int clusterSize = 4096)
     {
         if (File.Exists(logFile) == false)
         {
@@ -12,20 +15,6 @@ public static class Log_File
         }
 
         using var fs = new FileStream(logFile, FileMode.Open, FileAccess.Read);
-        return new LogFile(fs);
-    }
-
-    public static byte[] ReadAllBytes(this BinaryReader reader)
-    {
-        const int bufferSize = 4096;
-        using var ms = new MemoryStream();
-        var buffer = new byte[bufferSize];
-        int count;
-        while ((count = reader.Read(buffer, 0, buffer.Length)) != 0)
-        {
-            ms.Write(buffer, 0, count);
-        }
-
-        return ms.ToArray();
+        return new LogFile(fs, clusterSize);
     }
 }

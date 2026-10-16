@@ -1,17 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <!-- 'Logfile' on nuget.org is another author's package, and this parser is being replaced -->
-        <IsPackable>false</IsPackable>
+        <!-- 'Logfile' on nuget.org is another author's package -->
+        <PackageId>MFT.LogFile</PackageId>
+        <AssemblyName>LogFile</AssemblyName>
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
         <Copyright>Eric R. Zimmerman</Copyright>
         <LangVersion>10</LangVersion>
         <Authors>Eric R. Zimmerman</Authors>
-        <Description>$LogFile parser</Description>
+        <Description>Parses NTFS $LogFile: restart areas, log record pages and NTFS log records (redo/undo operations), with file records, attributes and index entries decoded</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
-        <PackageTags>$MFT, $Boot, usn, $J, $I30, NTFS</PackageTags>
+        <PackageTags>$LogFile, NTFS, LFS, journal</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>icon.png</PackageIcon>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -34,5 +35,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <None Include="../icon.png" Pack="true" PackagePath=""/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\MFT\MFT.csproj" />
     </ItemGroup>
 </Project>

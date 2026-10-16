@@ -20,6 +20,7 @@
     </PropertyGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="MFT.Test" />
+        <InternalsVisibleTo Include="LogFile" />
         <PackageReference Include="Serilog" Version="4.4.0" />
         
         

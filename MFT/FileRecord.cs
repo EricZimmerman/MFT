@@ -32,7 +32,15 @@ public class FileRecord
     /// <summary>The smallest attribute: a resident attribute header</summary>
     private const int MinAttributeSize = 0x18;
 
-    public FileRecord(byte[] rawBytes, long offset, bool recoverFromSlack)
+    public FileRecord(byte[] rawBytes, long offset, bool recoverFromSlack) : this(rawBytes, offset, recoverFromSlack, true)
+    {
+    }
+
+    /// <param name="applyFixups">
+    ///     False for records that were never written to disk with fixups, such as the copies in $LogFile: there the
+    ///     sector ends hold real data
+    /// </param>
+    internal FileRecord(byte[] rawBytes, long offset, bool recoverFromSlack, bool applyFixups)
     {
         Offset = offset;
 
@@ -75,7 +83,12 @@ public class FileRecord
         //to build fixup info, take FixupEntryCount x 2 bytes as each are 2 bytes long
         var fixupTotalLength = FixupEntryCount * 2;
 
-        if (FixupOffset < 0 || FixupEntryCount < 1 || FixupOffset + fixupTotalLength > rawBytes.Length)
+        if (applyFixups == false)
+        {
+            FixupData = new FixupData(new byte[2]);
+            FixupOk = true;
+        }
+        else if (FixupOffset < 0 || FixupEntryCount < 1 || FixupOffset + fixupTotalLength > rawBytes.Length)
         {
             ParseErrors.Add(
                 $"Fixup array at 0x{FixupOffset:X} with 0x{FixupEntryCount:X} entries does not fit in the record; fixups not applied");
@@ -288,7 +301,7 @@ public class FileRecord
     
 
     /// <returns>The attribute, or null for a type that is not handled</returns>
-    private static Attribute ParseAttribute(AttributeType attrType, byte[] rawAttr)
+    internal static Attribute ParseAttribute(AttributeType attrType, byte[] rawAttr)
     {
         switch (attrType)
         {

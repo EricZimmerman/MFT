@@ -15,6 +15,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Boot\Boot.csproj" />
         <ProjectReference Include="..\I30\I30.csproj" />
+        <ProjectReference Include="..\LogFile\LogFile.csproj" />
         <ProjectReference Include="..\MFT\MFT.csproj" />
         <ProjectReference Include="..\O\O.csproj" />
         <ProjectReference Include="..\SDS\Secure.csproj" />

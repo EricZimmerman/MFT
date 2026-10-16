@@ -1,10 +1,10 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Overview
 
-`netstandard2.0` NuGet libraries for NTFS metadata, each its own package: **MFT** ($MFT), **Boot** ($Boot), **I30** (directory index allocations), **Secure** ($Secure:$SDS, plus $SDH/$SII), **Usn** ($UsnJrnl:$J) and **O** ($ObjId:$O). **LogFile** is not packable (the `Logfile` id on nuget.org is someone else's) and is being replaced by a real $LogFile parser. The main consumer is MFTECmd (and MFTExplorer); MFTECmd uses the packages, so library changes that it needs to follow go there as a package bump. Input may be corrupt or hostile.
+`netstandard2.0` NuGet libraries for NTFS metadata, each its own package: **MFT** ($MFT), **Boot** ($Boot), **I30** (directory index allocations), **Secure** ($Secure:$SDS, plus $SDH/$SII), **Usn** ($UsnJrnl:$J), **O** ($ObjId:$O) and **MFT.LogFile** ($LogFile; the project, assembly and namespace are `LogFile`, but the `Logfile` id on nuget.org is someone else's). MFT.LogFile depends on MFT (it decodes logged records with MFT's attribute parsers), so they are released together. The main consumer is MFTECmd (and MFTExplorer); MFTECmd uses the packages, so library changes that it needs to follow go there as a package bump. Input may be corrupt or hostile.
 
 ## Commands
 
@@ -33,12 +33,23 @@ dotnet pack -c Release
 - **Usn**: buffered; zeros are skipped 8 bytes at a time (records are 8 byte aligned and can start mid-page after zeros); junk skips to the next page. V2 and V3 (128 bit references, NTFS uses the low 64 bits) are parsed, V4 (range tracking) skipped by length. Bad timestamps set `InvalidTimestamp` and a `ParseErrors` entry. `UsnFile.Load` finds the start of the data in a sparse $J.
 - **O**: INDX pages of $O entries (0x58 bytes). Entries are collected across all pages (they used to be reset per page).
 
+## $LogFile (LogFile project, package MFT.LogFile)
+
+- Layout: two restart pages ("RSTR"/"CHKD", restart area at the restart offset: current LSN, sequence number bits, log size, log page data offset, clients), then 2 tail pages (LFS 1.1, Windows 7 and older) or 32 fast pages (LFS 2.0) holding copies of recent log pages, then the circular log area. All pages have fixups (`Fixups.Apply`).
+- LSN = sequence number (high `SequenceNumberBits` bits) and file offset / 8 (the rest). A record is accepted only where its own LSN maps (`LsnToOffset`); that is what keeps stale data out while still finding records from earlier passes (older sequence numbers).
+- Copies: a copy replaces the page it copies (found from its last end LSN) when it is newer: LFS 2.0 by the last LSN field at 0x08 (a copy with the same last LSN but a higher last end LSN is not newer: its last record continues into the next page), LFS 1.1 by the last end LSN (0x08 is the file offset in tail pages). Copies also supply pages past the end of a $LogFile that was cut short (the log size comes from the restart area).
+- Records: walked from each page's data offset, continuing across pages (client data resumes at the next page's data offset; a record never starts in the last 0x30 bytes of a page). Then every 8 byte position of every page is checked for a header whose LSN maps to it, because records from earlier passes can start mid-page after leftovers of a newer record. Records are returned by LSN.
+- `NtfsLogRecord` (client records): 0x20 byte header (redo/undo ops, offsets, lengths, target attribute, LCN count, record/attribute offsets, cluster block offset, target block size, target VCN), LCNs, redo/undo data. Data can be absent when only a length is logged (ZeroEndOfFileRecord, zero-filled updates): that is not an error. `TargetMftEntry` = (VCN x cluster size + cluster block offset x 512) / record size for operations on file records (cluster size defaults to 4096; pass the real one). Decoded: InitializeFileRecordSegment -> `FileRecord` (parsed without fixups: `FileRecord(..., applyFixups: false)`), Create/DeleteAttribute -> attribute, Add/DeleteIndexEntry -> `LoggedIndexEntry` ($FILE_NAME key), UpdateFileName -> `LoggedFileNameUpdate`.
+- Not decoded yet: the NTFS restart area (client restart records), the open attribute table and attribute names dumps (needed to name the target of non-resident updates), transaction grouping.
+- Checked against dfir_ntfs (msuhanov, GPL; used only as a black box, never copied): over six DFIR Artifact Museum logs and its own test logs (LFS 1.1 and 2.0), every record it finds is found with identical fields; this parser also finds records it misses (older passes, the first page of the log area). Decoded index entries and file records were checked against the $MFT of the same system.
+
 ## Tests
 
 `MFT.Test` (net10.0) references every library; `TestFiles/` is copied to the output.
 - `MftTests`: the real $MFT samples (counts, paths, timestamps, attribute lists), values checked against the Rust mft crate (pymft), which has its own quirks: it reads past 48 byte $STANDARD_INFORMATION, names the allocated size `logical_size`, and reports base record sequence numbers as 0.
 - `RecordRobustnessTests` (with `RecordBuilder`) and `MftFileTests`: built and damaged records and $MFT files. Add regression tests here.
 - `OtherFormatTests`: $Boot, $I30, $SDS, $J, $O and SIDs/ACEs, with built data where there are no samples.
+- `LogFileTests` (with `LogFileBuilder`, which builds LFS 2.0 logs): a real Server 2012 R2 $LogFile (gzipped in `TestFiles/DFIRArtifactMuseum/LogFile`), records spanning pages, fast copies, pages past the end of the file, old records mid-page, torn pages, decoding.
 - `TestFiles/Generated`: made with ntfsprogs (see its README). `TestFiles/DFIRArtifactMuseum`: MIT samples from the DFIR Artifact Museum (see its README). `CorpusTests`: a local `MFTs` folder next to the repo (or `MFT_CORPUS`), never copied into the repo.
 
 ## Versioning and release
