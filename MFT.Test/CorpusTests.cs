@@ -92,6 +92,8 @@ public class CorpusTests
                 }
             }
 
+            MftTests.CheckDirectoryEntries(mft);
+
             var withErrors = mft.FileRecords.Values.Count(t => t.HasParseErrors);
             TestContext.Out.WriteLine(
                 $"{file}: {mft.FileRecords.Count:N0} in use, {mft.FreeFileRecords.Count:N0} free, {paths:N0} paths, {withErrors:N0} records with parse errors");

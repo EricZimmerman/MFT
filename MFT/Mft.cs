@@ -14,6 +14,11 @@ public class Mft
     private readonly Dictionary<string, DirectoryNameMapValue> _directoryNameMap;
     private readonly Dictionary<string, HashSet<ParentMapEntry>> _parentDirectoryNameMap;
 
+    //the directories (record keys) that have a directory in _parentDirectoryNameMap
+    private readonly HashSet<string> _directoriesWithSubdirectories = new();
+
+    private static readonly ParentMapEntry[] NoEntries = new ParentMapEntry[0];
+
     public Mft(Stream fileStream, bool recoverFromSlack)
     {
         FileRecords = new Dictionary<string, FileRecord>();
@@ -239,20 +244,7 @@ public class Mft
                     }
                 }
 
-                var key = fileRecord.Value.GetKey();
-                var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
-
-                if (_parentDirectoryNameMap.ContainsKey(parentKey) == false)
-                {
-                    _parentDirectoryNameMap.Add(parentKey, new HashSet<ParentMapEntry>());
-                }
-
-                if (fna.FileInfo.FileName.Equals(".") == false)
-                {
-                    _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName,
-                        fileRecord.Value.GetKey(true),
-                        fileRecord.Value.IsDirectory()));
-                }
+                AddToParentMap(fna, fileRecord.Value);
             }
         }
 
@@ -303,32 +295,96 @@ public class Mft
                     }
                 }
 
-                var key = fileRecord.GetKey();
-                var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
-
-                if (_parentDirectoryNameMap.ContainsKey(parentKey) == false)
-                {
-                    _parentDirectoryNameMap.Add(parentKey, new HashSet<ParentMapEntry>());
-                }
-
-                if (fna.FileInfo.FileName.Equals(".") == false)
-                {
-                    _parentDirectoryNameMap[parentKey].Add(new ParentMapEntry(fna.FileInfo.FileName,
-                        fileRecord.GetKey(true),
-                        fileRecord.IsDirectory()));
-                }
+                AddToParentMap(fna, fileRecord);
             }
         }
     }
 
+    /// <summary>
+    ///     Adds a name of a record to its parent's entries (the parent gets a map entry even for ".", which is not added)
+    /// </summary>
+    private void AddToParentMap(FileName fna, FileRecord fileRecord)
+    {
+        var parentKey = fna.FileInfo.ParentMftRecord.GetKey();
+
+        if (_parentDirectoryNameMap.TryGetValue(parentKey, out var entries) == false)
+        {
+            entries = new HashSet<ParentMapEntry>();
+            _parentDirectoryNameMap.Add(parentKey, entries);
+        }
+
+        if (fna.FileInfo.FileName.Equals(".") == false)
+        {
+            var isDirectory = fileRecord.IsDirectory();
+
+            entries.Add(new ParentMapEntry(fna.FileInfo.FileName, fileRecord.GetKey(true), isDirectory, fileRecord));
+
+            if (isDirectory)
+            {
+                _directoriesWithSubdirectories.Add(parentKey);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     The names in a directory (key: <c>"{entry:X8}-{sequence:X8}"</c>, as in <see cref="FileRecords" />), directories
+    ///     first, then by name. A new sorted list on every call: <see cref="GetDirectoryEntries" /> is the unsorted one
+    /// </summary>
     public List<ParentMapEntry> GetDirectoryContents(string key)
     {
-        if (_parentDirectoryNameMap.ContainsKey(key))
+        if (_parentDirectoryNameMap.TryGetValue(key, out var entries))
         {
-            return _parentDirectoryNameMap[key].OrderByDescending(t => t.IsDirectory).ThenBy(t => t.FileName).ToList();
+            return entries.OrderByDescending(t => t.IsDirectory).ThenBy(t => t.FileName).ToList();
         }
 
         return new List<ParentMapEntry>();
+    }
+
+    /// <summary>
+    ///     The names in a directory (key: <c>"{entry:X8}-{sequence:X8}"</c>, as in <see cref="FileRecords" />), unsorted
+    ///     (the same entries as <see cref="GetDirectoryContents" />, without building and sorting a list). Empty when the
+    ///     directory has none
+    /// </summary>
+    public IReadOnlyCollection<ParentMapEntry> GetDirectoryEntries(string key)
+    {
+        if (key != null && _parentDirectoryNameMap.TryGetValue(key, out var entries))
+        {
+            return new ReadOnlyEntries(entries);
+        }
+
+        return NoEntries;
+    }
+
+    /// <summary>
+    ///     Whether a directory (key: <c>"{entry:X8}-{sequence:X8}"</c>) has a directory among its entries
+    ///     (<see cref="GetDirectoryEntries" />)
+    /// </summary>
+    public bool HasSubdirectories(string key)
+    {
+        return key != null && _directoriesWithSubdirectories.Contains(key);
+    }
+
+    //a directory's entries, without giving out the set itself
+    private sealed class ReadOnlyEntries : IReadOnlyCollection<ParentMapEntry>
+    {
+        private readonly HashSet<ParentMapEntry> _entries;
+
+        public ReadOnlyEntries(HashSet<ParentMapEntry> entries)
+        {
+            _entries = entries;
+        }
+
+        public int Count => _entries.Count;
+
+        public IEnumerator<ParentMapEntry> GetEnumerator()
+        {
+            return _entries.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 
     private void ProcessExtensionBlocks()

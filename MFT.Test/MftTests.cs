@@ -148,6 +148,50 @@ public class MftTests
         mft.GetDirectoryContents("00000005-00000005").Should().HaveCount(43);
     }
 
+    [TestCase("NIST/DFR-16")]
+    [TestCase("xw")]
+    [TestCase("tdungan")]
+    [TestCase("Generated")]
+    public void DirectoryEntriesMatchContents(string folder)
+    {
+        var mft = MftFile.Load(TestFile(folder, "$MFT"), false);
+
+        CheckDirectoryEntries(mft).Should().BeGreaterThan(0);
+    }
+
+    /// <summary>
+    ///     For every record key: <see cref="Mft.GetDirectoryEntries" /> has the same entries as
+    ///     <see cref="Mft.GetDirectoryContents" />, each with its record, and <see cref="Mft.HasSubdirectories" /> is
+    ///     whether any of them is a directory. Returns the number of directories with entries
+    /// </summary>
+    public static int CheckDirectoryEntries(Mft mft)
+    {
+        var withEntries = 0;
+        foreach (var key in mft.FileRecords.Keys.Concat(mft.FreeFileRecords.Keys))
+        {
+            var contents = mft.GetDirectoryContents(key);
+            var entries = mft.GetDirectoryEntries(key);
+
+            entries.Count.Should().Be(contents.Count, key);
+            new System.Collections.Generic.HashSet<ParentMapEntry>(entries).SetEquals(contents).Should().BeTrue(key);
+            mft.HasSubdirectories(key).Should().Be(contents.Any(t => t.IsDirectory), key);
+
+            foreach (var entry in entries)
+            {
+                entry.Record.Should().NotBeNull(key);
+                entry.Record.GetKey(true).Should().Be(entry.Key, key);
+                entry.Record.IsDirectory().Should().Be(entry.IsDirectory, key);
+            }
+
+            if (entries.Count > 0)
+            {
+                withEntries += 1;
+            }
+        }
+
+        return withEntries;
+    }
+
     [Test]
     public void IndexRootEntriesHaveTheirOwnReferences()
     {

@@ -69,6 +69,47 @@ public class MftFileTests
     }
 
     [Test]
+    public void DirectoryEntriesAndSubdirectories()
+    {
+        //10 has two names in 8 and one in 9; 12 is a deleted directory in 8
+        var mft = Load(Volume(Directory(8, 5, "dir"), Directory(9, 8, "sub"),
+            Record(10, 1, new[]
+            {
+                StandardInfo(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc)), FileName(8, 1, "a.txt"), FileName(8, 1, "b.txt"),
+                FileName(9, 1, "c.txt")
+            }),
+            File_(11, 9, "d.txt"),
+            Record(12, 2, new[] { StandardInfo(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc)), FileName(8, 1, "gone") }, sequence: 2)));
+
+        var entries = mft.GetDirectoryEntries("00000008-00000001");
+        entries.Select(t => t.FileName).Should().BeEquivalentTo("sub", "a.txt", "b.txt", "gone");
+        entries.Should().BeSubsetOf(mft.GetDirectoryContents("00000008-00000001")).And.HaveCount(4);
+
+        entries.Single(t => t.FileName == "sub").Record.Should().BeSameAs(mft.FileRecords["00000009-00000001"]);
+        entries.Single(t => t.FileName == "a.txt").Record.Should().BeSameAs(mft.FileRecords["0000000A-00000001"]);
+        entries.Single(t => t.FileName == "b.txt").Record.Should().BeSameAs(mft.FileRecords["0000000A-00000001"]);
+        var gone = entries.Single(t => t.FileName == "gone");
+        gone.Record.Should().BeSameAs(mft.FreeFileRecords["0000000C-00000001"]);
+        gone.Key.Should().Be("12-1");
+        gone.IsDirectory.Should().BeTrue();
+
+        mft.GetDirectoryEntries("00000009-00000001").Select(t => t.FileName).Should().BeEquivalentTo("c.txt", "d.txt");
+        //the set itself is not handed out
+        entries.Should().NotBeAssignableTo<System.Collections.Generic.ICollection<ParentMapEntry>>();
+        mft.GetDirectoryEntries("00000063-00000001").Should().BeEmpty();
+        mft.GetDirectoryEntries(null).Should().BeEmpty();
+
+        mft.HasSubdirectories("00000005-00000005").Should().BeTrue();
+        mft.HasSubdirectories("00000008-00000001").Should().BeTrue();
+        mft.HasSubdirectories("00000009-00000001").Should().BeFalse();
+        mft.HasSubdirectories("0000000A-00000001").Should().BeFalse();
+        mft.HasSubdirectories("00000063-00000001").Should().BeFalse();
+        mft.HasSubdirectories(null).Should().BeFalse();
+
+        new ParentMapEntry("x", "1-1", false).Record.Should().BeNull();
+    }
+
+    [Test]
     public void DirectoryCycleDoesNotHang()
     {
         //8's parent is 9 and 9's parent is 8: this looped forever
