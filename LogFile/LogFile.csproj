@@ -6,7 +6,7 @@
         <AssemblyName>LogFile</AssemblyName>
         <PackageProjectUrl>https://github.com/EricZimmerman/MFT</PackageProjectUrl>
         <RepositoryUrl>https://github.com/EricZimmerman/MFT</RepositoryUrl>
-        <Copyright>Eric R. Zimmerman</Copyright>
+        <Copyright>Eric R. Zimmerman 2027</Copyright>
         <LangVersion>10</LangVersion>
         <Authors>Eric R. Zimmerman</Authors>
         <Description>Parses NTFS $LogFile: restart areas, log record pages and NTFS log records (redo/undo operations), with file records, attributes and index entries decoded</Description>
