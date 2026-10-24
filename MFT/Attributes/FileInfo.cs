@@ -16,7 +16,11 @@ public enum NameTypes
 
 public class FileInfo
 {
-    public FileInfo(byte[] rawBytes)
+    public FileInfo(byte[] rawBytes) : this(rawBytes, default)
+    {
+    }
+
+    internal FileInfo(byte[] rawBytes, in TimestampSource source)
     {
         var entryBytes = new byte[8];
 
@@ -24,13 +28,13 @@ public class FileInfo
 
         ParentMftRecord = new MftEntryInfo(entryBytes);
 
-        _createdOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x8), "Invalid CreatedOn timestamp! Enable --debug for record information");
+        _createdOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x8), "CreatedOn", source);
 
-        _contentModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x10), "Invalid ContentModifiedOn timestamp! Enable --debug for record information");
+        _contentModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x10), "ContentModifiedOn", source);
 
-        _recordModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x18), "Invalid RecordModifiedOn timestamp! Enable --debug for record information");
+        _recordModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x18), "RecordModifiedOn", source);
 
-        _lastAccessedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x20), "Invalid LastAccessedOn timestamp! Enable --debug for record information");
+        _lastAccessedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x20), "LastAccessedOn", source);
 
         PhysicalSize = BitConverter.ToUInt64(rawBytes, 0x28);
         LogicalSize = BitConverter.ToUInt64(rawBytes, 0x30);

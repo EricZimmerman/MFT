@@ -11,7 +11,12 @@ public class IndexEntryI30
             LastEntry = 0x2
         }
 
-        public IndexEntryI30(byte[] rawBytes, long absoluteOffset, int pageNumber, bool fromSlack)
+        public IndexEntryI30(byte[] rawBytes, long absoluteOffset, int pageNumber, bool fromSlack) : this(rawBytes,
+            absoluteOffset, pageNumber, fromSlack, TimestampSource.IndexEntry(absoluteOffset, 0, fromSlack))
+        {
+        }
+
+        internal IndexEntryI30(byte[] rawBytes, long absoluteOffset, int pageNumber, bool fromSlack, in TimestampSource source)
         {
             PageNumber = pageNumber;
             FromSlack = fromSlack;
@@ -36,7 +41,7 @@ public class IndexEntryI30
                 skipOffset = 8 + 2 + 2 + 4;
             }
 
-            FileInfo = new Attributes.FileInfo(rawBytes.Skip(skipOffset).ToArray());
+            FileInfo = new Attributes.FileInfo(rawBytes.Skip(skipOffset).ToArray(), source);
         }
 
         public OEntryFlag Flag { get; }

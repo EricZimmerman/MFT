@@ -8,11 +8,11 @@ namespace MFT.Other;
 public class IndexEntry
 {
     /// <param name="rawBytes">The entry from its length field on (8 bytes in, after the file reference)</param>
-    public IndexEntry(byte[] rawBytes) : this(rawBytes, null)
+    public IndexEntry(byte[] rawBytes) : this(rawBytes, null, default)
     {
     }
 
-    private IndexEntry(byte[] rawBytes, MftEntryInfo mftReference)
+    private IndexEntry(byte[] rawBytes, MftEntryInfo mftReference, in TimestampSource source)
     {
         MftReference = mftReference;
 
@@ -51,19 +51,19 @@ public class IndexEntry
 
             ParentMftRecord = new MftEntryInfo(mftInfoBytes);
 
-            _createdOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "Invalid CreatedOn timestamp. Enable --debug for more details");
+            _createdOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "CreatedOn", source);
 
             index += 8;
 
-            _contentModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "Invalid ContentModifiedOn timestamp. Enable --debug for more details");
+            _contentModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "ContentModifiedOn", source);
 
             index += 8;
 
-            _recordModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "Invalid RecordModifiedOn timestamp. Enable --debug for more details");
+            _recordModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "RecordModifiedOn", source);
 
             index += 8;
 
-            _lastAccessedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "Invalid LastAccessedOn timestamp. Enable --debug for more details");
+            _lastAccessedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, index), "LastAccessedOn", source);
 
             index += 8;
 
@@ -112,7 +112,9 @@ public class IndexEntry
     public MftEntryInfo MftReference { get; }
 
     /// <summary>Parses a whole index entry: the 8 byte file reference, then the entry</summary>
-    public static IndexEntry FromEntry(byte[] entry)
+    public static IndexEntry FromEntry(byte[] entry) => FromEntry(entry, default);
+
+    internal static IndexEntry FromEntry(byte[] entry, in TimestampSource source)
     {
         var reference = new byte[8];
         Buffer.BlockCopy(entry, 0, reference, 0, 8);
@@ -120,7 +122,7 @@ public class IndexEntry
         var rest = new byte[entry.Length - 8];
         Buffer.BlockCopy(entry, 8, rest, 0, rest.Length);
 
-        return new IndexEntry(rest, new MftEntryInfo(reference));
+        return new IndexEntry(rest, new MftEntryInfo(reference), source);
     }
 
     public override string ToString()

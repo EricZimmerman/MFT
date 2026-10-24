@@ -25,8 +25,14 @@ public class IndexRoot : Attribute
         IsLast = 0x002
     }
 
-    public IndexRoot(byte[] rawBytes) : base(rawBytes)
+    public IndexRoot(byte[] rawBytes) : this(rawBytes, default)
     {
+    }
+
+    internal IndexRoot(byte[] rawBytes, in TimestampSource source) : base(rawBytes)
+    {
+        var where = source.WithAttribute("$INDEX_ROOT entry");
+
         var index = (int)ContentOffset;
 
         IndexedAttributeType = (AttributeType)BitConverter.ToInt32(rawBytes, index);
@@ -81,7 +87,7 @@ public class IndexRoot : Attribute
             var buff = new byte[indexValSize];
             Buffer.BlockCopy(rawBytes, index, buff, 0, indexValSize);
 
-            var ie = IndexEntry.FromEntry(buff);
+            var ie = IndexEntry.FromEntry(buff, where);
 
             //this was read as the root's own reference, but it is the first entry's
             MftRecord ??= ie.MftReference;

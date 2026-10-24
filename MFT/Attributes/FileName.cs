@@ -1,17 +1,22 @@
 ﻿using System;
 using System.Text;
+using MFT.Other;
 
 namespace MFT.Attributes;
 
 public class FileName : Attribute
 {
-    public FileName(byte[] rawBytes) : base(rawBytes)
+    public FileName(byte[] rawBytes) : this(rawBytes, default)
+    {
+    }
+
+    internal FileName(byte[] rawBytes, in TimestampSource source) : base(rawBytes)
     {
         var content = new byte[rawBytes.Length - ContentOffset];
 
         Buffer.BlockCopy(rawBytes, ContentOffset, content, 0, rawBytes.Length - ContentOffset);
 
-        FileInfo = new FileInfo(content);
+        FileInfo = new FileInfo(content, source.WithAttribute("$FILE_NAME"));
     }
 
     public FileInfo FileInfo { get; }

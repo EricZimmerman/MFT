@@ -45,7 +45,8 @@ public class FileRecord
     ///     False for records that were never written to disk with fixups, such as the copies in $LogFile: there the
     ///     sector ends hold real data
     /// </param>
-    internal FileRecord(byte[] rawBytes, long offset, bool recoverFromSlack, bool applyFixups)
+    /// <param name="logLsn">The LSN of the $LogFile record this one was logged in, for warnings</param>
+    internal FileRecord(byte[] rawBytes, long offset, bool recoverFromSlack, bool applyFixups, ulong logLsn = 0)
     {
         Offset = offset;
 
@@ -179,6 +180,8 @@ public class FileRecord
             : rawBytes.Length;
         var used = ActualRecordSize > 0 && ActualRecordSize <= end ? ActualRecordSize : end;
 
+        var source = TimestampSource.FileRecord(EntryNumber, SequenceNumber, offset, logLsn);
+
         //start attribute processing at FirstAttributeOffset
         var index = (int)FirstAttributeOffset;
 
@@ -228,7 +231,7 @@ public class FileRecord
             var failed = false;
             try
             {
-                attribute = ParseAttribute(attrType, rawAttr);
+                attribute = ParseAttribute(attrType, rawAttr, source);
             }
             catch (Exception e)
             {
@@ -306,21 +309,22 @@ public class FileRecord
     }
     
 
+    /// <summary>Parses an attribute; source says where it is, for warnings</summary>
     /// <returns>The attribute, or null for a type that is not handled</returns>
-    internal static Attribute ParseAttribute(AttributeType attrType, byte[] rawAttr)
+    internal static Attribute ParseAttribute(AttributeType attrType, byte[] rawAttr, in TimestampSource source = default)
     {
         switch (attrType)
         {
             case AttributeType.StandardInformation:
-                return new StandardInfo(rawAttr);
+                return new StandardInfo(rawAttr, source);
             case AttributeType.FileName:
-                return new FileName(rawAttr);
+                return new FileName(rawAttr, source);
             case AttributeType.Data:
                 return new Data(rawAttr);
             case AttributeType.IndexAllocation:
                 return new IndexAllocation(rawAttr);
             case AttributeType.IndexRoot:
-                return new IndexRoot(rawAttr);
+                return new IndexRoot(rawAttr, source);
             case AttributeType.Bitmap:
                 return new Bitmap(rawAttr);
             case AttributeType.VolumeVersionObjectId:
@@ -387,7 +391,9 @@ public class FileRecord
 
                 var md5 = GetMd5(buff);
 
-                var slackIndex = new IndexEntryI30(buff, startOffset + start - 0x10, pageNumber, true)
+                var slackOffset = startOffset + start - 0x10;
+                var slackIndex = new IndexEntryI30(buff, slackOffset, pageNumber, true,
+                    TimestampSource.IndexEntry(slackOffset, entryNumber, true))
                 {
                     Md5 = md5
                 };

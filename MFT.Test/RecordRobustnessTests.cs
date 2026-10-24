@@ -6,6 +6,9 @@ using FluentAssertions;
 using MFT.Attributes;
 using MFT.Other;
 using NUnit.Framework;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using static MFT.Test.RecordBuilder;
 
 namespace MFT.Test;
@@ -275,5 +278,60 @@ public class RecordRobustnessTests
                 }
             }
         }
+    }
+    private sealed class Collector : ILogEventSink
+    {
+        public readonly System.Collections.Generic.List<string> Messages = new();
+        public void Emit(LogEvent logEvent) => Messages.Add(logEvent.RenderMessage());
+    }
+
+    /// <summary>Warnings logged while running action (issue #22: they say where the invalid timestamp is)</summary>
+    private static System.Collections.Generic.List<string> Warnings(Action action)
+    {
+        var collector = new Collector();
+        var old = Log.Logger;
+        Log.Logger = new LoggerConfiguration().MinimumLevel.Warning().WriteTo.Sink(collector).CreateLogger();
+        try
+        {
+            action();
+        }
+        finally
+        {
+            Log.Logger = old;
+        }
+
+        return collector.Messages;
+    }
+
+    [Test]
+    public void InvalidTimestampWarningsSayWhere()
+    {
+        var si = StandardInfo(Created);
+        var content = BitConverter.ToUInt16(si, 0x14);
+        BitConverter.GetBytes(long.MaxValue).CopyTo(si, content); //CreatedOn
+        var fn = FileName(5, 5, "test.txt");
+        BitConverter.GetBytes(long.MaxValue).CopyTo(fn, BitConverter.ToUInt16(fn, 0x14) + 0x20); //LastAccessedOn
+        var record = Record(70, 1, new[] { si, fn }, sequence: 3);
+
+        FileRecord fr = null;
+        var warnings = Warnings(() => fr = new FileRecord(record, 0x11800, false));
+
+        fr.Attributes.OfType<StandardInfo>().Single().CreatedOn.Should().BeNull();
+        warnings.Should().Equal(
+            "Invalid CreatedOn timestamp 0x7FFFFFFFFFFFFFFF in $STANDARD_INFORMATION of FILE record 70-3 at offset 0x11800",
+            "Invalid LastAccessedOn timestamp 0x7FFFFFFFFFFFFFFF in $FILE_NAME of FILE record 70-3 at offset 0x11800");
+    }
+
+    [Test]
+    public void TimestampSources()
+    {
+        TimestampSource.IndexEntry(0x2018, 0, false).ToString().Should().Be("index entry at offset 0x2018");
+        TimestampSource.IndexEntry(0x2A0, 70, true).ToString().Should().Be("slack index entry of FILE record 70 at record offset 0x2A0");
+        TimestampSource.FileRecord(70, 3, 7, 0x1F00A).WithAttribute("$FILE_NAME").ToString().Should()
+            .Be("$FILE_NAME of FILE record 70-3 in $LogFile record LSN 0x1F00A");
+        TimestampSource.LogRecord(0x1F00A).WithAttribute("index entry").ToString().Should()
+            .Be("index entry in $LogFile record LSN 0x1F00A");
+        default(TimestampSource).WithAttribute("$STANDARD_INFORMATION").ToString().Should().Be("$STANDARD_INFORMATION");
+        default(TimestampSource).ToString().Should().Be("unknown location");
     }
 }

@@ -52,7 +52,7 @@ public enum NtfsOperation : ushort
 /// <summary>An index entry from redo or undo data: the file it points to and its $FILE_NAME key</summary>
 public class LoggedIndexEntry
 {
-    internal LoggedIndexEntry(byte[] data)
+    internal LoggedIndexEntry(byte[] data, ulong lsn)
     {
         var reference = new byte[8];
         Buffer.BlockCopy(data, 0, reference, 0, 8);
@@ -65,7 +65,7 @@ public class LoggedIndexEntry
         {
             var key = new byte[KeyLength];
             Buffer.BlockCopy(data, 0x10, key, 0, KeyLength);
-            FileInfo = new FileInfo(key);
+            FileInfo = new FileInfo(key, TimestampSource.LogRecord(lsn).WithAttribute("index entry"));
         }
     }
 
@@ -232,30 +232,30 @@ public class NtfsLogRecord
             var record = new byte[Math.Max(RedoData.Length, DefaultFileRecordSize)];
             Buffer.BlockCopy(RedoData, 0, record, 0, RedoData.Length);
             //copies in the log were never written with fixups, so the sector ends are real data
-            FileRecord = new FileRecord(record, TargetMftEntry ?? 0, false, false);
+            FileRecord = new FileRecord(record, TargetMftEntry ?? 0, false, false, lsn);
         }
 
         //a whole attribute: created (redo) or deleted (undo)
         if (RedoOperation == NtfsOperation.CreateAttribute)
         {
-            RedoAttribute = ParseAttribute(RedoData);
+            RedoAttribute = ParseAttribute(RedoData, lsn);
         }
 
         if (UndoOperation == NtfsOperation.CreateAttribute)
         {
             //undo of a DeleteAttribute recreates it
-            UndoAttribute = ParseAttribute(UndoData);
+            UndoAttribute = ParseAttribute(UndoData, lsn);
         }
 
         //index entries: added (redo) or deleted (undo, which re-adds them)
         if (RedoOperation is NtfsOperation.AddIndexEntryRoot or NtfsOperation.AddIndexEntryAllocation && RedoData.Length >= 0x10)
         {
-            RedoIndexEntry = new LoggedIndexEntry(RedoData);
+            RedoIndexEntry = new LoggedIndexEntry(RedoData, lsn);
         }
 
         if (UndoOperation is NtfsOperation.AddIndexEntryRoot or NtfsOperation.AddIndexEntryAllocation && UndoData.Length >= 0x10)
         {
-            UndoIndexEntry = new LoggedIndexEntry(UndoData);
+            UndoIndexEntry = new LoggedIndexEntry(UndoData, lsn);
         }
 
         if (RedoOperation is NtfsOperation.UpdateFileNameRoot or NtfsOperation.UpdateFileNameAllocation && RedoData.Length >= 0x38)
@@ -269,7 +269,7 @@ public class NtfsLogRecord
         }
     }
 
-    private static MFT.Attributes.Attribute ParseAttribute(byte[] data)
+    private static MFT.Attributes.Attribute ParseAttribute(byte[] data, ulong lsn)
     {
         if (data.Length < 0x18)
         {
@@ -284,7 +284,7 @@ public class NtfsLogRecord
 
         var raw = new byte[size];
         Buffer.BlockCopy(data, 0, raw, 0, size);
-        return MFT.FileRecord.ParseAttribute((AttributeType)BitConverter.ToInt32(data, 0), raw);
+        return MFT.FileRecord.ParseAttribute((AttributeType)BitConverter.ToInt32(data, 0), raw, TimestampSource.LogRecord(lsn));
     }
 
     public NtfsOperation RedoOperation { get; }

@@ -44,15 +44,21 @@ public class StandardInfo : Attribute
         IsCaseSensitive = 0x01
     }
 
-    public StandardInfo(byte[] rawBytes) : base(rawBytes)
+    public StandardInfo(byte[] rawBytes) : this(rawBytes, default)
     {
-        _createdOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x18), "Invalid CreatedOn timestamp! Enable --debug for record information");
+    }
 
-        _contentModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x20), "Invalid ContentModifiedOn timestamp! Enable --debug for record information");
+    internal StandardInfo(byte[] rawBytes, in TimestampSource source) : base(rawBytes)
+    {
+        var where = source.WithAttribute("$STANDARD_INFORMATION");
 
-        _recordModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x28), "Invalid RecordModifiedOn timestamp! Enable --debug for record information");
+        _createdOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x18), "CreatedOn", where);
 
-        _lastAccessedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x30), "Invalid LastAccessedOn timestamp! Enable --debug for record information");
+        _contentModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x20), "ContentModifiedOn", where);
+
+        _recordModifiedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x28), "RecordModifiedOn", where);
+
+        _lastAccessedOn = FileTimes.Check(BitConverter.ToInt64(rawBytes, 0x30), "LastAccessedOn", where);
 
         Flags = (Flag)BitConverter.ToInt32(rawBytes, 0x38);
 
